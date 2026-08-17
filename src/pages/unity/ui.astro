@@ -3,15 +3,10 @@ import DocPage from '../../components/DocPage.astro';
 import Callout from '../../components/Callout.astro';
 import CodeBlock from '../../components/CodeBlock.astro';
 ---
-<DocPage eyebrow="UNITY / UI" title="導入とUI実装" lead="最新ReleaseのUPMアーカイブを追加すると、ランタイムが自動起動し、UI Toolkit、uGUI、TextMeshProの実行時UIを収集します。" description="Gua Unityパッケージの導入とUI自動収集。" section="unity">
-  <h2>1. UPMパッケージを追加する</h2>
-  <Callout kind="tip" title="Latest Releaseから導入"><p><a href="https://github.com/link1345/gua/releases/latest">Guaの最新Release</a>を開き、<code>com.link1345.gua-&lt;version&gt;.tgz</code>を取得します。UnityのPackage Managerで<strong>Add package from tarball</strong>を選び、このファイルを指定してください。通常利用では配布済みUPMパッケージを使用します。</p></Callout>
-  <ol class="steps"><li><strong>Latest Releaseを開く</strong><p>AssetsからUnity用<code>.tgz</code>をダウンロードします。</p></li><li><strong>Package Managerへ追加</strong><p><strong>＋ → Add package from tarball</strong>を選択して、ダウンロードしたファイルを指定します。</p></li><li><strong>サンプルを取り込む</strong><p>Package ManagerのGua詳細画面で<strong>Samples</strong>を開き、<strong>Runtime UI Fixture</strong>をImportすると、対応UIをまとめたシーンを確認できます。</p></li></ol>
-  <Callout kind="warn" title="Player設定"><p>Windows x86_64、Mono、.NET Standard 2.1 API Compatibility Levelを使用します。TextMeshProを使う場合は<strong>Import TMP Essential Resources</strong>を先に実行します。</p></Callout>
-  <h2>2. UI Toolkitで実装する</h2>
-  <p><code>BeforeSceneLoad</code>でbootstrap driverとruntimeの<strong>2つ</strong>の非表示・永続GameObjectが作られます。driverの<code>LateUpdate()</code>がruntimeのframe処理を進めます。利用者による初期化、semantic node登録、毎フレーム呼び出し、破棄処理は不要です。</p>
-  <p><code>UIDocument</code>以下へ標準Controlを配置します。<code>name</code>または<code>viewDataKey</code>がGuaの安定IDとして使われます。</p>
-  <CodeBlock title="UI Toolkitの短縮例" lang="csharp" code={`using UnityEngine;
+<DocPage eyebrow="UNITY / UI" title="Install and implement UI" lead="Add the UPM archive from the latest release. The runtime starts automatically and reflects runtime UI Toolkit, uGUI, and TextMeshPro controls." description="Install the Gua Unity package and reflect runtime UI." section="unity">
+  <h2>1. Add the UPM package</h2><Callout kind="tip" title="Install from the latest release"><p>Open the <a href="https://github.com/link1345/gua/releases/latest">latest Gua release</a> and download <code>com.link1345.gua-&lt;version&gt;.tgz</code>. In Package Manager, choose <strong>Add package from tarball</strong> and select it. The released UPM archive is the normal installation path.</p></Callout><ol class="steps"><li><strong>Open the latest release</strong><p>Download the Unity <code>.tgz</code> from Assets.</p></li><li><strong>Add it in Package Manager</strong><p>Choose <strong>＋ → Add package from tarball</strong> and select the downloaded archive.</p></li><li><strong>Import the sample</strong><p>Open <strong>Samples</strong> on the Gua package page and import <strong>Runtime UI Fixture</strong> for a scene containing the supported UI systems.</p></li></ol>
+  <Callout kind="warn" title="Player settings"><p>Use Windows x86_64, Mono, and the .NET Standard 2.1 API Compatibility Level. Import TMP Essential Resources before building when TextMeshPro is present.</p></Callout>
+  <h2>2. Implement UI Toolkit controls</h2><p><code>BeforeSceneLoad</code> creates a hidden bootstrap driver and runtime. Users do not initialize, register semantic nodes, call frames, or dispose them manually. Place standard controls below a runtime <code>UIDocument</code>; <code>name</code> or <code>viewDataKey</code> provides stable identity.</p><CodeBlock title="Short UI Toolkit example" lang="csharp" code={`using UnityEngine;
 using UnityEngine.UIElements;
 
 public sealed class TitleScreen : MonoBehaviour
@@ -20,15 +15,11 @@ public sealed class TitleScreen : MonoBehaviour
 
     private void OnEnable()
     {
-        var root = document.rootVisualElement;
-        var start = root.Q<Button>("start");
+        var start = document.rootVisualElement.Q<Button>("start");
         start.clicked += () => Debug.Log("Start Game");
     }
-}`} />
-  <p>上の例ではUXML側のButtonへ<code>name="start"</code>を設定します。Button、Toggle、TextField、Slider、DropdownField、ListViewなどは自動的にSemantic UI Treeへ反映されます。</p>
-  <h2>3. uGUI / TextMeshProで実装する</h2>
-  <p>Canvas以下へ標準uGUI Controlを配置します。長期間テストから参照するGameObjectには<code>GuaId</code>を追加してIDを固定します。</p>
-  <CodeBlock title="uGUIの短縮例" lang="csharp" code={`using Gua.Unity;
+}`} /><p>Set <code>name="start"</code> on the UXML Button. Buttons, toggles, text fields, sliders, dropdowns, and lists are reflected automatically.</p>
+  <h2>3. Implement uGUI or TextMeshPro controls</h2><p>Place standard controls below a Canvas. Add <code>GuaId</code> when a GameObject needs a stable long-lived test ID.</p><CodeBlock title="Short uGUI example" lang="csharp" code={`using Gua.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -43,23 +34,13 @@ public sealed class TitleScreen : MonoBehaviour
         id.Value = "start";
         startButton.onClick.AddListener(() => Debug.Log("Start Game"));
     }
-}`} />
-  <p>TextMeshProのButton、InputField、Dropdown、Textも同じCanvas階層から収集されます。サンプル全体は<a href="https://github.com/link1345/gua/blob/47515fb/bindings/unity/Samples~/Runtime%20UI%20Fixture/GuaRuntimeUiSample.cs"><code>GuaRuntimeUiSample.cs</code></a>と<a href="https://github.com/link1345/gua/blob/47515fb/examples/unity-smoke/Assets/GuaUnityFixture.cs"><code>GuaUnityFixture.cs</code></a>で確認できます。</p>
-  <h2>4. 安定IDと画面名を付ける</h2>
-  <p>IDは自動生成されますが、テストから長期間参照する要素には<code>GuaId</code>を付けます。UI Toolkitは<code>viewDataKey</code>、次に<code>name</code>を優先します。uGUI/TMPは<code>GuaId.Value</code>が無ければscene path、Transform名、sibling indexから生成します。</p>
-  <CodeBlock title="任意の明示IDと論理画面" lang="csharp" code={`using Gua.Unity;
-
+}`} /><p>TextMeshPro buttons, input fields, dropdowns, and text are collected from the same Canvas hierarchy. See <a href="https://github.com/link1345/gua/blob/47515fb/bindings/unity/Samples~/Runtime%20UI%20Fixture/GuaRuntimeUiSample.cs"><code>GuaRuntimeUiSample.cs</code></a> and <a href="https://github.com/link1345/gua/blob/47515fb/examples/unity-smoke/Assets/GuaUnityFixture.cs"><code>GuaUnityFixture.cs</code></a> for complete examples.</p>
+  <h2>4. Add stable identity where needed</h2><p>UI Toolkit prefers <code>viewDataKey</code>, then <code>name</code>. uGUI/TMP prefers <code>GuaId.Value</code>, otherwise it derives an ID from scene path, Transform names, and sibling indices.</p>
+  <CodeBlock title="Optional identity and screen" lang="csharp" code={`using Gua.Unity;
 startButton.gameObject.AddComponent<GuaId>().Value = "start";
 screenRoot.AddComponent<GuaScreen>().Value = "title";`} />
-  <Callout kind="tip" title="IDの契約"><p><code>/</code>は<code>~1</code>へescapeされ、UTF-8で127 byteを超えるIDはhash suffix付きで短縮されます。同一frameの重複IDは最初のnodeだけが採用され、残りはruntime logへ記録されます。</p></Callout>
-  <Callout kind="warn" title="GuaScreenは一つにする"><p>複数の<code>GuaScreen</code>がある場合は最初に見つかったものが使われますが、探索順は公開契約ではありません。一つの論理画面につき一つだけ配置します。</p></Callout>
-  <h2>5. 外部接続を許可する</h2>
-  <p>既定のWebSocketポートは<code>8765</code>です。プロセス起動前に<code>GUA_BRIDGE_PORT</code>を設定すると変更できます。Inspectorと<code>gui-mcp</code>はGodot版と同じブリッジへ接続します。</p>
-  <h2>観測と操作の原則</h2>
-  <ul>
-    <li>非表示nodeは消去せず、<code>visible: false</code>として観測します。無効状態も<code>enabled</code>へ反映します。</li>
-    <li>boundsはスクリーンショットと同じ物理pixel座標です。原点は左上、Xは右、Yは下です。</li>
-    <li>クリック、focus、値変更、選択、scroll、キー入力はUnityのControlへ適用され、request ID付きのaction結果が返ります。</li>
-    <li>画面キャプチャはrendered Player/Play Modeで利用できます。batchmodeまたは<code>-nographics</code>では<code>headless</code>を返します。</li>
-  </ul>
+  <Callout kind="tip" title="ID contract"><p>Slashes are escaped as <code>~1</code>. IDs over 127 UTF-8 bytes are shortened with a hash suffix. For duplicates in one frame, the first node wins and later nodes are reported in runtime logs.</p></Callout>
+  <Callout kind="warn" title="Use one GuaScreen"><p>If multiple <code>GuaScreen</code> components exist, the first one found wins, but discovery order is not a public contract. Keep one per logical screen.</p></Callout>
+  <h2>5. Connect external tools</h2><p>The bridge listens on <code>8765</code> by default. Set <code>GUA_BRIDGE_PORT</code> before process startup to override it. Inspector and <code>gui-mcp</code> use the same bridge as other Gua adapters.</p>
+  <h2>Observation rules</h2><ul><li>Hidden controls remain observable with <code>visible: false</code>; disabled state is reflected separately.</li><li>Bounds use physical screenshot pixels, top-left origin, X rightward, Y downward.</li><li>Actions are applied to Unity controls and completed with a request-correlated result.</li><li>Rendered Player and Play Mode support PNG capture. Batchmode or <code>-nographics</code> reports <code>headless</code>.</li></ul>
 </DocPage>
