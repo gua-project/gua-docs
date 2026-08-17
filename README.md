@@ -1,6 +1,6 @@
 # Gua 日本語ガイド
 
-[`link1345/gua`](https://github.com/link1345/gua) の Godot・Unity導入、.NETテスト、Inspector、MCP操作を英語と日本語で解説する公式リファレンスサイトです。
+[`link1345/gua`](https://github.com/link1345/gua) の Godot UIテスト、AI Coding・AI Playtesting、Unity導入、.NETテスト、Inspector、MCP操作を英語と日本語で解説する公式リファレンスサイトです。
 
 英語版を正式な参照として扱います。翻訳内容に差異がある場合は英語版が優先されます。日本語版は既存パス、英語版は `/en/` 配下にあります。
 
@@ -28,9 +28,12 @@ bun run build
 
 ## ページ構成
 
+- AI Coding・AI Playtesting
+  - MCP対応AIコーディングエージェントによる実行中ゲームの観測・操作・検証
+  - AI開発ループ、Playwrightとの対応関係、FAQ
 - Godot編
-  - 導入とUI実装
-  - テストの仕方
+  - Semantic locatorによるGodot UIテスト
+  - 導入とUI実装、テストの仕方
 - Unity編
   - 導入とUI実装
   - テストの仕方

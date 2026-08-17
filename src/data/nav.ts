@@ -1,4 +1,5 @@
 export const sections = [
+  { label: 'AI Coding・Playtesting', href: '/ai-coding/', accent: 'blue', children: [] },
   {
     label: 'Godot編', href: '/godot/', accent: 'mint',
     children: [
@@ -26,6 +27,7 @@ export const docs = [
 ] as const;
 
 export const sectionsEn = [
+  { label: 'AI Coding & Playtesting', href: '/en/ai-coding/', accent: 'blue', children: [] },
   {
     label: 'Godot', href: '/en/godot/', accent: 'mint',
     children: [
