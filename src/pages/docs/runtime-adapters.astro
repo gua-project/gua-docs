@@ -3,80 +3,80 @@ import DocPage from '../../components/DocPage.astro';
 import Callout from '../../components/Callout.astro';
 import CodeBlock from '../../components/CodeBlock.astro';
 ---
-<DocPage eyebrow="DOCS / GODOT" title="Godot API・仕様" lead="Godot向けパッケージ、公開型、対応UIと操作、ライフサイクル、拡張ポイントを調べるためのリファレンスです。" description="GuaのGodotアドオン、GDExtension、外部テストAPI、UI自動収集と拡張仕様を解説します。" section="docs">
-  <h2>パッケージの選び方</h2>
-  <div class="table-wrap"><table><thead><tr><th>パッケージ</th><th>用途</th><th>配置先</th></tr></thead><tbody>
-    <tr><td><code>addons/gua</code></td><td>GodotのControlツリーを自動収集し、外部からの操作を実UIへ配送</td><td>Godotプロジェクト</td></tr>
-    <tr><td><code>Gua.Testing.Godot</code></td><td>Godotプロセスの起動・接続・終了、標準出力、screenshot、診断</td><td>外部.NETテスト</td></tr>
-    <tr><td><code>Gua.Testing</code></td><td>locator、wait、assertion、remote接続のengine共通API</td><td>外部.NETテスト</td></tr>
-    <tr><td><code>Gua.Testing.Visual</code></td><td>PNG baseline比較と差分artifact。Godot・Unity共通</td><td>必要な外部.NETテスト</td></tr>
-    <tr><td><code>Gua.Testing.Recording</code></td><td>Semantic操作の記録とrequest相関付きReplay。Godot・Unity共通</td><td>必要な外部.NETテスト</td></tr>
+<DocPage eyebrow="DOCS / GODOT" title="Godot API and specification" lead="A reference for Godot packages, public types, supported UI and actions, lifecycle, and extension points." description="Gua's Godot addon, GDExtension, external testing API, automatic UI collection, and extension specification." section="docs">
+  <h2>Choosing a package</h2>
+  <div class="table-wrap"><table><thead><tr><th>Package</th><th>Use</th><th>Location</th></tr></thead><tbody>
+    <tr><td><code>addons/gua</code></td><td>Automatically collect the Godot Control tree and dispatch external actions to real UI</td><td>Godot project</td></tr>
+    <tr><td><code>Gua.Testing.Godot</code></td><td>Launch, connect to, and stop Godot; collect output, screenshots, and diagnostics</td><td>External .NET test</td></tr>
+    <tr><td><code>Gua.Testing</code></td><td>Engine-neutral locators, waits, assertions, and remote connections</td><td>External .NET test</td></tr>
+    <tr><td><code>Gua.Testing.Visual</code></td><td>PNG baseline comparison and diff artifacts, shared by Godot and Unity</td><td>Optional external .NET tests</td></tr>
+    <tr><td><code>Gua.Testing.Recording</code></td><td>Semantic action recording and request-correlated replay, shared by Godot and Unity</td><td>Optional external .NET tests</td></tr>
   </tbody></table></div>
-  <Callout kind="tip" title="Latest Releaseから導入"><p><a href="https://github.com/link1345/gua/releases/latest">Guaの最新Release</a>からGodot用ZIPを取得し、展開した<code>addons/gua</code>をゲームへコピーします。通常利用では、この配布済みアドオンを使用します。</p></Callout>
+  <Callout kind="tip" title="Install from the latest release"><p>Download the Godot ZIP from the <a href="https://github.com/link1345/gua/releases/latest">latest Gua release</a> and copy its extracted <code>addons/gua</code> directory into the game. The released addon is the normal installation path.</p></Callout>
 
-  <h2>Godot公開型</h2>
-  <div class="table-wrap"><table><thead><tr><th>型 / 設定</th><th>公開契約</th></tr></thead><tbody>
-    <tr><td><code>GuaAutoAdapter</code></td><td><code>attach(root)</code>でルートControlを指定し、<code>update(screen)</code>で最新UIを公開。bridge、screenshot、action、reset APIも提供</td></tr>
-    <tr><td><code>GuaContext</code></td><td>GDExtensionが<code>ClassDB</code>へ登録するnative型。frame、node、action、event、screenshot、Inspector bridgeをGDScriptへ公開</td></tr>
-    <tr><td><code>gua_id</code> metadata</td><td>NodePathに依存しない安定IDをControlへ設定</td></tr>
-    <tr><td><code>gua_sensitive</code> metadata</td><td>入力値をUI snapshotと診断から除外。描画済みPNGのpixelは自動では隠さない</td></tr>
-    <tr><td><code>GuaGodotRuntime</code></td><td>共有<code>Gua.Runtime</code>を使う実験的C# adapter。新規Godot統合ではGDScriptアドオンを推奨</td></tr>
+  <h2>Godot public types</h2>
+  <div class="table-wrap"><table><thead><tr><th>Type / setting</th><th>Contract</th></tr></thead><tbody>
+    <tr><td><code>GuaAutoAdapter</code></td><td>Accepts the root Control through <code>attach(root)</code> and publishes current UI through <code>update(screen)</code>; also exposes bridge, screenshot, action, and reset APIs</td></tr>
+    <tr><td><code>GuaContext</code></td><td>Native type registered with <code>ClassDB</code> by the GDExtension; exposes frame, node, action, event, screenshot, and Inspector bridge operations to GDScript</td></tr>
+    <tr><td><code>gua_id</code> metadata</td><td>Assigns a stable Control ID independent of NodePath</td></tr>
+    <tr><td><code>gua_sensitive</code> metadata</td><td>Omits input values from UI snapshots and diagnostics; it does not hide pixels already rendered into a PNG</td></tr>
+    <tr><td><code>GuaGodotRuntime</code></td><td>Experimental C# adapter over shared <code>Gua.Runtime</code>; the GDScript addon is recommended for new Godot integrations</td></tr>
   </tbody></table></div>
 
-  <h2>Godotランタイム公開面</h2>
-  <div class="table-wrap"><table><thead><tr><th>ファイル</th><th>役割</th></tr></thead><tbody>
-    <tr><td><a href="https://github.com/link1345/gua/blob/main/examples/godot-gdscript/addons/gua/gua_auto_adapter.gd"><code>gua_auto_adapter.gd</code></a></td><td>Controlの再帰収集、状態反映、action配送、event、screenshotを担当</td></tr>
-    <tr><td><a href="https://github.com/link1345/gua/blob/main/examples/godot-gdscript/addons/gua/gua.gdextension"><code>gua.gdextension</code></a></td><td>Godotへentry pointとplatform別native libraryを宣言</td></tr>
-    <tr><td><code>gua_godot.windows.debug.x86_64.dll</code></td><td><code>GuaContext</code>をGodot型として登録するC++ GDExtension</td></tr>
-    <tr><td><code>gua_runtime.dll</code></td><td>Gua core、request/event queue、診断、Inspector WebSocket bridgeを所有する共有runtime</td></tr>
-    <tr><td><code>plugin.cfg</code> / <code>plugin.gd</code></td><td>Godotアドオンとして読み込むためのEditorPlugin shell</td></tr>
+  <h2>Godot runtime surface</h2>
+  <div class="table-wrap"><table><thead><tr><th>File</th><th>Responsibility</th></tr></thead><tbody>
+    <tr><td><a href="https://github.com/link1345/gua/blob/main/examples/godot-gdscript/addons/gua/gua_auto_adapter.gd"><code>gua_auto_adapter.gd</code></a></td><td>Recursive Control collection, state reflection, action dispatch, events, and screenshots</td></tr>
+    <tr><td><a href="https://github.com/link1345/gua/blob/main/examples/godot-gdscript/addons/gua/gua.gdextension"><code>gua.gdextension</code></a></td><td>Declares the Godot entry point and platform-specific native library</td></tr>
+    <tr><td><code>gua_godot.windows.debug.x86_64.dll</code></td><td>C++ GDExtension that registers <code>GuaContext</code> as a Godot type</td></tr>
+    <tr><td><code>gua_runtime.dll</code></td><td>Shared runtime that owns Gua core, request/event queues, diagnostics, and the Inspector WebSocket bridge</td></tr>
+    <tr><td><code>plugin.cfg</code> / <code>plugin.gd</code></td><td>EditorPlugin shell used to load the Godot addon</td></tr>
   </tbody></table></div>
   <div class="flow"><span>Godot Control tree</span><b>→</b><span>GuaAutoAdapter</span><b>→</b><span>GuaContext</span><b>→</b><span>gua_runtime.dll</span><b>→</b><span>Inspector / MCP / Tests</span></div>
-  <p><code>gua_godot...</code>はGodot/GDScript型の変換層、<code>gua_runtime.dll</code>はengine共通runtime層です。前者は後者へlinkするため、Windows版では両方を<code>addons/gua/bin</code>へ配置します。</p>
-  <CodeBlock title="Windows debug GDExtensionをソースから作る場合" lang="powershell" code={`cmake --preset windows-msvc-debug
+  <p><code>gua_godot...</code> translates Godot and GDScript types, while <code>gua_runtime.dll</code> is the engine-neutral runtime. The former links to the latter, so Windows packages place both under <code>addons/gua/bin</code>.</p>
+  <CodeBlock title="Build the Windows debug GDExtension from source" lang="powershell" code={`cmake --preset windows-msvc-debug
 cmake --build --preset windows-msvc-debug --target gua-godot`} />
 
-  <h2>テストホスト公開型</h2>
-  <div class="table-wrap"><table><thead><tr><th>型 / member</th><th>意味</th></tr></thead><tbody>
-    <tr><td><code>GodotSceneTestHost.Load</code></td><td>指定projectとsceneでGodotを起動し、bridgeへ接続</td></tr>
-    <tr><td><code>GodotSceneTestHostOptions</code></td><td>実行ファイル、project path、headless、port、環境変数、reset policyを設定</td></tr>
-    <tr><td><code>Context</code> / <code>RemoteContext</code></td><td>locatorとactionから使う共通<code>IGuaContext</code> / WebSocket接続</td></tr>
-    <tr><td><code>CaptureScreenshot</code></td><td>Godot viewportのon-demand PNGを取得</td></tr>
-    <tr><td><code>CreateDiagnosticsSession</code></td><td>UI Tree、操作履歴、runtime情報、Godot stdout/stderrをartifactへ保存</td></tr>
-    <tr><td><code>Dispose</code></td><td>bridge接続を閉じ、Godot processを終了し、strict teardownを適用</td></tr>
+  <h2>Test-host API</h2>
+  <div class="table-wrap"><table><thead><tr><th>Type / member</th><th>Meaning</th></tr></thead><tbody>
+    <tr><td><code>GodotSceneTestHost.Load</code></td><td>Launch Godot with a project and scene, then connect to its bridge</td></tr>
+    <tr><td><code>GodotSceneTestHostOptions</code></td><td>Configure executable, project path, headless mode, port, environment, and reset policy</td></tr>
+    <tr><td><code>Context</code> / <code>RemoteContext</code></td><td>Shared <code>IGuaContext</code> / WebSocket connection used by locators and actions</td></tr>
+    <tr><td><code>CaptureScreenshot</code></td><td>Capture an on-demand PNG from the Godot viewport</td></tr>
+    <tr><td><code>CreateDiagnosticsSession</code></td><td>Write UI tree, operation history, runtime data, and Godot stdout/stderr to artifacts</td></tr>
+    <tr><td><code>Dispose</code></td><td>Close the bridge, stop the Godot process, and apply strict teardown</td></tr>
   </tbody></table></div>
 
-  <h2>UI写像</h2>
-  <div class="table-wrap"><table><thead><tr><th>role</th><th>Godot Control</th><th>主なaction</th></tr></thead><tbody>
+  <h2>UI mapping</h2>
+  <div class="table-wrap"><table><thead><tr><th>Role</th><th>Godot Control</th><th>Primary actions</th></tr></thead><tbody>
     <tr><td>button</td><td>BaseButton / Button</td><td>click, focus</td></tr>
     <tr><td>checkbox</td><td>CheckBox</td><td>click, focus, set_checked</td></tr>
     <tr><td>textbox</td><td>LineEdit / TextEdit</td><td>focus, set_value, press_key</td></tr>
     <tr><td>slider</td><td>Slider / SpinBox</td><td>focus, set_value</td></tr>
     <tr><td>combobox</td><td>OptionButton</td><td>focus, select</td></tr>
-    <tr><td>list / listitem</td><td>ItemListと各item</td><td>focus, select, scroll</td></tr>
-    <tr><td>tablist / tab</td><td>TabContainerと各tab</td><td>select</td></tr>
+    <tr><td>list / listitem</td><td>ItemList and each item</td><td>focus, select, scroll</td></tr>
+    <tr><td>tablist / tab</td><td>TabContainer and each tab</td><td>select</td></tr>
     <tr><td>scrollarea</td><td>ScrollContainer</td><td>scroll</td></tr>
-    <tr><td>text / panel</td><td>Label / その他のControl</td><td>観測のみ</td></tr>
+    <tr><td>text / panel</td><td>Label / other Controls</td><td>Observe only</td></tr>
   </tbody></table></div>
-  <p>各frameで<code>role</code>、<code>label</code>、<code>text</code>/<code>value</code>、表示・有効・focus状態、選択、range、scroll、親ID、viewport boundsを再収集します。既定IDはルートからのNodePathで、必要な箇所だけ<code>gua_id</code>により固定できます。</p>
+  <p>Every frame recollects role, label, text/value, visibility, enabled and focused state, selection, range, scroll, parent ID, and viewport bounds. IDs default to NodePath relative to the root; use <code>gua_id</code> only where identity must remain stable.</p>
 
-  <h2>操作と完了通知</h2>
-  <p>外部requestは<code>update(screen)</code>中に消費され、通常のGodot property、signal、input eventへ反映されます。処理後は同じ<code>requestId</code>の結果eventを返します。clickはBaseButtonの<code>pressed</code>、選択はItemListやOptionButtonの選択signal、key入力はfocus中のControlへ配送されます。</p>
-  <p><code>press_key</code> modifier bitは1=Shift、2=Alt、4=Control、8=Commandです。表示されていないControl、無効なControl、対応しない値やactionは成功扱いにせず、呼び出し側へ結果を返します。</p>
+  <h2>Actions and completion</h2>
+  <p>External requests are consumed during <code>update(screen)</code> and applied through normal Godot properties, signals, and input events. The adapter then returns a result event with the same <code>requestId</code>. Clicks emit BaseButton <code>pressed</code>, selections use ItemList and OptionButton selection signals, and key input is routed to the focused Control.</p>
+  <p><code>press_key</code> modifier bits are 1=Shift, 2=Alt, 4=Control, and 8=Command. Hidden or disabled Controls and unsupported values or actions produce explicit results rather than being reported as successful.</p>
 
-  <h2>エンジン共通仕様</h2>
+  <h2>Engine-neutral specification</h2>
   <ul>
-    <li>Semantic UI Tree、role、action/request/event、JSON SchemaはUnityを含む全adapterで共有します。</li>
-    <li>boundsは物理viewport pixel、左上原点、右/下が正です。</li>
-    <li>Inspector、MCP、外部テストは同じWebSocket bridgeへ接続します。既定portは<code>8765</code>で、<code>GUA_BRIDGE_PORT</code>により変更できます。</li>
-    <li>screenshot要求はframe sequenceとsessionを確認して完了し、headlessやrendering無効も明示的な結果として返します。</li>
+    <li>The Semantic UI Tree, roles, action/request/event model, and JSON schemas are shared with every adapter, including Unity.</li>
+    <li>Bounds use physical viewport pixels with a top-left origin and positive right/down axes.</li>
+    <li>Inspector, MCP, and external tests connect to the same WebSocket bridge. The default port is <code>8765</code> and <code>GUA_BRIDGE_PORT</code> can override it.</li>
+    <li>Screenshot completion checks frame sequence and session, and reports headless or disabled rendering explicitly.</li>
   </ul>
-  <h3>他エンジンへ拡張する場合</h3>
-  <p><code>Gua.Core</code>、<code>Gua.Runtime</code>、<code>Gua.Testing</code>とprotocolは再利用できます。ただしGodotのGDExtension、GDScript、Control走査、signal処理は他engineへそのまま移せません。各engineのUI型を収集し、本来のeventへ操作を戻す専用adapterが必要です。Unityには<a href="/docs/unity-reference/">Unity専用APIとadapter</a>があります。</p>
+  <h3>Extending another engine</h3>
+  <p><code>Gua.Core</code>, <code>Gua.Runtime</code>, <code>Gua.Testing</code>, and the protocol can be reused. Godot's GDExtension, GDScript, Control traversal, and signals cannot. Each engine needs an adapter that collects its UI types and applies operations through native events. Unity has a separate <a href="/docs/unity-reference/">Unity API and adapter</a>.</p>
 
-  <h2>ライフサイクルと所有権</h2>
-  <p>ゲーム側が<code>GuaAutoAdapter</code>を所有します。<code>_ready()</code>で生成してルートControlを<code>attach</code>し、<code>_process()</code>から<code>update(screen)</code>を呼びます。adapterはGDExtensionを読み込み、<code>ClassDB.instantiate("GuaContext")</code>でnative contextを生成します。</p>
-  <CodeBlock title="main.gdの基本形" lang="gdscript" code={`const GuaAutoAdapterScript := preload(
+  <h2>Lifecycle and ownership</h2>
+  <p>The game owns <code>GuaAutoAdapter</code>. Create it in <code>_ready()</code>, pass the root Control to <code>attach</code>, and call <code>update(screen)</code> from <code>_process()</code>. The adapter loads the GDExtension and creates the native context through <code>ClassDB.instantiate("GuaContext")</code>.</p>
+  <CodeBlock title="Basic main.gd" lang="gdscript" code={`const GuaAutoAdapterScript := preload(
   "res://addons/gua/gua_auto_adapter.gd"
 )
 
@@ -89,24 +89,24 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
   ui.update("title")`} />
-  <h3><code>main.gd</code>サンプルの要点</h3>
-  <p><a href="https://github.com/link1345/gua/blob/main/examples/godot-gdscript/scripts/main.gd">完全なmain.gdをGitHubで確認できます ↗</a></p>
-  <div class="table-wrap"><table><thead><tr><th>関数 / 設定</th><th>役割</th></tr></thead><tbody>
-    <tr><td><code>start_inspector_bridge_on_ready</code></td><td>Ready時にゲーム内WebSocket bridgeを開始するか指定</td></tr>
-    <tr><td><code>inspector_bridge_port</code></td><td>InspectorとMCPの接続port。環境変数で上書き可能</td></tr>
-    <tr><td><code>_ready()</code></td><td>UI構築、adapter attach、初回update、bridge開始</td></tr>
-    <tr><td><code>_process(delta)</code></td><td>毎frame、最新Control状態と論理screen名を反映</td></tr>
-    <tr><td><code>_build_visual_e2e_controls()</code></td><td>機密入力、CheckBox、OptionButtonを追加する視覚比較fixture</td></tr>
-    <tr><td><code>_build_v2_e2e_controls()</code></td><td>TextEdit、選択、tab、scrollなどの操作fixture</td></tr>
-    <tr><td><code>_capture_visual_e2e()</code></td><td>描画frameを待ってviewport PNGを公開</td></tr>
+  <h3>Key parts of the <code>main.gd</code> sample</h3>
+  <p><a href="https://github.com/link1345/gua/blob/main/examples/godot-gdscript/scripts/main.gd">View the complete main.gd on GitHub ↗</a></p>
+  <div class="table-wrap"><table><thead><tr><th>Function / setting</th><th>Purpose</th></tr></thead><tbody>
+    <tr><td><code>start_inspector_bridge_on_ready</code></td><td>Whether to start the in-game WebSocket bridge from Ready</td></tr>
+    <tr><td><code>inspector_bridge_port</code></td><td>Inspector and MCP port; can be overridden through the environment</td></tr>
+    <tr><td><code>_ready()</code></td><td>Build UI, attach the adapter, publish once, and start the bridge</td></tr>
+    <tr><td><code>_process(delta)</code></td><td>Publish current Controls and the logical screen name every frame</td></tr>
+    <tr><td><code>_build_visual_e2e_controls()</code></td><td>Add sensitive input, CheckBox, and OptionButton visual fixtures</td></tr>
+    <tr><td><code>_build_v2_e2e_controls()</code></td><td>Add TextEdit, selection, tab, and scroll action fixtures</td></tr>
+    <tr><td><code>_capture_visual_e2e()</code></td><td>Wait for rendered frames and publish a viewport PNG</td></tr>
   </tbody></table></div>
 
-  <h2>利用上の注意</h2>
+  <h2>Usage notes</h2>
   <ul>
-    <li>新規Godot統合ではGDScriptアドオンを使用します。実験的C# sampleは同等機能の置き換えではありません。</li>
-    <li><code>gua_sensitive</code>はsemantic値を隠しますが、画面へ描画済みの文字をPNGから自動maskしません。</li>
-    <li>複数のGodot processを並列実行する場合は、固定portを共有せずテストごとに空きportを割り当てます。</li>
-    <li>native DLLが無い、古い、またはplatform/CPU構成が違う場合、<code>GuaContext</code>を生成できません。</li>
+    <li>Use the GDScript addon for new Godot integrations. The experimental C# sample is not a feature-equivalent replacement.</li>
+    <li><code>gua_sensitive</code> hides semantic values but does not automatically mask text already rendered into a PNG.</li>
+    <li>When running multiple Godot processes in parallel, allocate an available port per test instead of sharing one fixed port.</li>
+    <li>A missing, stale, or platform-incompatible native DLL prevents creation of <code>GuaContext</code>.</li>
   </ul>
-  <Callout kind="tip" title="現在の対応範囲"><p>配布済みGodotアドオンはGodot 4.7、Windows debug x86_64向けです。他OS、CPU、Release構成では対象向けGDExtensionと共有runtimeを用意してください。</p></Callout>
+  <Callout kind="tip" title="Current support"><p>The released Godot addon targets Godot 4.7 on Windows debug x86_64. Other operating systems, CPUs, and Release configurations require matching GDExtension and shared-runtime builds.</p></Callout>
 </DocPage>
