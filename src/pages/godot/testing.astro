@@ -136,7 +136,7 @@ GuaAssertions.GetByRole(
     { code: 'DiagnosticsSession = diagnostics', explanation: 'Selects the UI tree, history, logs, and process evidence collector.' },
     { code: '.ToBeVisible()', explanation: 'Keeps the assertion as the primary failure even if evidence capture also fails.' },
   ]} /><p>With GitHub Actions, pass <code>artifacts/gua/**</code> to <code>actions/upload-artifact</code> after the test step so evidence remains available from a failed run.</p>
-  <h2>Run tests with GitHub Actions</h2><p>The public <a href="https://github.com/link1345/gua-tester"><code>link1345/gua-tester</code></a> action installs Godot on a Windows runner, links the latest released Gua add-on, sets <code>GODOT_EXECUTABLE</code>, and runs <code>dotnet test</code>.</p><CodeBlock title=".github/workflows/godot-gdscript.yml" lang="yaml" code={`name: Godot Gua UI tests
+  <h2>Run tests with GitHub Actions</h2><p>The public <a href="https://github.com/link1345/gua-tester"><code>link1345/gua-tester/godot@v2</code></a> action installs Godot on a Windows runner, links the latest released Gua add-on, sets <code>GODOT_EXECUTABLE</code>, and runs <code>dotnet test</code>.</p><CodeBlock title=".github/workflows/godot.yml" lang="yaml" code={`name: Godot Gua UI tests
 
 on:
   pull_request:
@@ -149,7 +149,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run Gua UI tests
-        uses: link1345/gua-tester@v1.3
+        uses: link1345/gua-tester/godot@v2
         with:
           project-path: game
           test-project: tests/GuaTester.Tests.csproj
@@ -158,9 +158,9 @@ jobs:
     { code: 'on: pull_request / push', explanation: 'Runs the workflow for pull requests and pushes to main.' },
     { code: 'runs-on: windows-latest', explanation: 'Uses the Windows runner supported by the released Godot integration.' },
     { code: 'actions/checkout@v4', explanation: 'Checks out the game and test sources.' },
-    { code: 'uses: link1345/gua-tester@v1.3', explanation: 'Installs Godot, links the released add-on, and runs dotnet test.' },
+    { code: 'uses: link1345/gua-tester/godot@v2', explanation: 'Installs Godot, links the released add-on, and runs dotnet test.' },
     { code: 'project-path: game', explanation: 'Points to the directory containing project.godot.' },
     { code: 'test-project: tests/GuaTester.Tests.csproj', explanation: 'Selects the .NET test project to run.' },
     { code: 'godot-version / godot-status', explanation: 'Pins the runner to Godot 4.7 stable.' },
-  ]} /><Callout kind="tip" title="Use the released add-on"><p>The action downloads a ZIP from the latest matching <code>godot-plugin-*</code> release and places it at <code>game/addons/gua</code>. It does not build Gua's native extension in the consumer workflow. See the <a href="/docs/github-actions/">GitHub Actions reference</a> for every input and output.</p></Callout>
+  ]} /><Callout kind="tip" title="Use the released add-on"><p>The action downloads the matching addon ZIP from the selected or latest stable <code>gua-v*</code> release and places it at <code>game/addons/gua</code>. It does not build Gua's native extension in the consumer workflow. See the <a href="/docs/github-actions/">GitHub Actions reference</a> for every input and output.</p></Callout>
 </DocPage>
