@@ -1,43 +1,56 @@
 ---
 import DocPage from '../../components/DocPage.astro'; import CodeBlock from '../../components/CodeBlock.astro'; import Callout from '../../components/Callout.astro';
 ---
-<DocPage eyebrow="DOCS / .NET PACKAGES" title=".NETパッケージ" lead="CoreとTestingを共通基盤に、共有Runtime、Godot/Unityホスト、PNG比較、Semantic操作のRecordingを必要な場所だけへ追加します。" description="Gua.Core、Runtime、Testing、Godot、Unity、Visual、Recordingのクラスと対応Target Frameworkのリファレンス。" section="docs">
-  <h2>インストール</h2><CodeBlock title="必要なパッケージだけ追加" lang="powershell" code={`dotnet add package Gua.Core --version 0.14.0\ndotnet add package Gua.Testing --version 0.14.0\n\n# Godotプロセスを外部起動するテスト\ndotnet add package Gua.Testing.Godot --version 0.14.0\n\n# 必要な機能だけオプトイン\ndotnet add package Gua.Testing.Visual --version 0.14.0\ndotnet add package Gua.Testing.Recording --version 0.14.0`} /><p>パッケージは同じバージョン系列へ揃えます。<code>Visual</code>と<code>Recording</code>は独立しており、通常のSemantic UIテストへPNG codecや記録機能を持ち込みません。</p>
-  <h2>Target Framework</h2><div class="table-wrap"><table><thead><tr><th>パッケージ</th><th>net10.0</th><th>netstandard2.1</th><th>主な用途</th></tr></thead><tbody>
-    <tr><td><code>Gua.Core</code></td><td>✓</td><td>✓</td><td>ネイティブGuaのC ABIバインディング</td></tr>
-    <tr><td><code>Gua.Testing</code></td><td>✓</td><td>✓</td><td>ロケーター、待機、アサーション、診断</td></tr>
-    <tr><td><code>Gua.Runtime</code></td><td>✓</td><td>✓</td><td>engine adapter向け共有runtime C ABI wrapper</td></tr>
-    <tr><td><code>Gua.Testing.Unity</code></td><td>✓</td><td>✓</td><td>Unity Editor/Playerのbuild・起動・接続</td></tr>
-    <tr><td><code>Gua.Testing.Visual</code></td><td>✓</td><td>✓</td><td>PNGベースライン比較</td></tr>
-    <tr><td><code>Gua.Testing.Recording</code></td><td>✓</td><td>✓</td><td>Semantic操作の記録・再生</td></tr>
-    <tr><td><code>Gua.Testing.Godot</code></td><td>✓</td><td>—</td><td>外部.NETテストからGodotプロセスを制御</td></tr>
+<DocPage eyebrow="DOCS / .NET PACKAGES" title=".NET packages" lead="Core and Testing provide the shared base. Add the shared Runtime, Godot or Unity host, PNG comparison, or semantic Recording only where needed." description="Reference for Gua Core, Runtime, Testing, Godot, Unity, Visual, Recording, and their target frameworks." section="docs">
+  <h2>Install</h2><CodeBlock title="Add only the features you need" lang="powershell" code={`dotnet add package Gua.Core\ndotnet add package Gua.Testing\n\n# Implement an engine adapter\ndotnet add package Gua.Runtime\n\n# Launch an engine process from an external test\ndotnet add package Gua.Testing.Godot\ndotnet add package Gua.Testing.Unity\n\n# Optional capabilities\ndotnet add package Gua.Testing.Visual\ndotnet add package Gua.Testing.Recording`} /><p>Without <code>--version</code>, the .NET CLI resolves the latest stable package available on NuGet. For reproducible builds, commit the resulting project or central package file and keep all Gua packages on the same version line. <code>Visual</code> and <code>Recording</code> are independent opt-ins, so ordinary semantic tests do not inherit PNG codecs or recording behavior.</p>
+  <p>NuGet: <a href="https://www.nuget.org/packages/Gua.Core">Core</a> · <a href="https://www.nuget.org/packages/Gua.Testing">Testing</a> · <a href="https://www.nuget.org/packages/Gua.Testing.Godot">Testing.Godot</a> · <a href="https://www.nuget.org/packages/Gua.Testing.Unity">Testing.Unity</a> · <a href="https://www.nuget.org/packages/Gua.Runtime">Runtime</a> · <a href="https://www.nuget.org/packages/Gua.Testing.Visual">Testing.Visual</a> · <a href="https://www.nuget.org/packages/Gua.Testing.Recording">Testing.Recording</a></p>
+  <h2>Choose a package</h2><div class="table-wrap"><table><thead><tr><th>Goal</th><th>Add</th><th>Use it for</th></tr></thead><tbody>
+    <tr><td>Write ordinary semantic UI tests</td><td><code>Gua.Testing</code> + engine host</td><td>Visibility, enabled state, text, values, and state transitions after actions.</td></tr>
+    <tr><td>Build a custom engine adapter</td><td><code>Gua.Runtime</code></td><td>Publish semantic frames and implement actions, screenshots, and the Inspector bridge in the game.</td></tr>
+    <tr><td>Detect rendering regressions</td><td><code>Gua.Testing.Visual</code></td><td>Find clipping, layout shifts, wrong assets or themes, and unexpected overlays.</td></tr>
+    <tr><td>Save and replay an interaction</td><td><code>Gua.Testing.Recording</code></td><td>Share regression flows, bug reproductions, and long journeys using semantic targets.</td></tr>
   </tbody></table></div>
-  <Callout kind="tip" title=".NET Standard 2.1対応"><p><code>Gua.Core</code>、<code>Gua.Runtime</code>、<code>Gua.Testing</code>、<code>Gua.Testing.Unity</code>、<code>Gua.Testing.Visual</code>、<code>Gua.Testing.Recording</code>は<code>net10.0</code>と<code>netstandard2.1</code>を対象にしています。<code>Gua.Testing.Godot</code>は<code>net10.0</code>のみです。</p></Callout>
-  <h2>Gua.Core</h2><p>ネイティブC ABIを.NETから扱う最低層。UI Treeと要求・イベントの契約を提供する。</p><div class="table-wrap"><table><thead><tr><th>型</th><th>役割</th></tr></thead><tbody>
-    <tr><td><code>IGuaContext</code></td><td>ローカル/リモートContextに共通する操作境界。</td></tr>
-    <tr><td><code>GuaContext</code></td><td>ネイティブGua Contextを所有し、node、snapshot、request、eventを操作。</td></tr>
-    <tr><td><code>GuaSelector</code></td><td>id、role、text、状態、scopeを表す選択条件。</td></tr>
-    <tr><td><code>GuaNodeState</code></td><td>visible、enabled、value、focused、checked等の観測状態。</td></tr>
-    <tr><td><code>GuaAction</code> / <code>GuaEvent</code></td><td>外部要求とホストが観測した結果・イベント。</td></tr>
-    <tr><td><code>GuaReset</code></td><td>session epochと要求・イベント・履歴の初期化契約。</td></tr>
+  <h2>Target frameworks</h2><div class="table-wrap"><table><thead><tr><th>Package</th><th>net10.0</th><th>netstandard2.1</th><th>Primary use</th></tr></thead><tbody>
+    <tr><td><code>Gua.Core</code></td><td>✓</td><td>✓</td><td>C ABI bindings for native Gua</td></tr>
+    <tr><td><code>Gua.Testing</code></td><td>✓</td><td>✓</td><td>Locators, waits, assertions, and diagnostics</td></tr>
+    <tr><td><code>Gua.Runtime</code></td><td>✓</td><td>✓</td><td>Shared runtime C ABI wrapper for engine adapters</td></tr>
+    <tr><td><code>Gua.Testing.Unity</code></td><td>✓</td><td>✓</td><td>Build, launch, and connect Unity Editor/Players</td></tr>
+    <tr><td><code>Gua.Testing.Visual</code></td><td>✓</td><td>✓</td><td>PNG baseline comparison</td></tr>
+    <tr><td><code>Gua.Testing.Recording</code></td><td>✓</td><td>✓</td><td>Semantic action recording and replay</td></tr>
+    <tr><td><code>Gua.Testing.Godot</code></td><td>✓</td><td>—</td><td>Control a Godot process from an external .NET test</td></tr>
   </tbody></table></div>
-  <h2>Gua.Runtime / Gua.Testing.Unity</h2><p><code>Gua.Runtime</code>は共有<code>gua_runtime</code> C ABIをmanaged engine adapterから利用する層です。<code>Gua.Testing.Unity</code>は<code>UnityPlayerBuilder</code>と<code>UnitySceneTestHost</code>でWindows64 Mono PlayerまたはEditor Play Modeを外部テストへ接続します。公開APIは<a href="/docs/unity-reference/">Unity API・仕様</a>を参照してください。</p>
-  <h2>Gua.Testing</h2><p>Coreの上へ、テストで読むための高水準APIを追加する。</p><div class="table-wrap"><table><thead><tr><th>型</th><th>役割</th></tr></thead><tbody>
-    <tr><td><code>GuaAssertions</code></td><td><code>GetById</code>、<code>GetByRole</code>、<code>WaitFor...</code>等の入口。</td></tr>
-    <tr><td><code>GuaLocatorQuery</code></td><td>ByRole、ByText、Within、WhereVisible等を連結するselector builder。</td></tr>
-    <tr><td><code>GuaNodeSnapshot</code></td><td>成功した特定frame/revision時点のノード証拠。</td></tr>
-    <tr><td><code>GuaTestSession</code></td><td>テスト前後のresetとstrict leak検出を管理。</td></tr>
-    <tr><td><code>GuaAssertionScope</code></td><td>NUnit等の失敗処理と診断オプションをスコープへ適用。</td></tr>
-    <tr><td><code>GuaDiagnostics</code></td><td>失敗時のUI Tree、ログ、履歴、環境情報を成果物として保存。</td></tr>
+  <Callout kind="tip" title=".NET Standard 2.1 support"><p><code>Gua.Core</code>, <code>Gua.Runtime</code>, <code>Gua.Testing</code>, <code>Gua.Testing.Unity</code>, <code>Gua.Testing.Visual</code>, and <code>Gua.Testing.Recording</code> target both <code>net10.0</code> and <code>netstandard2.1</code>. <code>Gua.Testing.Godot</code> targets <code>net10.0</code> only.</p></Callout>
+  <h2>Gua.Core</h2><p>The lowest .NET layer over the native C ABI. It defines the UI-tree, request, and event contracts.</p><div class="table-wrap"><table><thead><tr><th>Type</th><th>Responsibility</th></tr></thead><tbody>
+    <tr><td><code>IGuaContext</code></td><td>The common operation boundary shared by local and remote contexts.</td></tr>
+    <tr><td><code>GuaContext</code></td><td>Owns a native Gua context and its nodes, snapshots, requests, and events.</td></tr>
+    <tr><td><code>GuaSelector</code></td><td>Represents selection by ID, role, text, state, and scope.</td></tr>
+    <tr><td><code>GuaNodeState</code></td><td>Observed state such as visible, enabled, value, focused, and checked.</td></tr>
+    <tr><td><code>GuaAction</code> / <code>GuaEvent</code></td><td>An external request and the result or event observed by the host.</td></tr>
+    <tr><td><code>GuaReset</code></td><td>The contract for session epochs and clearing requests, events, and retained history.</td></tr>
   </tbody></table></div>
-  <h2>Gua.Testing.Godot</h2><p>Godotプロセスを起動し、ゲーム内WebSocketブリッジへ接続するホスト層。</p><div class="table-wrap"><table><thead><tr><th>型</th><th>役割</th></tr></thead><tbody>
-    <tr><td><code>GodotSceneTestHost</code></td><td>シーンの起動、接続、終了、stdout/stderr、スクリーンショットを管理。</td></tr>
-    <tr><td><code>GodotSceneTestHostOptions</code></td><td>Godot実行ファイル、project path、headless、port、環境変数、reset policyを指定。</td></tr>
-    <tr><td><code>GuaRemoteContext</code></td><td>WebSocket越しに最新snapshotを取得し、actionを送る<code>IGuaContext</code>実装。</td></tr>
-    <tr><td><code>GuaRemoteUiTree</code></td><td>リモートJSON snapshotを.NETのノード表現へ変換。</td></tr>
-    <tr><td><code>GuaScreenshot</code></td><td>公開済みPNGの保存結果、絶対パス、寸法等を表す。</td></tr>
+  <h2>Gua.Runtime</h2><p><code>Gua.Runtime</code> is for managed engine-adapter authors, not ordinary test authors. It exposes the shared <code>gua_runtime</code> C ABI through typed APIs so adapters do not duplicate P/Invoke declarations, request queues, screenshot timeout handling, version publication, or Inspector WebSocket hosting. Choose it when integrating an engine other than Godot or Unity, or when adapting a custom UI framework. See the <a href="/docs/gua-runtime/">Gua.Runtime implementation guide</a>.</p>
+  <Callout kind="tip" title="Ordinary tests do not reference it directly"><p>If you only use Gua from a Unity or Godot game or external test, reference the engine package or <code>Gua.Testing.*</code>. Add <code>Gua.Runtime</code> directly only when implementing the game-side adapter itself.</p></Callout>
+  <h2>Gua.Testing.Unity</h2><p><code>UnityPlayerBuilder</code> and <code>UnitySceneTestHost</code> connect external tests to Unity 6 Windows x64 Mono Players or Editor Play Mode. Use it to delegate Unity executable discovery, free-port allocation, bridge connection, and startup/teardown log capture to the host. See the <a href="/docs/unity-reference/">Unity API reference</a> for the public API and support boundaries.</p>
+  <h2>Gua.Testing</h2><p>Adds the higher-level API consumed by tests.</p><div class="table-wrap"><table><thead><tr><th>Type</th><th>Responsibility</th></tr></thead><tbody>
+    <tr><td><code>GuaAssertions</code></td><td>Entry point for <code>GetById</code>, <code>GetByRole</code>, and <code>WaitFor...</code>.</td></tr>
+    <tr><td><code>GuaLocatorQuery</code></td><td>Builds selectors with ByRole, ByText, Within, WhereVisible, and related filters.</td></tr>
+    <tr><td><code>GuaNodeSnapshot</code></td><td>Evidence for a node at the exact frame and revision where a wait succeeded.</td></tr>
+    <tr><td><code>GuaTestSession</code></td><td>Controls reset and strict leak detection around a test.</td></tr>
+    <tr><td><code>GuaAssertionScope</code></td><td>Applies framework failure handling and diagnostic options within a scope.</td></tr>
+    <tr><td><code>GuaDiagnostics</code></td><td>Writes the UI tree, logs, history, and environment metadata after a failure.</td></tr>
   </tbody></table></div>
-  <h2>Gua.Testing.Visual</h2><p>明示的に取得したPNGをbaselineと比較するオプトイン層です。pixel threshold、許容差分率、mask、OS/renderer別variant、dimension mismatchを扱い、失敗時に<code>expected.png</code>、<code>actual.png</code>、<code>diff.png</code>、<code>comparison.json</code>を出力します。通常CIではbaselineを自動更新せず、明示的な更新だけを許可します。</p>
-  <h2>Gua.Testing.Recording</h2><p>Semantic actionを記録し、同じrequest IDを持つホスト完了eventまで待って再生します。<code>GuaRecorder</code>、<code>GuaReplayer</code>、<code>GuaRecordingFile</code>を提供し、固定delayよりSemantic wait conditionを優先できます。機密な<code>set_value</code>は平文を保存せず<code>secretKey</code>だけを記録します。</p>
-  <Callout kind="tip" title="依存の向き"><p>Unityゲーム側は<code>Gua.Unity → Gua.Runtime → Gua.Core → ネイティブGua</code>、外部テスト側は<code>Gua.Testing.Unity → Gua.Testing → Gua.Core</code>です。VisualとRecordingは独立して追加します。</p></Callout>
+  <h2>Gua.Testing.Godot</h2><p>Starts a Godot process and connects to its in-game WebSocket bridge.</p><div class="table-wrap"><table><thead><tr><th>Type</th><th>Responsibility</th></tr></thead><tbody>
+    <tr><td><code>GodotSceneTestHost</code></td><td>Owns scene startup, bridge connection, shutdown, process output, and screenshot access.</td></tr>
+    <tr><td><code>GodotSceneTestHostOptions</code></td><td>Configures the executable, project path, headless mode, port, environment, and reset policy.</td></tr>
+    <tr><td><code>GuaRemoteContext</code></td><td>An <code>IGuaContext</code> that polls snapshots and sends actions over WebSocket.</td></tr>
+    <tr><td><code>GuaRemoteUiTree</code></td><td>Converts a remote JSON snapshot into the .NET node model.</td></tr>
+    <tr><td><code>GuaScreenshot</code></td><td>Represents a saved PNG, including its absolute path and dimensions.</td></tr>
+  </tbody></table></div>
+  <h2>Gua.Testing.Visual</h2><p>An opt-in layer for comparing explicitly captured PNGs with reviewed baselines. A semantic assertion may prove that a button is visible while missing that it is clipped, overlapping another control, using the wrong asset, or covered by an unexpected overlay. Visual testing closes that gap. It supports pixel thresholds, allowed difference ratios, masks, explicit OS/renderer variants, and dimension mismatch detection. See the <a href="/visual-testing/">visual testing guide</a> for setup and CI policy.</p>
+  <CodeBlock title="Compare a screen with its baseline" lang="csharp" code={`var result = await GuaVisualAssertions.ExpectScreenshotAsync(\n    host.Context, "title-screen", new()\n    {\n        BaselineDirectory = "baselines",\n        ArtifactDirectory = "artifacts/gua",\n        BaselineVariant = "windows-unity-mono",\n        PixelThreshold = 0.02f,\n        MaxDifferentPixelRatio = 0.001,\n    });`} />
+  <p>Failures write <code>expected.png</code>, <code>actual.png</code>, <code>diff.png</code>, and <code>comparison.json</code>. Normal CI must not update its own baselines. Keep resolution, DPI, fonts, locale, theme, engine, and renderer deterministic, and mask only genuinely nondeterministic regions.</p>
+  <h2>Gua.Testing.Recording</h2><p>Stores multi-step journeys such as login, settings changes, or purchase confirmation as semantic actions for regression testing and bug reproduction. It records IDs and roles instead of coordinates, and waits for request-ID-correlated host completion on replay, making it more reliable than a fixed-delay macro. See the <a href="/recording/">recording guide</a> for complete workflows.</p>
+  <CodeBlock title="Record and replay a journey" lang="csharp" code={`var recorder = new GuaRecorder(host.Context);\nawait recorder.ClickAsync(new(Id: "open-login"));\nawait recorder.SetValueAsync(new(Id: "password"), password,\n    sensitive: true, secretKey: "login-password");\nGuaRecordingFile.Save("recordings/login.json", recorder.Recording);\n\nvar recording = GuaRecordingFile.Load("recordings/login.json");\nawait GuaReplayer.ReplayAsync(host.Context, recording, new()\n{\n    SecretResolver = key => key == "login-password" ? password : null,\n});`} />
+  <p><code>GuaRecorder</code>, <code>GuaReplayer</code>, and <code>GuaRecordingFile</code> support semantic wait conditions in place of fragile delays. Sensitive <code>set_value</code> steps store only a <code>secretKey</code>, never plaintext. Coordinate fallback is disabled by default.</p>
+  <Callout kind="tip" title="Dependency direction"><p>The Unity game path is <code>Gua.Unity → Gua.Runtime → Gua.Core → native Gua</code>; the test path is <code>Gua.Testing.Unity → Gua.Testing → Gua.Core</code>. Visual and Recording remain independent opt-ins.</p></Callout>
 </DocPage>

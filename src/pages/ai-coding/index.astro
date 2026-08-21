@@ -1,19 +1,22 @@
 ---
 import DocPage from '../../components/DocPage.astro';
 ---
-<DocPage eyebrow="USE CASE / AI CODING" title="GodotのAI CodingとAI Playtesting" lead="Guaを使うと、MCP対応AIコーディングエージェントが、自ら開発を支援しているGodotゲームの実行中UIを観測・操作・検証できます。" description="Gua MCPを使ったGodotのAI支援ゲーム開発、AI UIテスト、AIプレイテストの仕組みと開発ループ。" section="mcp">
-  <h2>AIコーディングエージェントに、実行中ゲームを確かめる手段を与える</h2>
-  <p>コーディングエージェントはゲームのコードを書き、Guaは実行中ゲームを確認するためのランタイムUIレイヤーを提供します。<code>gui-mcp</code>を通じてSemantic UI Tree、操作、待機、ログ、スクリーンショット、Recording、Visual比較、テスト実行を利用できます。</p>
-  <div class="flow"><span>AIが実装</span><b>→</b><span>Godotを起動</span><b>→</b><span>UIを観測・操作</span><b>→</b><span>検証・修正</span></div>
-  <h2>AI開発ループ</h2>
-  <ol class="steps"><li><strong>機能を実装する</strong><p>AIコーディングエージェントがゲームコードやUIを変更します。</p></li><li><strong>Godotゲームを起動する</strong><p>推奨GDScriptアドオンがControlツリーを収集し、WebSocketブリッジで公開します。</p></li><li><strong>Semantic UI Treeを調べる</strong><p>AIは<code>get_ui_tree</code>でID、role、text、状態を読み、対象Controlを特定します。</p></li><li><strong>操作して結果を待つ</strong><p>click、値入力、選択、scroll、key入力を送り、期待するUI状態まで待機します。</p></li><li><strong>証拠から検証・修正する</strong><p>失敗時はUI Tree、ログ、スクリーンショット、Visual差分を確認し、実装修正後に再実行します。</p></li></ol>
-  <h2>WebのPlaywrightとの対応</h2>
-  <div class="table-wrap"><table><thead><tr><th>Web UI自動化</th><th>GuaによるゲームUI自動化</th></tr></thead><tbody><tr><td>Browser</td><td>実行中ゲーム</td></tr><tr><td>DOM</td><td>Semantic UI Tree</td></tr><tr><td>locator</td><td>ID・role・text・状態によるSemantic locator</td></tr><tr><td>click / fill / keyboard</td><td>click / set value / press keyなどのSemantic action</td></tr><tr><td>expect / wait</td><td>GuaAssertions / wait_for_node</td></tr><tr><td>screenshot / visual test</td><td>Gua screenshot / Visual baseline comparison</td></tr></tbody></table></div>
-  <h2>よくある質問</h2>
-  <h3>GuaはGodotのUIテストに使えますか？</h3><p>はい。推奨Godot 4.7 GDScriptアドオンが標準Controlを収集し、Semantic locator、操作、待機、アサーション、Screenshot、Visual比較を利用できます。</p>
-  <h3>AIにゲームを操作させられますか？</h3><p>はい。MCP対応AIクライアントから<code>gui-mcp</code>を使い、実行中ゲームのUI Tree取得、操作、待機、ログ・Screenshot取得、テスト実行を行えます。</p>
-  <h3>GuaはGodot Editorを操作するMCPですか？</h3><p>役割が異なります。Editor用ツールがゲーム制作環境を操作するのに対し、Guaは起動済みゲームのランタイムUIを観測・操作・検証します。併用できます。</p>
-  <h3>画像認識でボタンを探しますか？</h3><p>いいえ。主要な対象指定にはゲームが公開するID、role、text、状態を使います。Screenshotは描画確認やVisual比較の証拠として利用できます。</p>
-  <h3>GuaはゲームエンジンやAIを置き換えますか？</h3><p>いいえ。Guaはゲームランタイムとテスト、Inspector、AIコーディングエージェントをつなぐ自動化レイヤーです。</p>
-  <div class="grid-2"><a class="mini-card" href="/godot/"><strong>Godot UI Testing →</strong><p>推奨統合とテスト機能を確認する。</p></a><a class="mini-card" href="/mcp/"><strong>MCP Server →</strong><p><code>gui-mcp</code>の設定とtool一覧を確認する。</p></a></div>
+<DocPage eyebrow="USE CASE / AI CODING" title="AI Coding and AI Playtesting for Godot and Unity" lead="Gua lets an MCP-enabled AI coding agent inspect, operate, and verify the live UI of the Godot 4.7 or Unity 6 game it is helping to build." description="Use Gua MCP for AI-assisted Godot and Unity development, semantic AI UI testing, and AI playtesting against a running game." section="mcp">
+  <h2>Give AI coding agents a way to verify running games</h2>
+  <p>The coding agent writes the game; Gua provides the runtime UI layer it uses to check the result. Through <code>gui-mcp</code>, the agent can access the Semantic UI Tree, actions, waits, logs, screenshots, recordings, visual comparisons, and test execution.</p>
+  <div class="flow"><span>AI implements</span><b>→</b><span>Launch the game</span><b>→</b><span>Inspect and operate</span><b>→</b><span>Verify and fix</span></div>
+  <h2>The AI development loop</h2>
+  <ol class="steps"><li><strong>Implement the feature</strong><p>The AI coding agent changes Godot GDScript/C# or Unity C# and the game UI.</p></li><li><strong>Launch the game</strong><p>The Godot GDScript add-on collects Controls. The Unity UPM package automatically collects runtime UI Toolkit, uGUI, and TextMeshPro controls. Both publish through the Gua WebSocket bridge.</p></li><li><strong>Inspect the Semantic UI Tree</strong><p>The agent calls <code>get_ui_tree</code> and identifies a control from its ID, role, text, and state without depending on engine-specific object APIs.</p></li><li><strong>Operate and wait for the result</strong><p>It sends click, value, selection, scroll, or key actions and waits for the expected UI state.</p></li><li><strong>Verify from evidence and fix</strong><p>On failure, it inspects the tree, engine logs, screenshot, or visual diff, changes the implementation, and runs the test again.</p></li></ol>
+  <h2>Engine integration</h2>
+  <div class="table-wrap"><table><thead><tr><th>Engine</th><th>Runtime UI source</th><th>How Gua starts</th></tr></thead><tbody><tr><td>Godot 4.7</td><td>Standard <code>Control</code> tree</td><td>The GDScript add-on attaches an automatic adapter and starts the bridge.</td></tr><tr><td>Unity 6</td><td>UI Toolkit, uGUI, and TextMeshPro runtime UI</td><td>The UPM package starts automatically before scene load and runs collection after each frame.</td></tr><tr><td>Both</td><td>Semantic UI Tree v2</td><td><code>gui-mcp</code> uses the same locators, actions, waits, logs, screenshots, Visual, and Recording tools.</td></tr></tbody></table></div>
+  <h2>How it maps to Playwright on the web</h2>
+  <div class="table-wrap"><table><thead><tr><th>Web UI automation</th><th>Game UI automation with Gua</th></tr></thead><tbody><tr><td>Browser</td><td>Running game</td></tr><tr><td>DOM</td><td>Semantic UI Tree</td></tr><tr><td>locator</td><td>Semantic locator by ID, role, text, and state</td></tr><tr><td>click / fill / keyboard</td><td>Semantic actions such as click / set value / press key</td></tr><tr><td>expect / wait</td><td>GuaAssertions / wait_for_node</td></tr><tr><td>screenshot / visual test</td><td>Gua screenshot / visual baseline comparison</td></tr></tbody></table></div>
+  <h2>Frequently asked questions</h2>
+  <h3>Can Gua test Godot UI?</h3><p>Yes. The recommended Godot 4.7 GDScript add-on reflects standard Controls and supports semantic locators, actions, waits, assertions, screenshots, and visual comparison.</p>
+  <h3>Can Gua test Unity UI?</h3><p>Yes. The Unity 6 UPM package automatically reflects runtime UI Toolkit, uGUI, and TextMeshPro controls on supported Windows x64 Mono builds. The AI uses the same semantic MCP tools as it does with Godot.</p>
+  <h3>Can an AI agent operate a game with Gua?</h3><p>Yes. An MCP-enabled AI client can use <code>gui-mcp</code> to read the live tree, act on Controls, wait for state, inspect logs and screenshots, and run tests.</p>
+  <h3>Is Gua a Godot or Unity Editor MCP?</h3><p>No; the roles are complementary. Editor tools operate the development environment, while Gua observes, operates, and verifies the runtime UI of a running Godot or Unity game.</p>
+  <h3>Does Gua locate buttons with image recognition?</h3><p>No. Primary targeting uses IDs, roles, text, and state published by the game. Screenshots remain available as evidence for rendered output and visual comparison.</p>
+  <h3>Does Gua replace the game engine or coding agent?</h3><p>No. Gua is the automation layer connecting a game runtime to tests, Inspector, and AI coding agents.</p>
+  <div class="grid-2"><a class="mini-card" href="/godot/"><strong>Godot UI Testing →</strong><p>Review the Godot 4.7 integration and test features.</p></a><a class="mini-card" href="/unity/"><strong>Unity UI Testing →</strong><p>Review the Unity 6 runtime integration and external tests.</p></a><a class="mini-card" href="/mcp/"><strong>MCP Server →</strong><p>Configure <code>gui-mcp</code> and review its tools.</p></a></div>
 </DocPage>

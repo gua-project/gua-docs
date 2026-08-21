@@ -5,11 +5,11 @@ import '../styles/global.css';
 interface Props { title: string; description: string; section?: string; }
 const { title, description, section } = Astro.props;
 const path = Astro.url.pathname;
-const isEnglish = path === '/en/' || path.startsWith('/en/');
+const isEnglish = path !== '/ja/' && !path.startsWith('/ja/');
 const activeSections = isEnglish ? sectionsEn : sections;
 const activeDocs = isEnglish ? docsEn : docs;
-const englishPath = isEnglish ? path : `/en${path}`;
-const japanesePath = isEnglish ? (path.replace(/^\/en/, '') || '/') : path;
+const englishPath = isEnglish ? path : (path.replace(/^\/ja/, '') || '/');
+const japanesePath = isEnglish ? `/ja${path}` : path;
 const siteBase = Astro.site ?? new URL('/', Astro.url.origin);
 const preferredUrl = new URL(englishPath.replace(/^\//, ''), siteBase);
 const japaneseUrl = new URL(japanesePath === '/' ? '' : japanesePath.replace(/^\//, ''), siteBase);
@@ -78,19 +78,16 @@ const structuredData = {
       <button class="menu-toggle" type="button" aria-label={isEnglish ? 'Open navigation menu' : 'ナビゲーションメニューを開く'} aria-controls="site-sidebar" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
-      <a class="brand" href={isEnglish ? '/en/' : '/'} aria-label={isEnglish ? 'Gua Reference home' : 'Gua 日本語リファレンス ホーム'}>
+      <a class="brand" href={isEnglish ? '/' : '/ja/'} aria-label={isEnglish ? 'Gua Reference home' : 'Gua 日本語リファレンス ホーム'}>
         <span class="brand-mark">G</span><span>Gua <b>{isEnglish ? 'REFERENCE' : '日本語リファレンス'}</b></span>
       </a>
-      <nav class="topnav" aria-label={isEnglish ? 'Primary navigation' : '主要ナビゲーション'}>
-        <a href={isEnglish ? '/en/godot/' : '/godot/'}>Godot</a><a href={isEnglish ? '/en/ai-coding/' : '/ai-coding/'}>AI Playtesting</a><a href={isEnglish ? '/en/docs/' : '/docs/'}>Docs</a><a href={isEnglish ? '/en/inspector/' : '/inspector/'}>Inspector</a><a href={isEnglish ? '/en/mcp/' : '/mcp/'}>MCP</a>
-      </nav>
       <a class="lang-link" href={isEnglish ? japanesePath : englishPath}>{isEnglish ? '日本語' : 'English'}</a>
       <a class="github-link" href="https://github.com/link1345/gua" target="_blank" rel="noreferrer">GitHub ↗</a>
     </header>
     <div class="shell">
       <button class="menu-backdrop" type="button" aria-label={isEnglish ? 'Close navigation menu' : 'ナビゲーションメニューを閉じる'} tabindex="-1"></button>
       <aside class="sidebar" id="site-sidebar">
-        <a class:list={["side-home", path === (isEnglish ? '/en/' : '/') && 'active']} href={isEnglish ? '/en/' : '/'}>{isEnglish ? 'Introduction' : 'はじめに'}</a>
+        <a class:list={["side-home", path === (isEnglish ? '/' : '/ja/') && 'active']} href={isEnglish ? '/' : '/ja/'}>{isEnglish ? 'Introduction' : 'はじめに'}</a>
         <div class="side-label">GUIDE</div>
         {activeSections.map((item) => (
           <div class="side-group">

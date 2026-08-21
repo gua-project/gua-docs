@@ -1,0 +1,171 @@
+---
+import DocPage from '../../../components/DocPage.astro';
+import CodeBlock from '../../../components/CodeBlock.astro';
+import Callout from '../../../components/Callout.astro';
+---
+<DocPage eyebrow="DOCS / GUA.RUNTIME" title="Gua.Runtime実装ガイド" lead="独自のmanaged engine adapterからSemantic UI Tree、操作、screenshot、Inspector bridgeをGuaへ接続するための実践ガイドです。" description="Gua.Runtimeを使って独自engine adapterを実装する具体的な利用場面、処理フロー、コード例、注意点。" section="docs">
+  <Callout kind="tip" title="誰が使うパッケージか"><p><code>Gua.Runtime</code>はゲームのテストを書く人ではなく、engine・UI frameworkとGuaを接続する<strong>adapter作者</strong>が使います。Unity/Godot対応をそのまま利用するプロジェクトでは、通常は直接参照しません。</p></Callout>
+
+  <h2>実際の利用場面</h2>
+  <div class="table-wrap"><table><thead><tr><th>場面</th><th>Gua.Runtimeが担当すること</th><th>adapter側が担当すること</th></tr></thead><tbody>
+    <tr><td>新しいgame engineへ対応</td><td>C ABIのmanaged wrapper、request queue、version、bridge</td><td>engineのUI列挙、座標・状態変換、入力配送</td></tr>
+    <tr><td>独自UI frameworkへ対応</td><td>Semantic node登録、action要求、完了event</td><td>Widgetをroleへ写像し、実際のWidget APIを呼ぶ</td></tr>
+    <tr><td>社内toolkitをInspector/MCPへ公開</td><td>WebSocket bridge、UI Tree JSON、log、screenshot要求</td><td>toolkitの描画loopとcapture APIへ接続</td></tr>
+  </tbody></table></div>
+
+  <figure class="doc-figure">
+    <div class="flow"><span>Inspector / MCP / Tests<small>観測・操作request</small></span><b>↔</b><span>native gua_runtime<small>state・queue・bridge</small></span><b>↔</b><span>Gua.Runtime<small>managed API</small></span><b>↔</b><span>Custom adapter<small>engine固有変換</small></span><b>↔</b><span>Game UI<small>実際のWidget</small></span></div>
+    <figcaption>図1: Gua.Runtimeはprotocol stateを所有するnative runtimeと、engine固有UI APIの間にあるmanaged境界です。</figcaption>
+  </figure>
+
+  <h2>導入とnative library</h2>
+  <CodeBlock title="最新安定版をadapter projectへ追加" lang="powershell" code={`dotnet add package Gua.Runtime`} />
+  <p><code>Gua.Runtime</code>は<code>net10.0</code>と<code>netstandard2.1</code>を対象にします。実行時には対象platform/architectureと一致する<code>gua.dll</code>と<code>gua_runtime.dll</code>も配置します。不一致や欠落はconstructorで明示的なload errorになります。</p>
+
+  <h2>adapterの1 frame</h2>
+  <figure class="doc-figure">
+    <div class="flow"><span>BeginFrame<small>screen名を開始</small></span><b>→</b><span>RegisterNode × N<small>現在のUI状態</small></span><b>→</b><span>EndFrame<small>snapshot確定</small></span><b>→</b><span>Consume actions<small>engineへ配送</small></span><b>→</b><span>Emit result<small>requestIdで完了</small></span></div>
+    <figcaption>図2: nodeは差分ではなく、そのframeで観測した状態を登録します。操作はsnapshot確定後に消費し、hostで処理した結果を返します。</figcaption>
+  </figure>
+
+  <CodeBlock title="最小adapter loop" lang="csharp" code={`using System;
+using System.Collections.Generic;
+using Gua.Core;
+using Gua.Runtime;
+
+public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
+{
+    // 最長のremote action timeout以上に設定する。
+    private static readonly TimeSpan StaleIdRetention = TimeSpan.FromSeconds(30);
+    private readonly GuaRuntime runtime = new();
+    private readonly Dictionary<string, DateTimeOffset> retainedNodeIds =
+        new(StringComparer.Ordinal);
+
+    public void Start()
+    {
+        runtime.SetAdapterVersion("custom_ui", "1.0.0");
+        if (!runtime.StartInspectorBridge(GetBridgePort()))
+            throw new InvalidOperationException("Gua bridge could not start.");
+    }
+
+    private static int GetBridgePort()
+    {
+        const int defaultPort = 8765;
+        var value = Environment.GetEnvironmentVariable("GUA_BRIDGE_PORT");
+        if (string.IsNullOrWhiteSpace(value))
+            return defaultPort;
+        if (!int.TryParse(value, out var port) || port is < 1 or > 65535)
+            throw new InvalidOperationException("GUA_BRIDGE_PORT must be between 1 and 65535.");
+        return port;
+    }
+
+    public void Tick()
+    {
+        var retainUntil = DateTimeOffset.UtcNow + StaleIdRetention;
+        runtime.BeginFrame(ui.ScreenName);
+        foreach (var control in ui.Controls)
+        {
+            retainedNodeIds[control.Id] = retainUntil;
+            runtime.RegisterNode(new GuaNodeDescriptor(
+                control.Id, control.Role, control.Label,
+                new GuaBounds(control.X, control.Y, control.Width, control.Height),
+                Visible: control.Visible,
+                Enabled: control.Enabled,
+                ParentId: control.ParentId,
+                Text: control.Sensitive ? null : control.Text,
+                Value: control.Sensitive ? null : control.Value,
+                Focused: control.Focused,
+                Checked: control.Checked));
+        }
+        runtime.EndFrame();
+
+        foreach (var nodeId in retainedNodeIds.Keys)
+            DrainActions(nodeId);
+        DrainActions(null); // global press_key requests
+
+        var now = DateTimeOffset.UtcNow;
+        var expiredNodeIds = new List<string>();
+        foreach (var pair in retainedNodeIds)
+            if (pair.Value <= now)
+                expiredNodeIds.Add(pair.Key);
+        foreach (var expired in expiredNodeIds)
+            retainedNodeIds.Remove(expired);
+    }
+
+    private void DrainActions(string? nodeId)
+    {
+        foreach (GuaActionType action in Enum.GetValues(typeof(GuaActionType)))
+        {
+            while (runtime.TryConsumeAction(action, nodeId, out var request))
+            {
+                if (request.Action == GuaActionType.Click)
+                {
+                    var error = TryClick(request.NodeId);
+                    runtime.EmitActionResult(request,
+                        error == GuaActionError.None, error);
+                }
+                else
+                {
+                    runtime.EmitActionResult(request, false, GuaActionError.Unsupported);
+                }
+            }
+        }
+    }
+
+    private GuaActionError TryClick(string? nodeId)
+    {
+        if (nodeId is null || !ui.TryGetControl(nodeId, out var control))
+            return GuaActionError.NodeNotFound;
+        if (!control.Visible)
+            return GuaActionError.Hidden;
+        if (!control.Enabled)
+            return GuaActionError.Disabled;
+        return ui.TryClick(nodeId)
+            ? GuaActionError.None
+            : GuaActionError.Unsupported;
+    }
+
+    public void Dispose() => runtime.Dispose();
+}`} />
+  <p><code>GetBridgePort</code>は外部test hostが<code>GUA_BRIDGE_PORT</code>で割り当てたportを優先し、範囲を検証します。overrideがない場合だけ<code>8765</code>を使います。<code>ICustomUi</code>は説明用のhost固有interfaceです。password、token等を登録前に<code>Sensitive</code>で識別し、<code>Text</code>と<code>Value</code>の両方を省略することで、secretがsnapshot、Inspector/MCP応答、retained diagnosticsへ入るのを防ぎます。IDはframeをまたいで安定させ、boundsは物理viewport pixel・左上原点で渡します。</p>
+
+  <h2>actionを正しく完了させる</h2>
+  <p><code>TryConsumeAction</code>はaction typeとnode IDの両方が一致する要求を取り出します。直前snapshotを見たclientのrequestは、Controlが消えた最初のframeでdrainした後に到着する可能性があるため、一度のdrainだけでは不十分です。最後に観測した各IDを有限のstaleness windowだけ保持し、その間はdrainを継続して期限後に除去します。<code>StaleIdRetention</code>は最長のremote action timeoutとtransportの余裕以上に設定します。この例は30秒です。これにより許可されたclientを途中で見捨てず、動的画面のmemoryとframe処理量を直近のID生成rateへ制限できます。空IDはglobal key要求用に別途drainします。</p>
+  <div class="table-wrap"><table><thead><tr><th>結果</th><th>返すerror</th><th>例</th></tr></thead><tbody>
+    <tr><td>対象が消えた</td><td><code>NodeNotFound</code></td><td>request後、処理前にsceneが変わった</td></tr>
+    <tr><td>非表示・無効</td><td><code>Hidden</code> / <code>Disabled</code></td><td>host状態が最新snapshotから変化した</td></tr>
+    <tr><td>roleが操作非対応</td><td><code>Unsupported</code></td><td>text nodeへのclick</td></tr>
+    <tr><td>値を解釈できない</td><td><code>InvalidValue</code></td><td>sliderへ数値以外を設定</td></tr>
+  </tbody></table></div>
+
+  <h2>screenshot要求</h2>
+  <CodeBlock title="描画後にscreenshotを完了" lang="csharp" code={`if (runtime.TryConsumeScreenshotRequest(out var request))
+{
+    if (ui.IsHeadless)
+    {
+        runtime.CompleteScreenshot(request, GuaScreenshotAvailability.Headless);
+    }
+    else if (ui.IsRenderingDisabled)
+    {
+        runtime.CompleteScreenshot(request, GuaScreenshotAvailability.RenderingDisabled);
+    }
+    else
+    {
+        var png = ui.CapturePngAfterDraw();
+        var dataUri = "data:image/png;base64," + Convert.ToBase64String(png.Bytes);
+        runtime.CompleteScreenshot(request, GuaScreenshotAvailability.Available,
+            dataUri, png.Width, png.Height);
+    }
+}`} />
+  <p>PNG captureを試す前に、headlessとrendering disabledを別々に判定します。captureは可能なら描画完了後に行います。<code>CompleteScreenshot</code>がdocumented completion APIです。consumeしたrequestごとに一度だけ呼びます。timeout・cancel・context reset後のlate completionはruntimeが無視するため、再試行しません。</p>
+
+  <h2>実装チェックリスト</h2>
+  <ul>
+    <li><code>SetAdapterVersion</code>へlowercase ASCIIの安定したadapter名とversionを設定する。</li>
+    <li>node ID、role、parent、state、action対応をframe間で一貫させる。</li>
+    <li>外部actionをengineの通常input/listener経路へ配送し、処理後に必ず成功または失敗を返す。</li>
+    <li>秘密値をlog、diagnostics、完了eventへ書かない。</li>
+    <li>headless・rendering disabled・stale sessionをscreenshot結果として区別する。</li>
+    <li>終了時に<code>Dispose()</code>し、bridgeとnative handleを解放する。</li>
+  </ul>
+</DocPage>

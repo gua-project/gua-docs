@@ -1,0 +1,95 @@
+---
+import DocPage from '../../../components/DocPage.astro';
+import CodeBlock from '../../../components/CodeBlock.astro';
+import Callout from '../../../components/Callout.astro';
+---
+<DocPage eyebrow="GUIDE / VISUAL TESTING" title="Visualテスト実践" lead="Gua.Testing.Visualを使うと、実行中ゲームのscreenshotをreview済みPNG baselineと比較し、Controlの重なり、clipping、位置ずれ、誤ったassetやthemeなどを検出できます。Semantic UI上では正しく存在するのに表示が壊れている問題を見つけるために必要な、game engine非依存のVisual regressionテストです。" description="Gua.Testing.Visualの利用場面、baseline作成、比較設定、artifact、mask、variant、CI運用。" section="visual-testing">
+  <Callout kind="tip" title="game engineに依存しません"><p><code>Gua.Testing.Visual</code>は<code>IGuaContext</code>とGua diagnosticsのPNGを利用するため、Godot・Unity・独自adapterのどれでも同じAPIとbaseline運用を使えます。engineごとに変わるのはscreenshotの取得実装と、必要に応じたbaseline variantだけです。</p></Callout>
+  <h2>どんな不具合に使うか</h2>
+  <div class="table-wrap"><table><thead><tr><th>Visualが有効</th><th>Semantic assertionを優先</th></tr></thead><tbody>
+    <tr><td>Controlのclipping・重なり・位置ずれ</td><td>buttonが存在する、visibleである</td></tr>
+    <tr><td>誤ったtexture、font、theme、overlay</td><td>textやvalueが期待値である</td></tr>
+    <tr><td>解像度変更で崩れたlayout</td><td>操作後に画面・状態が遷移した</td></tr>
+    <tr><td>描画は成功したが見た目が異なる</td><td>高速で原因が明確な機能検証</td></tr>
+  </tbody></table></div>
+  <Callout kind="tip" title="併用が基本"><p>Visual比較はSemanticテストの置き換えではありません。まずID・role・stateで機能を検証し、見た目が契約になる重要画面だけPNG比較を追加します。</p></Callout>
+
+  <figure class="doc-figure">
+    <div class="flow"><span>Stable UI frame<small>必要なら3 frame待機</small></span><b>→</b><span>Actual PNG<small>diagnosticsから取得</small></span><b>→</b><span>Reviewed baseline<small>name + variant</small></span><b>→</b><span>Pixel comparison<small>threshold・mask</small></span><b>→</b><span>PASS / artifacts<small>差分をreview</small></span></div>
+    <figcaption>図1: baselineはテスト名とvariantで選ばれ、許容条件を超えた場合だけ比較artifactを生成します。</figcaption>
+  </figure>
+
+  <h2>導入</h2>
+  <CodeBlock title="最新安定版をvisual test projectへ追加" lang="powershell" code={`dotnet add package Gua.Testing.Visual`} />
+
+  <h2>1. baselineを明示的に作る</h2>
+  <p>baselineが無い通常実行は失敗します。初回または意図したUI変更時だけ、developerが明示的に更新します。</p>
+  <CodeBlock title="PowerShellでbaseline更新を許可" lang="powershell" code={`$env:GUA_UPDATE_BASELINES = "1"
+dotnet test tests/Game.Visual.Tests/Game.Visual.Tests.csproj
+Remove-Item Env:GUA_UPDATE_BASELINES`} />
+  <p>生成されたPNGを目視reviewし、正しい場合だけtest repositoryへcommitします。通常のpull request jobにこの環境変数を設定してはいけません。</p>
+
+  <h2>2. baselineをversion管理する</h2>
+  <p>次の比較例はNUnitのtest output directoryからbaselineを読みます。test project直下の<code>baselines</code>へcommitしたPNGがclean checkoutやCIでもoutputへコピーされるよう、project fileへ次のruleを追加します。</p>
+  <CodeBlock title="Game.Visual.Tests.csproj" lang="xml" code={`<ItemGroup>
+  <None Update="baselines/**/*.png"
+        CopyToOutputDirectory="PreserveNewest" />
+</ItemGroup>`} />
+  <p>baselineを作成・更新した場合は、outputに生成されたPNGを目視reviewし、承認したファイルをproject直下の<code>baselines</code>へ戻してからcommitしてください。</p>
+
+  <h2>3. 通常実行で比較する</h2>
+  <CodeBlock title="title画面を比較" lang="csharp" code={`using Gua.Testing;
+using Gua.Testing.Visual;
+
+// 遷移とanimationが決定的になった後だけgame側が公開するnode
+await GuaAssertions.WaitForVisibleAsync(host.Context, "visual-ready");
+
+var baselineVariant = Environment.GetEnvironmentVariable("GUA_VISUAL_VARIANT")
+    ?? "windows-unity-mono-1920x1080";
+
+var result = await GuaVisualAssertions.ExpectScreenshotAsync(
+    host.Context,
+    "title-screen",
+    new ScreenshotOptions
+    {
+        BaselineDirectory = Path.Combine(TestContext.CurrentContext.TestDirectory, "baselines"),
+        ArtifactDirectory = Path.Combine(TestContext.CurrentContext.WorkDirectory, "artifacts", "gua"),
+        BaselineVariant = baselineVariant,
+        PixelThreshold = 0.02f,
+        MaxDifferentPixelRatio = 0.001,
+        WaitForStableSnapshot = true,
+        StableFrames = 3,
+    });`} />
+  <p><code>WaitForStableSnapshot</code>が確認するのはSemantic UI snapshotが変化しなくなったことだけです。sprite、shader、caret、画面遷移等のpixel animation停止は検出しません。上の例のようにapplication固有のready条件を先に待ち、animation状態を決定的にしてください。<code>PixelThreshold</code>は各channelの微差、<code>MaxDifferentPixelRatio</code>は差があるpixelの割合を許容します。最初から大きな値を設定せず、renderer由来の安定した差だけを根拠に調整します。</p>
+
+  <h2>失敗時に残るもの</h2>
+  <div class="artifact-row"><div><strong>expected.png</strong><small>review済みbaseline</small></div><div><strong>actual.png</strong><small>今回のcapture</small></div><div><strong>diff.png</strong><small>差分の可視化</small></div><div><strong>comparison.json</strong><small>閾値・差分率・path</small></div></div>
+  <p><code>ArtifactDirectory</code>を指定すれば、通常のGua diagnosticsと同じ失敗directoryへVisual artifactをまとめられます。dimension mismatchは暗黙にresizeせず失敗します。</p>
+
+  <h2>variantとmask</h2>
+  <div class="table-wrap"><table><thead><tr><th>設定</th><th>使い方</th><th>避けること</th></tr></thead><tbody>
+    <tr><td><code>BaselineVariant</code></td><td>OS、engine、renderer、解像度など正当な描画差を名前へ含める</td><td>失敗するたび新variantを増やす</td></tr>
+    <tr><td><code>Masks</code></td><td>時計、乱数avatarなど本当に非決定的な矩形だけ除外</td><td>重要UI全体をmaskして回帰を隠す</td></tr>
+    <tr><td><code>WaitForStableSnapshot</code></td><td>application-ready条件の後、Semantic stateが変化しないことを確認</td><td>pixel animationを停止・検出できると仮定する</td></tr>
+  </tbody></table></div>
+  <CodeBlock title="非決定領域を限定してmask" lang="csharp" code={`Masks = new[]
+{
+    new GuaMaskRectangle(X: 1710, Y: 24, Width: 180, Height: 48), // clock only
+};`} />
+
+  <h2>CI運用</h2>
+  <CodeBlock title="失敗artifactをアップロード" lang="yaml" code={`- name: Run visual tests
+  shell: pwsh
+  env:
+    GUA_VISUAL_VARIANT: windows-unity-mono-1920x1080
+  run: dotnet test tests/Game.Visual.Tests/Game.Visual.Tests.csproj --configuration Release
+
+- name: Upload visual failures
+  if: failure()
+  uses: actions/upload-artifact@v4
+  with:
+    name: gua-visual-failures
+    path: artifacts/gua
+    if-no-files-found: ignore`} />
+  <p>CIでは解像度、DPI scaling、font、locale、theme、engine version、renderer、GPU/driver policyを固定します。baseline更新は通常jobから分離し、差分reviewを必須にします。</p>
+</DocPage>

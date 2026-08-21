@@ -2,21 +2,11 @@
 import DocPage from '../../components/DocPage.astro';
 import Callout from '../../components/Callout.astro';
 ---
-<DocPage eyebrow="UNITY / OVERVIEW" title="Unity編" lead="Unity 6の実行時UIを自動収集し、Godot版と同じSemantic UI Tree、Inspector、MCP、外部.NETテストへ接続します。" description="GuaのUnity 6 Windows x64 Mono対応の概要。" section="unity">
-  <Callout title="初期対応範囲"><p><strong>Unity 6000.0以上・Windows x64・Mono</strong>が対応範囲です。UI Toolkit、uGUI、TextMeshProのランタイムUIを自動収集します。IL2CPP、Windows以外、Unity IMGUI、EditorWindowは未対応です。</p></Callout>
-  <div class="grid-2">
-    <a class="mini-card" href="/unity/ui/"><strong>01　導入とUI実装 →</strong><p>UPMパッケージを追加し、自動起動・ID・画面名・対応Controlを理解する。</p></a>
-    <a class="mini-card" href="/unity/testing/"><strong>02　テストの仕方 →</strong><p>Editor Play ModeまたはWindows Playerを起動し、外部.NETテストから操作する。</p></a>
-  </div>
-  <h2>構成</h2>
-  <div class="flow"><span>Unity runtime UI</span><b>→</b><span>Gua.Unity</span><b>→</b><span>Gua.Runtime</span><b>→</b><span>WebSocket</span><b>→</b><span>Tests / Inspector / MCP</span></div>
-  <p><code>com.link1345.gua</code>はPlay ModeとWindows Playerで自動起動します。毎フレーム、実際のUI階層を走査してsemantic nodeを再構築し、外部actionをUnity本来のイベント経路へ戻します。ゲーム側でテスト専用のUIモデルを二重管理する必要はありません。</p>
-  <h2>Godot版との共通点と違い</h2>
-  <div class="table-wrap"><table><thead><tr><th>項目</th><th>Unity</th><th>Godot</th></tr></thead><tbody>
-    <tr><td>ゲーム側アダプター</td><td>UPMのマネージアダプター</td><td>GDScript + GDExtension</td></tr>
-    <tr><td>自動収集</td><td>UI Toolkit / uGUI / TMP</td><td>Controlツリー</td></tr>
-    <tr><td>外部テストホスト</td><td><code>Gua.Testing.Unity</code></td><td><code>Gua.Testing.Godot</code></td></tr>
-    <tr><td>共有契約</td><td colspan="2">Gua Core、Semantic UI Tree v2、action結果、reset、diagnostics、screenshot、WebSocket</td></tr>
-  </tbody></table></div>
-  <p>公開型、Control写像、action、対応環境は<a href="/docs/unity-reference/">Unity API・仕様リファレンス</a>から引けます。</p>
+<DocPage eyebrow="UNITY / OVERVIEW" title="Unity" lead="Reflect Unity 6 runtime UI automatically and connect it to the same Semantic UI Tree, Inspector, MCP server, and external .NET tests used by Gua's other adapters." description="Overview of Gua support for Unity 6 Windows x64 Mono." section="unity">
+  <Callout title="Initial support envelope"><p><strong>Unity 6000.0+, Windows x64, and Mono</strong> are supported. The adapter reflects runtime UI Toolkit, uGUI, and TextMeshPro controls. IL2CPP, other operating systems, Unity IMGUI, and EditorWindow automation are not supported.</p></Callout>
+  <div class="grid-2"><a class="mini-card" href="/unity/ui/"><strong>01　Install and implement UI →</strong><p>Add the UPM package and understand automatic startup, IDs, screens, and supported controls.</p></a><a class="mini-card" href="/unity/testing/"><strong>02　Testing UI →</strong><p>Start Editor Play Mode or a Windows Player from an external .NET test.</p></a></div>
+  <h2>Architecture</h2><div class="flow"><span>Unity runtime UI</span><b>→</b><span>Gua.Unity</span><b>→</b><span>Gua.Runtime</span><b>→</b><span>WebSocket</span><b>→</b><span>Tests / Inspector / MCP</span></div>
+  <p><code>com.link1345.gua</code> starts automatically in Play Mode and Windows Players. It rebuilds semantic state from the real UI hierarchy every frame and applies external actions through Unity controls. Game code does not maintain a second test-only UI model.</p>
+  <h2>Unity and Godot</h2><div class="table-wrap"><table><thead><tr><th>Concern</th><th>Unity</th><th>Godot</th></tr></thead><tbody><tr><td>Game adapter</td><td>Managed UPM package</td><td>GDScript + GDExtension</td></tr><tr><td>Automatic reflection</td><td>UI Toolkit / uGUI / TMP</td><td>Control tree</td></tr><tr><td>External host</td><td><code>Gua.Testing.Unity</code></td><td><code>Gua.Testing.Godot</code></td></tr><tr><td>Shared contract</td><td colspan="2">Gua Core, Semantic UI Tree v2, action results, reset, diagnostics, screenshots, and WebSocket</td></tr></tbody></table></div>
+  <p>See the <a href="/docs/unity-reference/">Unity API and specification</a> for the public surface, mappings, actions, and supported environment.</p>
 </DocPage>
