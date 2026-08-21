@@ -3,65 +3,59 @@ import DocPage from '../../../components/DocPage.astro';
 import CodeBlock from '../../../components/CodeBlock.astro';
 import Callout from '../../../components/Callout.astro';
 ---
-<DocPage eyebrow="DOCS / CI" title="GitHub Actions" lead="link1345/gua-testerは、Godot GDScriptプロジェクトのGua UIテストをWindows runnerで実行するための公開GitHub Actionです。" description="link1345/gua-testerの入力、出力、構成Actionのリファレンス。" section="docs">
-  <Callout title="公式リポジトリ"><p>実装と最新情報は<a href="https://github.com/link1345/gua-tester">link1345/gua-tester</a>を参照してください。root／setup Actionの例はRelease <code>v1.3</code>、同梱静的Viewerを導入する<code>visual-report</code>の例はRelease <code>v1.4</code>へ固定します。</p></Callout>
-  <h2>処理内容</h2><ol class="steps"><li><strong>.NET SDKとGodotを準備</strong><p>指定バージョンのWindows版Godotを取得し、<code>GODOT_EXECUTABLE</code>を設定します。</p></li><li><strong>Guaアドオンを配置</strong><p>Gua Releasesから最新または指定タグの<code>godot-plugin-*</code>を取得し、<code>&lt;project-path&gt;/addons/gua</code>へコピーします。</p></li><li><strong>.NETテストを実行</strong><p>テストプロジェクトをrestoreし、指定configurationとloggerで<code>dotnet test</code>を実行します。</p></li></ol>
-  <h2>入力</h2><div class="grid-2"><div class="mini-card"><strong>test-project（必須）</strong><p><code>Gua.Testing.Godot</code>を参照するテスト用<code>.csproj</code>へのパスです。</p></div><div class="mini-card"><strong>project-path</strong><p>Godotプロジェクトのパスです。既定値は<code>game</code>です。</p></div><div class="mini-card"><strong>godot-version / godot-status</strong><p>既定値は<code>4.7</code>と<code>stable</code>です。rc・devも指定できます。</p></div><div class="mini-card"><strong>dotnet-version</strong><p>外部テストrunnerのSDKです。既定値は<code>10.0.x</code>です。</p></div><div class="mini-card"><strong>gua-plugin-tag</strong><p>特定の<code>godot-plugin-*</code>タグへ固定します。空なら最新の該当Releaseです。</p></div><div class="mini-card"><strong>configuration / test-logger</strong><p>既定値は<code>Release</code>と<code>trx;LogFileName=godot-gdscript.trx</code>です。</p></div></div>
-  <p>高度な上書きとして、<code>godot-executable-suffix</code>（既定<code>win64.exe</code>）、<code>gua-repository</code>（既定<code>link1345/gua</code>）、<code>gua-plugin-asset-pattern</code>（既定<code>gua-godot-plugin-*.zip</code>）も指定できます。</p>
-  <h2>出力</h2><div class="grid-2"><div class="mini-card"><strong>godot-executable</strong><p>取得したGodot実行ファイルの絶対パスです。</p></div><div class="mini-card"><strong>addon-path</strong><p>アドオンの配置先で、<code>&lt;project-path&gt;/addons/gua</code>です。</p></div></div>
-  <h2>構成Actionを個別に使う</h2><CodeBlock title="Godotだけ準備" lang="yaml" code={`- uses: link1345/gua-tester/setup-godot@v1.2
-  with:
-    godot-version: "4.7"
-    godot-status: stable`} /><CodeBlock title="Guaアドオンだけ配置" lang="yaml" code={`- uses: link1345/gua-tester/link-gua-gdscript-addon@v1.2
-  with:
-    project-path: game`} />
-  <h2 id="visual-report">Visual差分レポート</h2><p><code>link1345/gua-tester/visual-report</code>は、<code>Gua.Testing.Visual</code>のmanifestとPNGを静的レポートへ変換します。Astro Viewerは事前ビルド済みでActionへ同梱されるため、利用側workflowでAstroやnpm依存をインストールしません。</p>
-  <div class="grid-2"><div class="mini-card"><strong>比較結果を一覧表示</strong><p>hashで結果を選び、run、commit、variant、寸法、差分画素数・率、閾値を確認できます。</p></div><div class="mini-card"><strong>2つの表示モード</strong><p>Expected／Diff／Actualの3列表示と、キーボード操作対応のExpected／Actualスライダーを切り替えます。</p></div><div class="mini-card"><strong>失敗状態を区別</strong><p>baseline欠落、画像サイズ不一致、diff欠落、データなし、成功、キャンセルを個別に表示します。</p></div><div class="mini-card"><strong>公開データを制限</strong><p>公開用<code>report.json</code>にはrawの絶対<code>baselinePath</code>を転記せず、コピーした固定名PNGだけを参照します。</p></div></div>
-  <h3>入力と出力</h3><div class="table-wrap"><table><thead><tr><th>入力</th><th>既定値</th><th>用途</th></tr></thead><tbody><tr><td><code>artifact-path</code></td><td><code>artifacts/gua</code></td><td>比較データdirectory</td></tr><tr><td><code>test-outcome</code></td><td>必須</td><td><code>success</code>、<code>failure</code>、<code>cancelled</code></td></tr><tr><td><code>upload-target</code></td><td><code>pages</code></td><td><code>pages</code>または<code>workflow</code></td></tr><tr><td><code>pages-artifact-name</code></td><td><code>github-pages</code></td><td>Pages artifact名</td></tr><tr><td><code>workflow-artifact-name</code></td><td><code>gua-visual-report</code></td><td>通常workflow artifact名</td></tr><tr><td><code>retention-days</code></td><td><code>7</code></td><td>artifact保持日数</td></tr></tbody></table></div><p>出力は<code>comparison-count</code>と<code>artifact-id</code>です。</p>
-  <h3>PRとmainで公開先を分ける</h3><CodeBlock title="テストstepの後にレポートを作る" lang="yaml" code={`- name: Normalize visual report outcome
-  id: visual-outcome
-  if: always()
-  shell: pwsh
-  env:
-    TEST_OUTCOME: \${{ steps.gua-tests.outcome }}
-  run: |
-    $outcome = if ($env:TEST_OUTCOME -in @("success", "failure", "cancelled")) {
-      $env:TEST_OUTCOME
-    } else {
-      "failure"
-    }
-    "value=$outcome" >> $env:GITHUB_OUTPUT
+<DocPage eyebrow="DOCS / CI" title="GitHub Actions" lead="link1345/gua-testerは、Godot 4.7とUnity 6のGua UIテストを実行するバージョン付きCI workflowを提供します。" description="Gua Tester Actionsが提供するGodot／Unityの入力、credentials、artifact、Visual report。" section="docs">
+  <Callout title="Gua Tester Actions v2"><p>実装とReleaseは<a href="https://github.com/link1345/gua-tester">link1345/gua-tester</a>を参照してください。v2ではGodotのall-in-one Actionをrepo rootから<code>/godot</code>へ移し、Unity reusable workflowを追加します。</p></Callout>
 
-- name: Upload pull-request visual report
-  if: failure() && github.event_name == 'pull_request'
-  uses: link1345/gua-tester/visual-report@v1.4
+  <h2>Godot 4.7</h2>
+  <p>Godot composite ActionはWindows版Godotを取得し、配布済みGua addonを配置して<code>GODOT_EXECUTABLE</code>を設定します。project import後、外部<code>Gua.Testing.Godot</code>テストを実行します。</p>
+  <CodeBlock title=".github/workflows/godot.yml" lang="yaml" code={`jobs:
+  godot:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: link1345/gua-tester/godot@v2
+        with:
+          project-path: game
+          test-project: tests/GuaTester.Tests.csproj
+          godot-version: "4.7"
+          godot-status: stable
+          gua-plugin-tag: gua-v0.15.0`} />
+  <div class="grid-2"><div class="mini-card"><strong>test-project（必須）</strong><p><code>Gua.Testing.Godot</code>を参照する<code>.csproj</code>です。</p></div><div class="mini-card"><strong>project-path</strong><p>Godot projectのパス。既定値は<code>game</code>です。</p></div><div class="mini-card"><strong>godot-version / godot-status</strong><p>既定値は<code>4.7</code>と<code>stable</code>です。</p></div><div class="mini-card"><strong>test-logger</strong><p>既定値は<code>trx;LogFileName=godot.trx</code>です。</p></div></div>
+  <p>出力は<code>godot-executable</code>と<code>addon-path</code>です。構成Actionの<code>link1345/gua-tester/setup-godot@v2</code>と<code>link1345/gua-tester/link-gua-gdscript-addon@v2</code>も個別に利用できます。</p>
+
+  <h2>Unity 6 Windows x64</h2>
+  <p>Unity reusable workflowは配布済みGua UPM packageを配置し、GameCIを使ってLinuxでrendered Windows x64 Mono Playerをビルドします。PlayerをWindows runnerへ渡し、<code>GUA_UNITY_PLAYER</code>を設定して外部NUnitテストを実行します。</p>
+  <CodeBlock title=".github/workflows/unity.yml" lang="yaml" code={`jobs:
+  unity:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    uses: link1345/gua-tester/.github/workflows/unity.yml@v2
+    with:
+      project-path: game
+      scene-path: Assets/Scenes/Title.unity
+      test-project: tests/GuaTester.Unity.Tests.csproj
+      unity-version: auto
+      gua-tag: gua-v0.15.0
+    secrets:
+      UNITY_EMAIL: \${{ secrets.UNITY_EMAIL }}
+      UNITY_PASSWORD: \${{ secrets.UNITY_PASSWORD }}
+      UNITY_LICENSE: \${{ secrets.UNITY_LICENSE }}`} />
+  <p>必須inputは<code>project-path</code>、<code>scene-path</code>、<code>test-project</code>です。任意inputは<code>unity-version</code>、<code>gua-repository</code>、<code>gua-tag</code>、<code>dotnet-version</code>、<code>configuration</code>、<code>test-logger</code>、<code>artifact-path</code>です。<code>checkout-repository</code>と<code>checkout-ref</code>を使うと、別repoのfixtureを検証できます。</p>
+  <div class="grid-2"><div class="mini-card"><strong>Personalライセンス</strong><p><code>UNITY_EMAIL</code>、<code>UNITY_PASSWORD</code>、<code>UNITY_LICENSE</code>を渡します。</p></div><div class="mini-card"><strong>Professionalライセンス</strong><p><code>UNITY_EMAIL</code>、<code>UNITY_PASSWORD</code>、<code>UNITY_SERIAL</code>を渡します。</p></div><div class="mini-card"><strong>対応target</strong><p>Unity 6000.0以降、Windows x64、Mono、rendered Playerです。</p></div><div class="mini-card"><strong>artifact</strong><p>Unity log、Player、TRX、diagnostics、Visual結果を保存します。</p></div></div>
+  <Callout kind="warn" title="Unity credentialsを保護する"><p>fork PRにはGitHub Actions secretsが渡りません。未信頼forkではUnity jobをskipし、<code>pull_request_target</code>で未信頼のgame codeへcredentialsを渡さないでください。</p></Callout>
+  <Callout kind="tip" title="Guaバージョンを揃える"><p><code>gua-tag</code>を固定し、対応する<code>Gua.Testing.Unity</code> NuGetバージョンを使用します。初期workflowはIL2CPP、Windows以外のPlayer、Editor Play Mode CI、IMGUI、EditorWindow自動化には対応しません。</p></Callout>
+
+  <h2 id="visual-report">Visual差分レポート</h2>
+  <p><code>link1345/gua-tester/visual-report@v2</code>は、<code>Gua.Testing.Visual</code>のmanifestとPNGをworkflow artifactまたはGitHub Pages向けの静的レポートへ変換します。Godot／Unity共通です。</p>
+  <CodeBlock title="失敗したVisual reportを保存" lang="yaml" code={`- name: Upload visual report
+  if: failure()
+  uses: link1345/gua-tester/visual-report@v2
   with:
     artifact-path: artifacts/gua
-    test-outcome: \${{ steps.visual-outcome.outputs.value }}
-    upload-target: workflow
+    test-outcome: failure
+    upload-target: workflow`} />
+  <p><code>upload-target: pages</code>は信頼済みmainまたは手動実行だけで使用し、<code>pages: write</code>と<code>id-token: write</code>を持つ別jobからdeployします。</p>
+  <Callout kind="warn" title="Screenshotの公開範囲"><p>Screenshotにはgame画面へ描画された秘密情報や個人情報が含まれる可能性があります。公開前に内容を確認してください。</p></Callout>
 
-- name: Prepare latest main visual report
-  id: visual-report
-  if: always() && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')
-  uses: link1345/gua-tester/visual-report@v1.4
-  with:
-    artifact-path: artifacts/gua
-    test-outcome: \${{ steps.visual-outcome.outputs.value }}
-    upload-target: pages`} /><p>PRでは失敗時だけ閲覧可能なsiteを通常artifactとして保存します。Viewerは<code>report.json</code>を読み込むため、ダウンロード後は<code>file://</code>で直接開かず、展開先を<code>python -m http.server</code>などでHTTP配信してください。mainと手動実行では成功状態も公開し、古い失敗を最新結果として残しません。</p>
-  <h3>Pagesへdeployする</h3><p>ActionはPages artifactのアップロードまでを担当し、実際のdeployは利用側の専用jobで行います。</p><CodeBlock title="専用deploy job" lang="yaml" code={`deploy-visual-report:
-  needs: godot
-  if: always() && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') && needs.godot.outputs.pages-ready == 'true'
-  runs-on: ubuntu-latest
-  permissions:
-    pages: write
-    id-token: write
-  environment:
-    name: github-pages
-    url: \${{ steps.deployment.outputs.page_url }}
-  steps:
-    - name: Deploy visual report
-      id: deployment
-      uses: actions/deploy-pages@v4`} /><p>テストjobから<code>steps.visual-report.outcome == 'success'</code>を<code>pages-ready</code>として渡します。<code>pages-artifact-name</code>を変更した場合は、同じ値を<code>actions/deploy-pages</code>の<code>artifact_name</code>へ指定してください。</p>
-  <Callout kind="warn" title="スクリーンショットの公開範囲"><p>スクリーンショットにはゲーム画面へ描画された秘密情報や個人情報が含まれる可能性があります。特にpublic repositoryでPagesを有効にする前に、capture内容を確認してください。</p></Callout>
-  <Callout kind="warn" title="利用側の前提"><p>ゲーム側はGuaアドオンのブリッジを起動し、テスト側は<code>Gua.Testing.Godot</code>を参照する必要があります。Actionはテストコードやブリッジ初期化を自動生成しません。</p></Callout>
+  <h2>v1からv2へ移行する</h2>
+  <p><code>link1345/gua-tester@v1</code>を<code>link1345/gua-tester/godot@v2</code>へ変更します。v2にはroot互換Actionがありません。Godotの既定TRX名は<code>godot-gdscript.trx</code>から<code>godot.trx</code>へ変わります。</p>
 </DocPage>

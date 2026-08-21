@@ -3,65 +3,59 @@ import DocPage from '../../components/DocPage.astro';
 import CodeBlock from '../../components/CodeBlock.astro';
 import Callout from '../../components/Callout.astro';
 ---
-<DocPage eyebrow="DOCS / CI" title="GitHub Actions" lead="link1345/gua-tester is the public GitHub Action for running Gua UI tests from a Godot GDScript project on a Windows runner." description="Inputs, outputs, and component actions provided by link1345/gua-tester." section="docs">
-  <Callout title="Official repository"><p>See <a href="https://github.com/link1345/gua-tester">link1345/gua-tester</a> for the implementation and current releases. Root and setup action examples use Release <code>v1.3</code>; <code>visual-report</code> examples target Release <code>v1.4</code>, which introduces the bundled static viewer.</p></Callout>
-  <h2>What the root action does</h2><ol class="steps"><li><strong>Prepare .NET and Godot</strong><p>Downloads the selected Windows Godot build and exports <code>GODOT_EXECUTABLE</code>.</p></li><li><strong>Link the Gua add-on</strong><p>Downloads the latest matching or explicitly tagged <code>godot-plugin-*</code> release and copies it to <code>&lt;project-path&gt;/addons/gua</code>.</p></li><li><strong>Run the .NET tests</strong><p>Restores the test project and invokes <code>dotnet test</code> with the selected configuration and logger.</p></li></ol>
-  <h2>Inputs</h2><div class="grid-2"><div class="mini-card"><strong>test-project (required)</strong><p>Path to the test <code>.csproj</code> that references <code>Gua.Testing.Godot</code>.</p></div><div class="mini-card"><strong>project-path</strong><p>Path to the Godot project. The default is <code>game</code>.</p></div><div class="mini-card"><strong>godot-version / godot-status</strong><p>Defaults to <code>4.7</code> and <code>stable</code>. RC and dev suffixes are supported.</p></div><div class="mini-card"><strong>dotnet-version</strong><p>SDK for the external test runner. The default is <code>10.0.x</code>.</p></div><div class="mini-card"><strong>gua-plugin-tag</strong><p>Pins a specific <code>godot-plugin-*</code> tag. Empty selects the latest matching release.</p></div><div class="mini-card"><strong>configuration / test-logger</strong><p>Defaults to <code>Release</code> and <code>trx;LogFileName=godot-gdscript.trx</code>.</p></div></div>
-  <p>Advanced overrides include <code>godot-executable-suffix</code> (default <code>win64.exe</code>), <code>gua-repository</code> (default <code>link1345/gua</code>), and <code>gua-plugin-asset-pattern</code> (default <code>gua-godot-plugin-*.zip</code>).</p>
-  <h2>Outputs</h2><div class="grid-2"><div class="mini-card"><strong>godot-executable</strong><p>Absolute path to the downloaded Godot executable.</p></div><div class="mini-card"><strong>addon-path</strong><p>The linked add-on path: <code>&lt;project-path&gt;/addons/gua</code>.</p></div></div>
-  <h2>Use the component actions separately</h2><CodeBlock title="Prepare Godot only" lang="yaml" code={`- uses: link1345/gua-tester/setup-godot@v1.3
-  with:
-    godot-version: "4.7"
-    godot-status: stable`} /><CodeBlock title="Link only the Gua add-on" lang="yaml" code={`- uses: link1345/gua-tester/link-gua-gdscript-addon@v1.3
-  with:
-    project-path: game`} />
-  <h2 id="visual-report">Visual difference reports</h2><p><code>link1345/gua-tester/visual-report</code> converts <code>Gua.Testing.Visual</code> manifests and PNGs into a static report. Its Astro viewer is built ahead of time and bundled with the action, so consumer workflows do not install Astro or npm dependencies.</p>
-  <div class="grid-2"><div class="mini-card"><strong>Browse comparisons</strong><p>Select results by hash and inspect run, commit, variant, dimensions, different-pixel metrics, and thresholds.</p></div><div class="mini-card"><strong>Two viewing modes</strong><p>Switch between Expected／Diff／Actual columns and a keyboard-accessible Expected／Actual overlay slider.</p></div><div class="mini-card"><strong>Explicit unavailable states</strong><p>Missing baselines, dimension mismatches, missing diffs, no data, success, and cancellation are shown distinctly.</p></div><div class="mini-card"><strong>Restricted public data</strong><p>Public <code>report.json</code> omits the raw absolute <code>baselinePath</code> and references only copied fixed-name PNG files.</p></div></div>
-  <h3>Inputs and outputs</h3><div class="table-wrap"><table><thead><tr><th>Input</th><th>Default</th><th>Purpose</th></tr></thead><tbody><tr><td><code>artifact-path</code></td><td><code>artifacts/gua</code></td><td>Comparison data directory</td></tr><tr><td><code>test-outcome</code></td><td>Required</td><td><code>success</code>, <code>failure</code>, or <code>cancelled</code></td></tr><tr><td><code>upload-target</code></td><td><code>pages</code></td><td><code>pages</code> or <code>workflow</code></td></tr><tr><td><code>pages-artifact-name</code></td><td><code>github-pages</code></td><td>Pages artifact name</td></tr><tr><td><code>workflow-artifact-name</code></td><td><code>gua-visual-report</code></td><td>Regular workflow artifact name</td></tr><tr><td><code>retention-days</code></td><td><code>7</code></td><td>Artifact retention period</td></tr></tbody></table></div><p>The outputs are <code>comparison-count</code> and <code>artifact-id</code>.</p>
-  <h3>Separate pull-request and main publication</h3><CodeBlock title="Build the report after the test step" lang="yaml" code={`- name: Normalize visual report outcome
-  id: visual-outcome
-  if: always()
-  shell: pwsh
-  env:
-    TEST_OUTCOME: \${{ steps.gua-tests.outcome }}
-  run: |
-    $outcome = if ($env:TEST_OUTCOME -in @("success", "failure", "cancelled")) {
-      $env:TEST_OUTCOME
-    } else {
-      "failure"
-    }
-    "value=$outcome" >> $env:GITHUB_OUTPUT
+<DocPage eyebrow="DOCS / CI" title="GitHub Actions" lead="link1345/gua-tester provides versioned CI workflows for Gua UI tests in Godot 4.7 and Unity 6 projects." description="Godot and Unity inputs, credentials, artifacts, and visual reports provided by Gua Tester Actions." section="docs">
+  <Callout title="Gua Tester Actions v2"><p>See <a href="https://github.com/link1345/gua-tester">link1345/gua-tester</a> for the implementation and releases. v2 moves the Godot all-in-one action from the repository root to <code>/godot</code> and adds the Unity reusable workflow.</p></Callout>
 
-- name: Upload pull-request visual report
-  if: failure() && github.event_name == 'pull_request'
-  uses: link1345/gua-tester/visual-report@v1.4
+  <h2>Godot 4.7</h2>
+  <p>The Godot composite action downloads the selected Windows Godot build, links the released Gua addon, exports <code>GODOT_EXECUTABLE</code>, prepares project imports, and runs the external <code>Gua.Testing.Godot</code> test project.</p>
+  <CodeBlock title=".github/workflows/godot.yml" lang="yaml" code={`jobs:
+  godot:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: link1345/gua-tester/godot@v2
+        with:
+          project-path: game
+          test-project: tests/GuaTester.Tests.csproj
+          godot-version: "4.7"
+          godot-status: stable
+          gua-plugin-tag: gua-v0.15.0`} />
+  <div class="grid-2"><div class="mini-card"><strong>test-project (required)</strong><p>The <code>.csproj</code> that references <code>Gua.Testing.Godot</code>.</p></div><div class="mini-card"><strong>project-path</strong><p>Godot project path; default <code>game</code>.</p></div><div class="mini-card"><strong>godot-version / godot-status</strong><p>Default <code>4.7</code> and <code>stable</code>.</p></div><div class="mini-card"><strong>test-logger</strong><p>Default <code>trx;LogFileName=godot.trx</code>.</p></div></div>
+  <p>The outputs are <code>godot-executable</code> and <code>addon-path</code>. Component actions remain available as <code>link1345/gua-tester/setup-godot@v2</code> and <code>link1345/gua-tester/link-gua-gdscript-addon@v2</code>.</p>
+
+  <h2>Unity 6 Windows x64</h2>
+  <p>The Unity reusable workflow installs a released Gua UPM package, builds a rendered Windows x64 Mono Player with GameCI on Linux, transfers the Player to a Windows runner, and runs external NUnit tests with <code>GUA_UNITY_PLAYER</code>.</p>
+  <CodeBlock title=".github/workflows/unity.yml" lang="yaml" code={`jobs:
+  unity:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    uses: link1345/gua-tester/.github/workflows/unity.yml@v2
+    with:
+      project-path: game
+      scene-path: Assets/Scenes/Title.unity
+      test-project: tests/GuaTester.Unity.Tests.csproj
+      unity-version: auto
+      gua-tag: gua-v0.15.0
+    secrets:
+      UNITY_EMAIL: \${{ secrets.UNITY_EMAIL }}
+      UNITY_PASSWORD: \${{ secrets.UNITY_PASSWORD }}
+      UNITY_LICENSE: \${{ secrets.UNITY_LICENSE }}`} />
+  <p>Required inputs are <code>project-path</code>, <code>scene-path</code>, and <code>test-project</code>. Optional inputs include <code>unity-version</code>, <code>gua-repository</code>, <code>gua-tag</code>, <code>dotnet-version</code>, <code>configuration</code>, <code>test-logger</code>, and <code>artifact-path</code>. <code>checkout-repository</code> and <code>checkout-ref</code> support fixtures in another repository.</p>
+  <div class="grid-2"><div class="mini-card"><strong>Personal license</strong><p>Pass <code>UNITY_EMAIL</code>, <code>UNITY_PASSWORD</code>, and <code>UNITY_LICENSE</code>.</p></div><div class="mini-card"><strong>Professional license</strong><p>Pass <code>UNITY_EMAIL</code>, <code>UNITY_PASSWORD</code>, and <code>UNITY_SERIAL</code>.</p></div><div class="mini-card"><strong>Supported target</strong><p>Unity 6000.0+, Windows x64, Mono, rendered Player.</p></div><div class="mini-card"><strong>Artifacts</strong><p>Unity logs, Player files, TRX, diagnostics, and visual results.</p></div></div>
+  <Callout kind="warn" title="Protect Unity credentials"><p>GitHub does not pass Actions secrets to fork pull requests. Skip this job for untrusted forks and do not use <code>pull_request_target</code> to execute untrusted game code with Unity credentials.</p></Callout>
+  <Callout kind="tip" title="Keep Gua versions aligned"><p>Pin <code>gua-tag</code> and use the matching <code>Gua.Testing.Unity</code> NuGet version. The initial workflow does not support IL2CPP, non-Windows Players, Editor Play Mode CI, IMGUI, or EditorWindow automation.</p></Callout>
+
+  <h2 id="visual-report">Visual difference reports</h2>
+  <p><code>link1345/gua-tester/visual-report@v2</code> converts <code>Gua.Testing.Visual</code> manifests and PNGs into a static report for a workflow artifact or GitHub Pages. It is engine-neutral.</p>
+  <CodeBlock title="Upload a failed visual report" lang="yaml" code={`- name: Upload visual report
+  if: failure()
+  uses: link1345/gua-tester/visual-report@v2
   with:
     artifact-path: artifacts/gua
-    test-outcome: \${{ steps.visual-outcome.outputs.value }}
-    upload-target: workflow
+    test-outcome: failure
+    upload-target: workflow`} />
+  <p>Set <code>upload-target</code> to <code>pages</code> only in a trusted main or manually dispatched run, then deploy the generated Pages artifact from a separate job with <code>pages: write</code> and <code>id-token: write</code>.</p>
+  <Callout kind="warn" title="Screenshot visibility"><p>Screenshots may contain secrets or personal information rendered by the game. Review captured content before publishing reports.</p></Callout>
 
-- name: Prepare latest main visual report
-  id: visual-report
-  if: always() && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')
-  uses: link1345/gua-tester/visual-report@v1.4
-  with:
-    artifact-path: artifacts/gua
-    test-outcome: \${{ steps.visual-outcome.outputs.value }}
-    upload-target: pages`} /><p>On pull requests, keep the browsable site as a regular artifact only after failure. The downloaded viewer fetches <code>report.json</code>, so serve the extracted directory over HTTP, such as with <code>python -m http.server</code>, rather than opening it through <code>file://</code>. Main and manually dispatched runs also publish a success state so an old failure is not presented as current.</p>
-  <h3>Deploy to Pages</h3><p>The action uploads the Pages artifact; deployment remains in a dedicated consumer-owned job.</p><CodeBlock title="Dedicated deployment job" lang="yaml" code={`deploy-visual-report:
-  needs: godot
-  if: always() && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') && needs.godot.outputs.pages-ready == 'true'
-  runs-on: ubuntu-latest
-  permissions:
-    pages: write
-    id-token: write
-  environment:
-    name: github-pages
-    url: \${{ steps.deployment.outputs.page_url }}
-  steps:
-    - name: Deploy visual report
-      id: deployment
-      uses: actions/deploy-pages@v4`} /><p>Expose <code>steps.visual-report.outcome == 'success'</code> as <code>pages-ready</code> from the test job. If <code>pages-artifact-name</code> is customized, pass the same value as <code>artifact_name</code> to <code>actions/deploy-pages</code>.</p>
-  <Callout kind="warn" title="Screenshot visibility"><p>Screenshots may contain secrets or personal information rendered by the game. Review captured content before enabling Pages, especially for public repositories.</p></Callout>
-  <Callout kind="warn" title="Consumer requirements"><p>The game must start the bridge through the Gua add-on, and the test project must reference <code>Gua.Testing.Godot</code>. The action does not generate test code or bridge initialization.</p></Callout>
+  <h2>Move from v1 to v2</h2>
+  <p>Replace <code>link1345/gua-tester@v1</code> with <code>link1345/gua-tester/godot@v2</code>. There is no v2 root compatibility action. The Godot TRX default changes from <code>godot-gdscript.trx</code> to <code>godot.trx</code>.</p>
 </DocPage>
