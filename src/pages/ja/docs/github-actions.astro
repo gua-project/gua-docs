@@ -24,7 +24,7 @@ import Callout from '../../../components/Callout.astro';
   <p>出力は<code>godot-executable</code>と<code>addon-path</code>です。構成Actionの<code>link1345/gua-tester/setup-godot@v2</code>と<code>link1345/gua-tester/link-gua-gdscript-addon@v2</code>も個別に利用できます。</p>
 
   <h2>Unity 6 Windows x64</h2>
-  <p>Unity reusable workflowは配布済みGua UPM packageを配置し、GameCIを使ってLinuxでrendered Windows x64 Mono Playerをビルドします。PlayerをWindows runnerへ渡し、<code>GUA_UNITY_PLAYER</code>を設定して外部NUnitテストを実行します。</p>
+  <p>Unity reusable workflowは配布済みGua UPM packageを配置し、GameCIを使ってLinuxでrendered Windows x64 Mono Playerをビルドします。PlayerをWindows runnerへ渡し、画面解像度を1920x1080へ固定してから、<code>GUA_UNITY_PLAYER</code>を設定して外部NUnitテストを実行します。</p>
   <CodeBlock title=".github/workflows/unity.yml" lang="yaml" code={`jobs:
   unity:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
@@ -33,13 +33,15 @@ import Callout from '../../../components/Callout.astro';
       project-path: game
       scene-path: Assets/Scenes/Title.unity
       test-project: tests/GuaTester.Unity.Tests.csproj
+      artifact-key: game
       unity-version: auto
       gua-tag: gua-v0.15.0
     secrets:
       UNITY_EMAIL: \${{ secrets.UNITY_EMAIL }}
       UNITY_PASSWORD: \${{ secrets.UNITY_PASSWORD }}
-      UNITY_LICENSE: \${{ secrets.UNITY_LICENSE }}`} />
-  <p>必須inputは<code>project-path</code>、<code>scene-path</code>、<code>test-project</code>です。任意inputは<code>unity-version</code>、<code>gua-repository</code>、<code>gua-tag</code>、<code>dotnet-version</code>、<code>configuration</code>、<code>test-logger</code>、<code>artifact-path</code>です。<code>checkout-repository</code>と<code>checkout-ref</code>を使うと、別repoのfixtureを検証できます。</p>
+      UNITY_LICENSE: \${{ secrets.UNITY_LICENSE }}
+      UNITY_SERIAL: \${{ secrets.UNITY_SERIAL }}`} />
+  <p>必須inputは<code>project-path</code>、<code>scene-path</code>、<code>test-project</code>と、呼び出し元で一意な<code>artifact-key</code>です。任意inputは<code>unity-version</code>、<code>gua-repository</code>、<code>gua-tag</code>、<code>dotnet-version</code>、<code>configuration</code>、<code>test-logger</code>、<code>artifact-path</code>です。<code>checkout-repository</code>と<code>checkout-ref</code>を使うと、別repoのfixtureを検証できます。同じrunから複数回呼び出す場合は<code>artifact-key</code>へmatrix値を指定します。</p>
   <div class="grid-2"><div class="mini-card"><strong>Personalライセンス</strong><p><code>UNITY_EMAIL</code>、<code>UNITY_PASSWORD</code>、<code>UNITY_LICENSE</code>を渡します。</p></div><div class="mini-card"><strong>Professionalライセンス</strong><p><code>UNITY_EMAIL</code>、<code>UNITY_PASSWORD</code>、<code>UNITY_SERIAL</code>を渡します。</p></div><div class="mini-card"><strong>対応target</strong><p>Unity 6000.0以降、Windows x64、Mono、rendered Playerです。</p></div><div class="mini-card"><strong>artifact</strong><p>Unity log、Player、TRX、diagnostics、Visual結果を保存します。</p></div></div>
   <Callout kind="warn" title="Unity credentialsを保護する"><p>fork PRにはGitHub Actions secretsが渡りません。未信頼forkではUnity jobをskipし、<code>pull_request_target</code>で未信頼のgame codeへcredentialsを渡さないでください。</p></Callout>
   <Callout kind="tip" title="Guaバージョンを揃える"><p><code>gua-tag</code>を固定し、対応する<code>Gua.Testing.Unity</code> NuGetバージョンを使用します。初期workflowはIL2CPP、Windows以外のPlayer、Editor Play Mode CI、IMGUI、EditorWindow自動化には対応しません。</p></Callout>

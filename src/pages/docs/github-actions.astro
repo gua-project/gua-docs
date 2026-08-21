@@ -24,7 +24,7 @@ import Callout from '../../components/Callout.astro';
   <p>The outputs are <code>godot-executable</code> and <code>addon-path</code>. Component actions remain available as <code>link1345/gua-tester/setup-godot@v2</code> and <code>link1345/gua-tester/link-gua-gdscript-addon@v2</code>.</p>
 
   <h2>Unity 6 Windows x64</h2>
-  <p>The Unity reusable workflow installs a released Gua UPM package, builds a rendered Windows x64 Mono Player with GameCI on Linux, transfers the Player to a Windows runner, and runs external NUnit tests with <code>GUA_UNITY_PLAYER</code>.</p>
+  <p>The Unity reusable workflow installs a released Gua UPM package, builds a rendered Windows x64 Mono Player with GameCI on Linux, transfers the Player to a Windows runner, fixes its display at 1920x1080, and runs external NUnit tests with <code>GUA_UNITY_PLAYER</code>.</p>
   <CodeBlock title=".github/workflows/unity.yml" lang="yaml" code={`jobs:
   unity:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
@@ -33,13 +33,15 @@ import Callout from '../../components/Callout.astro';
       project-path: game
       scene-path: Assets/Scenes/Title.unity
       test-project: tests/GuaTester.Unity.Tests.csproj
+      artifact-key: game
       unity-version: auto
       gua-tag: gua-v0.15.0
     secrets:
       UNITY_EMAIL: \${{ secrets.UNITY_EMAIL }}
       UNITY_PASSWORD: \${{ secrets.UNITY_PASSWORD }}
-      UNITY_LICENSE: \${{ secrets.UNITY_LICENSE }}`} />
-  <p>Required inputs are <code>project-path</code>, <code>scene-path</code>, and <code>test-project</code>. Optional inputs include <code>unity-version</code>, <code>gua-repository</code>, <code>gua-tag</code>, <code>dotnet-version</code>, <code>configuration</code>, <code>test-logger</code>, and <code>artifact-path</code>. <code>checkout-repository</code> and <code>checkout-ref</code> support fixtures in another repository.</p>
+      UNITY_LICENSE: \${{ secrets.UNITY_LICENSE }}
+      UNITY_SERIAL: \${{ secrets.UNITY_SERIAL }}`} />
+  <p>Required inputs are <code>project-path</code>, <code>scene-path</code>, <code>test-project</code>, and a caller-unique <code>artifact-key</code>. Optional inputs include <code>unity-version</code>, <code>gua-repository</code>, <code>gua-tag</code>, <code>dotnet-version</code>, <code>configuration</code>, <code>test-logger</code>, and <code>artifact-path</code>. <code>checkout-repository</code> and <code>checkout-ref</code> support fixtures in another repository. Use a matrix value for <code>artifact-key</code> when invoking the workflow more than once in a run.</p>
   <div class="grid-2"><div class="mini-card"><strong>Personal license</strong><p>Pass <code>UNITY_EMAIL</code>, <code>UNITY_PASSWORD</code>, and <code>UNITY_LICENSE</code>.</p></div><div class="mini-card"><strong>Professional license</strong><p>Pass <code>UNITY_EMAIL</code>, <code>UNITY_PASSWORD</code>, and <code>UNITY_SERIAL</code>.</p></div><div class="mini-card"><strong>Supported target</strong><p>Unity 6000.0+, Windows x64, Mono, rendered Player.</p></div><div class="mini-card"><strong>Artifacts</strong><p>Unity logs, Player files, TRX, diagnostics, and visual results.</p></div></div>
   <Callout kind="warn" title="Protect Unity credentials"><p>GitHub does not pass Actions secrets to fork pull requests. Skip this job for untrusted forks and do not use <code>pull_request_target</code> to execute untrusted game code with Unity credentials.</p></Callout>
   <Callout kind="tip" title="Keep Gua versions aligned"><p>Pin <code>gua-tag</code> and use the matching <code>Gua.Testing.Unity</code> NuGet version. The initial workflow does not support IL2CPP, non-Windows Players, Editor Play Mode CI, IMGUI, or EditorWindow automation.</p></Callout>
