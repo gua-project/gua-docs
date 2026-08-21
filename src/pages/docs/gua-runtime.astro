@@ -22,13 +22,18 @@ import Callout from '../../components/Callout.astro';
   <h2>One adapter frame</h2>
   <figure class="doc-figure"><div class="flow"><span>BeginFrame<small>logical screen</small></span><b>→</b><span>RegisterNode × N<small>current UI state</small></span><b>→</b><span>EndFrame<small>commit snapshot</small></span><b>→</b><span>Consume actions<small>deliver to engine</small></span><b>→</b><span>Emit result<small>correlate requestId</small></span></div><figcaption>Figure 2: Publish observed state each frame, then consume requests and report what the host actually did.</figcaption></figure>
 
-  <CodeBlock title="Minimal adapter loop" lang="csharp" code={`using Gua.Core;
+  <CodeBlock title="Minimal adapter loop" lang="csharp" code={`using System;
+using System.Collections.Generic;
+using Gua.Core;
 using Gua.Runtime;
 
 public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
 {
+    // Keep this at least as long as the largest remote action timeout.
+    private static readonly TimeSpan StaleIdRetention = TimeSpan.FromSeconds(30);
     private readonly GuaRuntime runtime = new();
-    private readonly HashSet<string> knownNodeIds = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, DateTimeOffset> retainedNodeIds =
+        new(StringComparer.Ordinal);
 
     public void Start()
     {
@@ -50,12 +55,11 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
 
     public void Tick()
     {
-        var currentNodeIds = new HashSet<string>(StringComparer.Ordinal);
+        var retainUntil = DateTimeOffset.UtcNow + StaleIdRetention;
         runtime.BeginFrame(ui.ScreenName);
         foreach (var control in ui.Controls)
         {
-            currentNodeIds.Add(control.Id);
-            knownNodeIds.Add(control.Id);
+            retainedNodeIds[control.Id] = retainUntil;
             runtime.RegisterNode(new GuaNodeDescriptor(
                 control.Id, control.Role, control.Label,
                 new GuaBounds(control.X, control.Y, control.Width, control.Height),
@@ -68,12 +72,17 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
         }
         runtime.EndFrame();
 
-        foreach (var nodeId in knownNodeIds)
+        foreach (var nodeId in retainedNodeIds.Keys)
             DrainActions(nodeId);
         DrainActions(null); // global press_key requests
 
-        // Absent IDs were drained once for requests accepted on the previous frame.
-        knownNodeIds.IntersectWith(currentNodeIds);
+        var now = DateTimeOffset.UtcNow;
+        var expiredNodeIds = new List<string>();
+        foreach (var pair in retainedNodeIds)
+            if (pair.Value <= now)
+                expiredNodeIds.Add(pair.Key);
+        foreach (var expired in expiredNodeIds)
+            retainedNodeIds.Remove(expired);
     }
 
     private void DrainActions(string? nodeId)
@@ -114,7 +123,7 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
   <p><code>GetBridgePort</code> honors the port allocated by an external test host through <code>GUA_BRIDGE_PORT</code>, validates its range, and falls back to <code>8765</code> only when no override is supplied. <code>ICustomUi</code> is a placeholder for the host-specific API. Its <code>Sensitive</code> flag must identify passwords, tokens, and similar controls before registration; omit both <code>Text</code> and <code>Value</code> so secrets never enter snapshots, Inspector/MCP responses, or retained diagnostics. Keep IDs stable across frames and express bounds as physical viewport pixels with a top-left origin.</p>
 
   <h2>Complete actions correctly</h2>
-  <p><code>TryConsumeAction</code> matches both action type and node ID. Keep the union of current and previously published IDs only until action queues have been drained. This gives requests accepted on the previous frame one pass to complete after their control disappears; <code>IntersectWith(currentNodeIds)</code> then removes absent IDs so dynamic screens do not accumulate memory or per-frame work. Drain the empty ID separately for global key requests. Before dispatch, inspect current host state and preserve <code>NodeNotFound</code>, <code>Hidden</code>, and <code>Disabled</code>; reserve <code>Unsupported</code> for an operation the adapter cannot perform. Completion proves host processing, not that a later screen has rendered; tests should still wait for the expected semantic state.</p>
+  <p><code>TryConsumeAction</code> matches both action type and node ID. A request based on the preceding snapshot may arrive after the first frame where its control is absent, so one drain pass is not enough. Retain each last-seen ID for a bounded staleness window, continue draining it during that window, then remove it. Configure <code>StaleIdRetention</code> to be at least the longest remote action timeout plus transport margin; the example uses 30 seconds. This bounds dynamic-screen memory and per-frame work by the recent ID rate without abandoning callers that are still allowed to submit. Drain the empty ID separately for global key requests.</p>
   <div class="table-wrap"><table><thead><tr><th>Host outcome</th><th>Error</th><th>Example</th></tr></thead><tbody>
     <tr><td>Target disappeared</td><td><code>NodeNotFound</code></td><td>Scene changed before processing</td></tr>
     <tr><td>Hidden or disabled</td><td><code>Hidden</code> / <code>Disabled</code></td><td>Host state changed after the snapshot</td></tr>

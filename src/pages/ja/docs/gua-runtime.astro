@@ -28,13 +28,18 @@ import Callout from '../../../components/Callout.astro';
     <figcaption>図2: nodeは差分ではなく、そのframeで観測した状態を登録します。操作はsnapshot確定後に消費し、hostで処理した結果を返します。</figcaption>
   </figure>
 
-  <CodeBlock title="最小adapter loop" lang="csharp" code={`using Gua.Core;
+  <CodeBlock title="最小adapter loop" lang="csharp" code={`using System;
+using System.Collections.Generic;
+using Gua.Core;
 using Gua.Runtime;
 
 public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
 {
+    // 最長のremote action timeout以上に設定する。
+    private static readonly TimeSpan StaleIdRetention = TimeSpan.FromSeconds(30);
     private readonly GuaRuntime runtime = new();
-    private readonly HashSet<string> knownNodeIds = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, DateTimeOffset> retainedNodeIds =
+        new(StringComparer.Ordinal);
 
     public void Start()
     {
@@ -56,12 +61,11 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
 
     public void Tick()
     {
-        var currentNodeIds = new HashSet<string>(StringComparer.Ordinal);
+        var retainUntil = DateTimeOffset.UtcNow + StaleIdRetention;
         runtime.BeginFrame(ui.ScreenName);
         foreach (var control in ui.Controls)
         {
-            currentNodeIds.Add(control.Id);
-            knownNodeIds.Add(control.Id);
+            retainedNodeIds[control.Id] = retainUntil;
             runtime.RegisterNode(new GuaNodeDescriptor(
                 control.Id, control.Role, control.Label,
                 new GuaBounds(control.X, control.Y, control.Width, control.Height),
@@ -75,12 +79,17 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
         }
         runtime.EndFrame();
 
-        foreach (var nodeId in knownNodeIds)
+        foreach (var nodeId in retainedNodeIds.Keys)
             DrainActions(nodeId);
         DrainActions(null); // global press_key requests
 
-        // 消えたIDは、前frameで受理されたrequestを一度drainしてから除去する。
-        knownNodeIds.IntersectWith(currentNodeIds);
+        var now = DateTimeOffset.UtcNow;
+        var expiredNodeIds = new List<string>();
+        foreach (var pair in retainedNodeIds)
+            if (pair.Value <= now)
+                expiredNodeIds.Add(pair.Key);
+        foreach (var expired in expiredNodeIds)
+            retainedNodeIds.Remove(expired);
     }
 
     private void DrainActions(string? nodeId)
@@ -121,7 +130,7 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
   <p><code>GetBridgePort</code>は外部test hostが<code>GUA_BRIDGE_PORT</code>で割り当てたportを優先し、範囲を検証します。overrideがない場合だけ<code>8765</code>を使います。<code>ICustomUi</code>は説明用のhost固有interfaceです。password、token等を登録前に<code>Sensitive</code>で識別し、<code>Text</code>と<code>Value</code>の両方を省略することで、secretがsnapshot、Inspector/MCP応答、retained diagnosticsへ入るのを防ぎます。IDはframeをまたいで安定させ、boundsは物理viewport pixel・左上原点で渡します。</p>
 
   <h2>actionを正しく完了させる</h2>
-  <p><code>TryConsumeAction</code>はaction typeとnode IDの両方が一致する要求を取り出します。現在frameと過去に公開したIDの和集合をqueueのdrain完了までだけ保持します。これにより、前frameで受理されたrequestはControl消失後にも一度処理でき、その後<code>IntersectWith(currentNodeIds)</code>で不在IDを除去するため、動的画面でもmemoryとframeごとの処理量が増え続けません。空IDはglobal key要求用に別途drainします。配送前に現在のhost状態を調べ、<code>NodeNotFound</code>、<code>Hidden</code>、<code>Disabled</code>を正確に返し、adapterが実行できない操作だけを<code>Unsupported</code>にします。成功eventはhost処理の完了を表しますが、次画面の描画完了までは保証しません。</p>
+  <p><code>TryConsumeAction</code>はaction typeとnode IDの両方が一致する要求を取り出します。直前snapshotを見たclientのrequestは、Controlが消えた最初のframeでdrainした後に到着する可能性があるため、一度のdrainだけでは不十分です。最後に観測した各IDを有限のstaleness windowだけ保持し、その間はdrainを継続して期限後に除去します。<code>StaleIdRetention</code>は最長のremote action timeoutとtransportの余裕以上に設定します。この例は30秒です。これにより許可されたclientを途中で見捨てず、動的画面のmemoryとframe処理量を直近のID生成rateへ制限できます。空IDはglobal key要求用に別途drainします。</p>
   <div class="table-wrap"><table><thead><tr><th>結果</th><th>返すerror</th><th>例</th></tr></thead><tbody>
     <tr><td>対象が消えた</td><td><code>NodeNotFound</code></td><td>request後、処理前にsceneが変わった</td></tr>
     <tr><td>非表示・無効</td><td><code>Hidden</code> / <code>Disabled</code></td><td>host状態が最新snapshotから変化した</td></tr>

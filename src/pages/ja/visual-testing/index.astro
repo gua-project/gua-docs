@@ -44,6 +44,9 @@ using Gua.Testing.Visual;
 // 遷移とanimationが決定的になった後だけgame側が公開するnode
 await GuaAssertions.WaitForVisibleAsync(host.Context, "visual-ready");
 
+var baselineVariant = Environment.GetEnvironmentVariable("GUA_VISUAL_VARIANT")
+    ?? "windows-unity-mono-1920x1080";
+
 var result = await GuaVisualAssertions.ExpectScreenshotAsync(
     host.Context,
     "title-screen",
@@ -51,7 +54,7 @@ var result = await GuaVisualAssertions.ExpectScreenshotAsync(
     {
         BaselineDirectory = Path.Combine(TestContext.CurrentContext.TestDirectory, "baselines"),
         ArtifactDirectory = Path.Combine(TestContext.CurrentContext.WorkDirectory, "artifacts", "gua"),
-        BaselineVariant = "windows-unity-mono-1920x1080",
+        BaselineVariant = baselineVariant,
         PixelThreshold = 0.02f,
         MaxDifferentPixelRatio = 0.001,
         WaitForStableSnapshot = true,

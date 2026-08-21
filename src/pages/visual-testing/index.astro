@@ -34,12 +34,15 @@ using Gua.Testing.Visual;
 // The game publishes this only after transitions and animations are deterministic.
 await GuaAssertions.WaitForVisibleAsync(host.Context, "visual-ready");
 
+var baselineVariant = Environment.GetEnvironmentVariable("GUA_VISUAL_VARIANT")
+    ?? "windows-unity-mono-1920x1080";
+
 var result = await GuaVisualAssertions.ExpectScreenshotAsync(
     host.Context, "title-screen", new ScreenshotOptions
     {
         BaselineDirectory = Path.Combine(TestContext.CurrentContext.TestDirectory, "baselines"),
         ArtifactDirectory = Path.Combine(TestContext.CurrentContext.WorkDirectory, "artifacts", "gua"),
-        BaselineVariant = "windows-unity-mono-1920x1080",
+        BaselineVariant = baselineVariant,
         PixelThreshold = 0.02f,
         MaxDifferentPixelRatio = 0.001,
         WaitForStableSnapshot = true,
@@ -61,6 +64,8 @@ var result = await GuaVisualAssertions.ExpectScreenshotAsync(
   <h2>CI policy</h2>
   <CodeBlock title="Upload failure artifacts" lang="yaml" code={`- name: Run visual tests
   shell: pwsh
+  env:
+    GUA_VISUAL_VARIANT: windows-unity-mono-1920x1080
   run: dotnet test tests/Game.Visual.Tests/Game.Visual.Tests.csproj --configuration Release
 
 - name: Upload visual failures
