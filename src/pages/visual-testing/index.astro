@@ -45,7 +45,7 @@ var result = await GuaVisualAssertions.ExpectScreenshotAsync(
 
   <h2>Failure evidence</h2>
   <div class="artifact-row"><div><strong>expected.png</strong><small>reviewed baseline</small></div><div><strong>actual.png</strong><small>current capture</small></div><div><strong>diff.png</strong><small>visualized difference</small></div><div><strong>comparison.json</strong><small>policy, ratio, paths</small></div></div>
-  <p>Set <code>FailureDirectory</code> to place visual artifacts beside ordinary Gua diagnostics. Dimension mismatches fail without implicit resizing.</p>
+  <p>Set <code>ArtifactDirectory</code> to place visual artifacts beside ordinary Gua diagnostics. Dimension mismatches fail without implicit resizing.</p>
 
   <h2>Variants, masks, and stability</h2>
   <div class="table-wrap"><table><thead><tr><th>Option</th><th>Good use</th><th>Avoid</th></tr></thead><tbody><tr><td><code>BaselineVariant</code></td><td>Name legitimate OS, renderer, and resolution differences</td><td>Creating a variant for every failure</td></tr><tr><td><code>Masks</code></td><td>Exclude a clock or truly random avatar</td><td>Masking important UI</td></tr><tr><td><code>WaitForStableSnapshot</code></td><td>Capture after several stable frames</td><td>Baselining an arbitrary animation frame</td></tr></tbody></table></div>

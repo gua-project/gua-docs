@@ -34,6 +34,7 @@ using Gua.Runtime;
 public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
 {
     private readonly GuaRuntime runtime = new();
+    private readonly HashSet<string> knownNodeIds = new(StringComparer.Ordinal);
 
     public void Start()
     {
@@ -58,6 +59,7 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
         runtime.BeginFrame(ui.ScreenName);
         foreach (var control in ui.Controls)
         {
+            knownNodeIds.Add(control.Id);
             runtime.RegisterNode(new GuaNodeDescriptor(
                 control.Id, control.Role, control.Label,
                 new GuaBounds(control.X, control.Y, control.Width, control.Height),
@@ -71,11 +73,28 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
         }
         runtime.EndFrame();
 
-        while (runtime.TryConsumeAction(GuaActionType.Click, null, out var request))
+        foreach (var nodeId in knownNodeIds)
+            DrainActions(nodeId);
+        DrainActions(null); // global press_key requests
+    }
+
+    private void DrainActions(string? nodeId)
+    {
+        foreach (GuaActionType action in Enum.GetValues(typeof(GuaActionType)))
         {
-            var succeeded = ui.TryClick(request.NodeId!);
-            runtime.EmitActionResult(request, succeeded,
-                succeeded ? GuaActionError.None : GuaActionError.Unsupported);
+            while (runtime.TryConsumeAction(action, nodeId, out var request))
+            {
+                if (request.Action == GuaActionType.Click)
+                {
+                    var succeeded = ui.TryClick(request.NodeId!);
+                    runtime.EmitActionResult(request, succeeded,
+                        succeeded ? GuaActionError.None : GuaActionError.NodeNotFound);
+                }
+                else
+                {
+                    runtime.EmitActionResult(request, false, GuaActionError.Unsupported);
+                }
+            }
         }
     }
 
@@ -84,7 +103,7 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
   <p><code>GetBridgePort</code>は外部test hostが<code>GUA_BRIDGE_PORT</code>で割り当てたportを優先し、範囲を検証します。overrideがない場合だけ<code>8765</code>を使います。<code>ICustomUi</code>は説明用のhost固有interfaceです。実装ではengineのscene graphやWidget registryからControlを列挙します。IDはframeをまたいで安定させ、boundsは物理viewport pixel・左上原点で渡します。</p>
 
   <h2>actionを正しく完了させる</h2>
-  <p><code>TryConsumeAction</code>は「要求を取り出した」だけです。engineの通常input経路へ操作を配送した後、同じrequestを<code>EmitActionResult</code>へ渡します。成功eventはhost処理の完了を表しますが、次画面の描画完了までは保証しません。テスト側は続けてSemantic stateをwaitします。</p>
+  <p><code>TryConsumeAction</code>はaction typeとnode IDの両方が一致する要求を取り出します。過去に公開したIDを保持しておけば、enqueue後にControlが消えた要求も<code>NodeNotFound</code>で完了でき、空IDをdrainすればglobal key要求も扱えます。さらに、すべての<code>GuaActionType</code>を列挙し、未実装の操作を<code>Unsupported</code>で完了させることでcallerのtimeoutを防ぎます。対応する操作はengineの通常input経路へ配送した後、同じrequestを<code>EmitActionResult</code>へ渡します。成功eventはhost処理の完了を表しますが、次画面の描画完了までは保証しません。テスト側は続けてSemantic stateをwaitします。</p>
   <div class="table-wrap"><table><thead><tr><th>結果</th><th>返すerror</th><th>例</th></tr></thead><tbody>
     <tr><td>対象が消えた</td><td><code>NodeNotFound</code></td><td>request後、処理前にsceneが変わった</td></tr>
     <tr><td>非表示・無効</td><td><code>Hidden</code> / <code>Disabled</code></td><td>host状態が最新snapshotから変化した</td></tr>

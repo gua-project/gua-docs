@@ -28,6 +28,7 @@ using Gua.Runtime;
 public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
 {
     private readonly GuaRuntime runtime = new();
+    private readonly HashSet<string> knownNodeIds = new(StringComparer.Ordinal);
 
     public void Start()
     {
@@ -52,6 +53,7 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
         runtime.BeginFrame(ui.ScreenName);
         foreach (var control in ui.Controls)
         {
+            knownNodeIds.Add(control.Id);
             runtime.RegisterNode(new GuaNodeDescriptor(
                 control.Id, control.Role, control.Label,
                 new GuaBounds(control.X, control.Y, control.Width, control.Height),
@@ -62,11 +64,28 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
         }
         runtime.EndFrame();
 
-        while (runtime.TryConsumeAction(GuaActionType.Click, null, out var request))
+        foreach (var nodeId in knownNodeIds)
+            DrainActions(nodeId);
+        DrainActions(null); // global press_key requests
+    }
+
+    private void DrainActions(string? nodeId)
+    {
+        foreach (GuaActionType action in Enum.GetValues(typeof(GuaActionType)))
         {
-            var succeeded = ui.TryClick(request.NodeId!);
-            runtime.EmitActionResult(request, succeeded,
-                succeeded ? GuaActionError.None : GuaActionError.Unsupported);
+            while (runtime.TryConsumeAction(action, nodeId, out var request))
+            {
+                if (request.Action == GuaActionType.Click)
+                {
+                    var succeeded = ui.TryClick(request.NodeId!);
+                    runtime.EmitActionResult(request, succeeded,
+                        succeeded ? GuaActionError.None : GuaActionError.NodeNotFound);
+                }
+                else
+                {
+                    runtime.EmitActionResult(request, false, GuaActionError.Unsupported);
+                }
+            }
         }
     }
 
@@ -75,7 +94,7 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
   <p><code>GetBridgePort</code> honors the port allocated by an external test host through <code>GUA_BRIDGE_PORT</code>, validates its range, and falls back to <code>8765</code> only when no override is supplied. <code>ICustomUi</code> is a placeholder for the host-specific API. Keep IDs stable across frames and express bounds as physical viewport pixels with a top-left origin.</p>
 
   <h2>Complete actions correctly</h2>
-  <p><code>TryConsumeAction</code> only dequeues a request. Deliver it through the engine's normal input path, then pass the same request to <code>EmitActionResult</code>. Completion proves host processing, not that a later screen has rendered; tests should still wait for the expected semantic state.</p>
+  <p><code>TryConsumeAction</code> matches both action type and node ID. Retain previously published IDs so a request can still be completed with <code>NodeNotFound</code> when its control disappears after enqueueing, and drain the empty ID for global key requests. Iterate every <code>GuaActionType</code> so unimplemented operations are completed with <code>Unsupported</code> instead of timing out. Deliver supported operations through the engine's normal input path, then pass the same request to <code>EmitActionResult</code>. Completion proves host processing, not that a later screen has rendered; tests should still wait for the expected semantic state.</p>
   <div class="table-wrap"><table><thead><tr><th>Host outcome</th><th>Error</th><th>Example</th></tr></thead><tbody>
     <tr><td>Target disappeared</td><td><code>NodeNotFound</code></td><td>Scene changed before processing</td></tr>
     <tr><td>Hidden or disabled</td><td><code>Hidden</code> / <code>Disabled</code></td><td>Host state changed after the snapshot</td></tr>

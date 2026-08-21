@@ -57,7 +57,7 @@ var result = await GuaVisualAssertions.ExpectScreenshotAsync(
 
   <h2>失敗時に残るもの</h2>
   <div class="artifact-row"><div><strong>expected.png</strong><small>review済みbaseline</small></div><div><strong>actual.png</strong><small>今回のcapture</small></div><div><strong>diff.png</strong><small>差分の可視化</small></div><div><strong>comparison.json</strong><small>閾値・差分率・path</small></div></div>
-  <p><code>FailureDirectory</code>を指定すれば、通常のGua diagnosticsと同じ失敗directoryへVisual artifactをまとめられます。dimension mismatchは暗黙にresizeせず失敗します。</p>
+  <p><code>ArtifactDirectory</code>を指定すれば、通常のGua diagnosticsと同じ失敗directoryへVisual artifactをまとめられます。dimension mismatchは暗黙にresizeせず失敗します。</p>
 
   <h2>variantとmask</h2>
   <div class="table-wrap"><table><thead><tr><th>設定</th><th>使い方</th><th>避けること</th></tr></thead><tbody>
