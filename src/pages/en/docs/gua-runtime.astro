@@ -1,0 +1,92 @@
+---
+import DocPage from '../../../components/DocPage.astro';
+import CodeBlock from '../../../components/CodeBlock.astro';
+import Callout from '../../../components/Callout.astro';
+---
+<DocPage eyebrow="DOCS / GUA.RUNTIME" title="Gua.Runtime implementation guide" lead="Connect a managed engine adapter to Gua semantic frames, actions, screenshots, and the Inspector bridge." description="Practical Gua.Runtime use cases, lifecycle, implementation examples, and adapter responsibilities." section="docs">
+  <Callout kind="tip" title="Who uses this package"><p><code>Gua.Runtime</code> is for <strong>adapter authors</strong> connecting an engine or UI framework to Gua. A project consuming the existing Unity or Godot integration normally does not reference it directly.</p></Callout>
+
+  <h2>Concrete use cases</h2>
+  <div class="table-wrap"><table><thead><tr><th>Situation</th><th>Gua.Runtime provides</th><th>Your adapter provides</th></tr></thead><tbody>
+    <tr><td>Support another game engine</td><td>Managed C ABI wrapper, request queues, versions, bridge</td><td>UI enumeration, state conversion, and input delivery</td></tr>
+    <tr><td>Support a custom UI framework</td><td>Semantic node registration and correlated action results</td><td>Widget-to-role mapping and real widget operations</td></tr>
+    <tr><td>Expose an internal toolkit to Inspector/MCP</td><td>WebSocket bridge, UI-tree JSON, logs, screenshot requests</td><td>Rendering-loop and capture integration</td></tr>
+  </tbody></table></div>
+
+  <figure class="doc-figure"><div class="flow"><span>Inspector / MCP / Tests<small>observe and request</small></span><b>↔</b><span>native gua_runtime<small>state, queues, bridge</small></span><b>↔</b><span>Gua.Runtime<small>managed API</small></span><b>↔</b><span>Custom adapter<small>engine translation</small></span><b>↔</b><span>Game UI<small>real widgets</small></span></div><figcaption>Figure 1: Gua.Runtime is the managed boundary between the protocol runtime and engine-specific UI APIs.</figcaption></figure>
+
+  <h2>Install and deploy</h2>
+  <CodeBlock title="Add to an adapter project" lang="powershell" code={`dotnet add package Gua.Runtime --version 0.14.0`} />
+  <p>The package targets <code>net10.0</code> and <code>netstandard2.1</code>. Deploy matching <code>gua.dll</code> and <code>gua_runtime.dll</code> files for the target platform and architecture. Missing or mismatched libraries produce an explicit load error in the constructor.</p>
+
+  <h2>One adapter frame</h2>
+  <figure class="doc-figure"><div class="flow"><span>BeginFrame<small>logical screen</small></span><b>→</b><span>RegisterNode × N<small>current UI state</small></span><b>→</b><span>EndFrame<small>commit snapshot</small></span><b>→</b><span>Consume actions<small>deliver to engine</small></span><b>→</b><span>Emit result<small>correlate requestId</small></span></div><figcaption>Figure 2: Publish observed state each frame, then consume requests and report what the host actually did.</figcaption></figure>
+
+  <CodeBlock title="Minimal adapter loop" lang="csharp" code={`using Gua.Core;
+using Gua.Runtime;
+
+public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
+{
+    private readonly GuaRuntime runtime = new();
+
+    public void Start()
+    {
+        runtime.SetAdapterVersion("custom_ui", "1.0.0");
+        if (!runtime.StartInspectorBridge(8765))
+            throw new InvalidOperationException("Gua bridge could not start.");
+    }
+
+    public void Tick()
+    {
+        runtime.BeginFrame(ui.ScreenName);
+        foreach (var control in ui.Controls)
+        {
+            runtime.RegisterNode(new GuaNodeDescriptor(
+                control.Id, control.Role, control.Label,
+                new GuaBounds(control.X, control.Y, control.Width, control.Height),
+                Visible: control.Visible, Enabled: control.Enabled,
+                ParentId: control.ParentId, Text: control.Text,
+                Value: control.Value, Focused: control.Focused,
+                Checked: control.Checked));
+        }
+        runtime.EndFrame();
+
+        while (runtime.TryConsumeAction(GuaActionType.Click, null, out var request))
+        {
+            var succeeded = ui.TryClick(request.NodeId!);
+            runtime.EmitActionResult(request, succeeded,
+                succeeded ? GuaActionError.None : GuaActionError.Unsupported);
+        }
+    }
+
+    public void Dispose() => runtime.Dispose();
+}`} />
+  <p><code>ICustomUi</code> is a placeholder for the host-specific API. Keep IDs stable across frames and express bounds as physical viewport pixels with a top-left origin.</p>
+
+  <h2>Complete actions correctly</h2>
+  <p><code>TryConsumeAction</code> only dequeues a request. Deliver it through the engine's normal input path, then pass the same request to <code>EmitActionResult</code>. Completion proves host processing, not that a later screen has rendered; tests should still wait for the expected semantic state.</p>
+  <div class="table-wrap"><table><thead><tr><th>Host outcome</th><th>Error</th><th>Example</th></tr></thead><tbody>
+    <tr><td>Target disappeared</td><td><code>NodeNotFound</code></td><td>Scene changed before processing</td></tr>
+    <tr><td>Hidden or disabled</td><td><code>Hidden</code> / <code>Disabled</code></td><td>Host state changed after the snapshot</td></tr>
+    <tr><td>Unsupported operation</td><td><code>Unsupported</code></td><td>Clicking a read-only text node</td></tr>
+    <tr><td>Invalid host value</td><td><code>InvalidValue</code></td><td>Non-numeric slider value</td></tr>
+  </tbody></table></div>
+
+  <h2>Complete screenshot requests</h2>
+  <CodeBlock title="Capture after rendering" lang="csharp" code={`if (runtime.TryConsumeScreenshotRequest(out var request))
+{
+    if (ui.IsHeadless)
+        runtime.TryCompleteScreenshot(request, GuaScreenshotAvailability.Headless);
+    else
+    {
+        var png = ui.CapturePngAfterDraw();
+        var dataUri = "data:image/png;base64," + Convert.ToBase64String(png.Bytes);
+        runtime.TryCompleteScreenshot(request, GuaScreenshotAvailability.Available,
+            dataUri, png.Width, png.Height);
+    }
+}`} />
+  <p>A <code>false</code> return from <code>TryCompleteScreenshot</code> means timeout, cancellation, or context reset already invalidated the request. This is a benign late completion; do not retry it.</p>
+
+  <h2>Adapter checklist</h2>
+  <ul><li>Publish a stable lowercase adapter name and version.</li><li>Keep IDs, roles, parents, states, and supported actions consistent.</li><li>Use the host's real input/listener path and always emit success or failure.</li><li>Never copy sensitive values into logs, diagnostics, or completion events.</li><li>Distinguish headless, rendering-disabled, and stale screenshot outcomes.</li><li>Dispose the runtime to release the bridge and native handle.</li></ul>
+</DocPage>

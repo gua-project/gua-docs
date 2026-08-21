@@ -1,0 +1,65 @@
+---
+import DocPage from '../../../components/DocPage.astro';
+import CodeBlock from '../../../components/CodeBlock.astro';
+import Callout from '../../../components/Callout.astro';
+---
+<DocPage eyebrow="GUIDE / RECORDING" title="Recording guide" lead="Gua.Testing.Recording stores clicks, value changes, selections, and key input as semantic actions instead of screen coordinates, then replays them for regression testing and bug reproduction. It provides engine-independent, host-completion-aware journeys when multi-step flows would be unreliable as fixed-delay macros." description="Gua.Testing.Recording use cases, recording, replay, conditions, secrets, coordinate fallback, and diagnostics import." section="recording">
+  <Callout kind="tip" title="Game-engine independent"><p><code>Gua.Testing.Recording</code> sends semantic actions through <code>IGuaContext</code>, not engine-specific APIs. The same recording can run against Godot, Unity, or a custom adapter; each adapter owns only the protocol-to-host action implementation.</p></Callout>
+  <h2>Concrete use cases</h2>
+  <div class="table-wrap"><table><thead><tr><th>Situation</th><th>Value</th></tr></thead><tbody><tr><td>Login, configure, and save regression flow</td><td>Version a multi-step scenario as one document</td></tr><tr><td>Share a bug reproduction</td><td>Use stable IDs and roles instead of screen coordinates</td></tr><tr><td>Run a flow against Godot and Unity fixtures</td><td>Replay against the engine-independent <code>IGuaContext</code></td></tr><tr><td>Enter a password</td><td>Store a <code>secretKey</code>, never plaintext</td></tr></tbody></table></div>
+
+  <figure class="doc-figure"><div class="flow"><span>Semantic target<small>ID / role / focus</small></span><b>→</b><span>Enqueue action<small>assign requestId</small></span><b>→</b><span>Host completion<small>same requestId</small></span><b>→</b><span>recording.json<small>target, timing, revision</small></span><b>→</b><span>Replay + wait<small>resolve every step</small></span></div><figcaption>Figure 1: Recording waits for host completion instead of treating queue acceptance as success.</figcaption></figure>
+
+  <h2>Install</h2><CodeBlock title="Add to a scenario test project" lang="powershell" code={`dotnet add package Gua.Testing.Recording --version 0.14.0`} />
+
+  <h2>Record a flow</h2>
+  <CodeBlock title="Record login" lang="csharp" code={`using Gua.Testing.Recording;
+
+var recorder = new GuaRecorder(host.Context);
+await recorder.ClickAsync(new GuaRecordingTarget(Id: "open-login"));
+await recorder.SetValueAsync(
+    new GuaRecordingTarget(Role: "textbox", Name: "Email", Scope: "login-dialog"),
+    "player@example.com",
+    waitCondition: GuaWaitConditions.Visible("email"));
+await recorder.SetValueAsync(
+    new GuaRecordingTarget(Id: "password"), password,
+    sensitive: true, secretKey: "login-password");
+await recorder.PressKeyAsync("Enter");
+
+GuaRecordingFile.Save("recordings/login.json", recorder.Recording);`} />
+  <p>The recorder serializes actions and stores monotonic relative timing, revisions before and after each operation, and request IDs. Supported actions are click, focus, set_value, set_checked, select, scroll, and press_key.</p>
+
+  <h2>Choose stable targets</h2>
+  <div class="table-wrap"><table><thead><tr><th>Target</th><th>Use when</th><th>Rule</th></tr></thead><tbody><tr><td><code>Id</code></td><td>The game exposes a stable ID</td><td>Preferred; keep it stable through scene refactors</td></tr><tr><td><code>Role + Name</code></td><td>An accessible name is unique</td><td>Add <code>Scope</code> when names repeat</td></tr><tr><td><code>CurrentFocus</code></td><td>Sending a key to current focus</td><td>Valid only for <code>press_key</code></td></tr><tr><td>Coordinate fallback</td><td>Importing legacy data</td><td>Rejected by default</td></tr></tbody></table></div>
+
+  <h2>Prefer conditions to fixed delays</h2>
+  <p>With the default <code>PreferConditions</code> mode, a step with a condition waits for semantic state instead of repeating its recorded delay. Conditions include visible, hidden, enabled, disabled, focused, unfocused, checked, unchecked, text, and value.</p>
+  <CodeBlock title="Conditions" lang="csharp" code={`GuaWaitConditions.Visible("login-dialog")
+GuaWaitConditions.Enabled("submit")
+GuaWaitConditions.Text("status", "Ready")
+GuaWaitConditions.Value("volume", "0.8")`} />
+
+  <h2>Replay with secret injection</h2>
+  <CodeBlock title="Replay a saved flow" lang="csharp" code={`var recording = GuaRecordingFile.Load("recordings/login.json");
+
+var result = await GuaReplayer.ReplayAsync(
+    host.Context, recording, new GuaReplayOptions
+    {
+        TimingMode = GuaReplayTimingMode.PreferConditions,
+        SecretResolver = key => key == "login-password" ? password : null,
+        ActionTimeout = TimeSpan.FromSeconds(5),
+        PollInterval = TimeSpan.FromMilliseconds(50),
+    });`} />
+  <p>A sensitive <code>set_value</code> stores only its key. Replay fails if <code>SecretResolver</code> cannot supply the value. Keep the resolver from writing secrets to logs or artifacts.</p>
+
+  <h2>Replay safety boundaries</h2>
+  <ul><li>Every semantic target is resolved against the current tree and must be unique.</li><li>Every action waits for completion with the same request ID without consuming unrelated events.</li><li>Coordinate fallback is rejected by default and requires an explicit caller-provided executor.</li><li>Schema version, timing, revisions, action arguments, and secret leakage are validated on load.</li></ul>
+
+  <h2>Import retained diagnostics</h2>
+  <p><code>GuaRecordingFile.ImportDiagnostics</code> pairs enqueued operations with observed completion events by request ID. Its metadata reports paired requests, unpaired steps, and whether a legacy payload required synthetic timing.</p>
+  <CodeBlock title="Convert diagnostics history" lang="csharp" code={`var imported = GuaRecordingFile.ImportDiagnostics(context.GetDiagnosticsJson());
+if (imported.UnpairedStepCount != 0)
+    throw new InvalidOperationException("Diagnostics contains unpaired operations.");
+GuaRecordingFile.Save("recordings/imported.json", imported.Recording);`} />
+  <Callout kind="warn" title="Not a pointer macro recorder"><p>Recording stores semantic protocol actions as reproducible test scenarios. It does not attempt to capture arbitrary pointer movement or replay raw screen coordinates by default.</p></Callout>
+</DocPage>

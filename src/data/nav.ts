@@ -14,6 +14,8 @@ export const sections = [
       { label: 'テストの仕方', href: '/unity/testing/' },
     ],
   },
+  { label: 'Visualテスト編', href: '/visual-testing/', accent: 'violet', children: [] },
+  { label: 'Recording編', href: '/recording/', accent: 'blue', children: [] },
   { label: 'インスペクタ編', href: '/inspector/', accent: 'violet', children: [] },
   { label: 'MCPサーバー操作編', href: '/mcp/', accent: 'blue', children: [] },
 ] as const;
@@ -21,6 +23,7 @@ export const sections = [
 export const docs = [
   { label: 'Docs概要', href: '/docs/' },
   { label: '.NETパッケージ', href: '/docs/dotnet-packages/' },
+  { label: 'Gua.Runtime実装ガイド', href: '/docs/gua-runtime/' },
   { label: 'Godot API・仕様', href: '/docs/runtime-adapters/' },
   { label: 'Unity API・仕様', href: '/docs/unity-reference/' },
   { label: 'GitHub Actions', href: '/docs/github-actions/' },
@@ -42,6 +45,8 @@ export const sectionsEn = [
       { label: 'Testing UI', href: '/en/unity/testing/' },
     ],
   },
+  { label: 'Visual testing', href: '/en/visual-testing/', accent: 'violet', children: [] },
+  { label: 'Recording', href: '/en/recording/', accent: 'blue', children: [] },
   { label: 'Inspector', href: '/en/inspector/', accent: 'violet', children: [] },
   { label: 'MCP Server', href: '/en/mcp/', accent: 'blue', children: [] },
 ] as const;
@@ -49,6 +54,7 @@ export const sectionsEn = [
 export const docsEn = [
   { label: 'Docs overview', href: '/en/docs/' },
   { label: '.NET packages', href: '/en/docs/dotnet-packages/' },
+  { label: 'Gua.Runtime guide', href: '/en/docs/gua-runtime/' },
   { label: 'Godot API and specification', href: '/en/docs/runtime-adapters/' },
   { label: 'Unity API and specification', href: '/en/docs/unity-reference/' },
   { label: 'GitHub Actions', href: '/en/docs/github-actions/' },
