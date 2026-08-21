@@ -1,0 +1,26 @@
+---
+import DocPage from '../../../components/DocPage.astro'; import CodeBlock from '../../../components/CodeBlock.astro'; import Callout from '../../../components/Callout.astro';
+const gd = `extends Control
+
+const GuaAutoAdapterScript := preload(
+  "res://addons/gua/gua_auto_adapter.gd"
+)
+
+var ui := GuaAutoAdapterScript.new()
+
+func _ready() -> void:
+  ui.attach(self)
+  ui.update("title")
+  ui.start_inspector_bridge(8765)
+
+func _process(_delta: float) -> void:
+  ui.update("title")`;
+---
+<DocPage eyebrow="GODOT / UI" title="導入とUI実装" lead="配布済みアドオンを導入し、標準Controlで作ったUIを自動収集アダプターへ接続します。" description="Gua Godotアドオンの導入とUI自動収集。" section="godot">
+  <Callout kind="tip" title="Latest Releaseから導入"><p><a href="https://github.com/link1345/gua/releases/latest">Guaの最新Release</a>を開き、<code>gua-godot-plugin-windows-debug-v*.zip</code>を取得します。展開した<code>addons/gua</code>をGodotプロジェクト直下の<code>addons/</code>へコピーしてください。通常利用では、この配布物を使用します。</p></Callout>
+  <h2>配布済みアドオンを入れる</h2><ol class="steps"><li><strong>Latest Releaseを開く</strong><p>AssetsからGodot用ZIPをダウンロードして展開します。</p></li><li><strong>addons/guaをコピー</strong><CodeBlock title="配置後の構成" lang="text" code={`your-game/\n├─ project.godot\n└─ addons/\n   └─ gua/\n      ├─ gua.gdextension\n      ├─ gua_auto_adapter.gd\n      ├─ plugin.cfg\n      └─ bin/`} /></li><li><strong>Godotでプロジェクトを開く</strong><p>GDExtensionが読み込まれたことをGodotの出力で確認します。</p></li></ol>
+  <h2>GDScriptで導入する</h2><ol class="steps"><li><strong>アダプターを明示的にpreloadする</strong><p><code>class_name</code>の登録順に依存しないため、サンプルと同じ明示的なpreloadを使います。</p><CodeBlock title="main.gd" lang="gdscript" code={gd} /></li><li><strong>識別子を必要な箇所だけ固定する</strong><p>既定IDはNodePathから得られます。シーン構造を変えても維持したいIDはメタデータで指定します。</p><CodeBlock title="安定IDと機密入力" lang="gdscript" code={`name_input.set_meta("gua_id", "login-user")\npassword_input.set_meta("gua_id", "login-password")\npassword_input.set_meta("gua_sensitive", true)`} /></li></ol>
+  <Callout title="二重登録は不要"><p>アダプターはルートControlから標準コントロールを再帰収集します。ボタンの<code>pressed</code>も監視し、外部クリック要求を通常のGodotシグナルへ流します。</p></Callout>
+  <h2>収集される主なControl</h2><div class="grid-2"><div class="mini-card"><strong>入力</strong><p>LineEdit、TextEdit、CheckBox、OptionButton、ItemList</p></div><div class="mini-card"><strong>状態</strong><p>フォーカス、選択、値、スクロール、範囲、表示・有効状態</p></div></div>
+  <Callout kind="warn" title="ポート競合"><p><code>8765</code>を別プロセスが使用中の場合、ブリッジは開始できません。Godot出力の <code>Failed to start Gua Inspector bridge</code> を確認してください。</p></Callout>
+</DocPage>

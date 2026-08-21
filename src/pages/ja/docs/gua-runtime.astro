@@ -1,0 +1,110 @@
+---
+import DocPage from '../../../components/DocPage.astro';
+import CodeBlock from '../../../components/CodeBlock.astro';
+import Callout from '../../../components/Callout.astro';
+---
+<DocPage eyebrow="DOCS / GUA.RUNTIME" title="Gua.Runtime実装ガイド" lead="独自のmanaged engine adapterからSemantic UI Tree、操作、screenshot、Inspector bridgeをGuaへ接続するための実践ガイドです。" description="Gua.Runtimeを使って独自engine adapterを実装する具体的な利用場面、処理フロー、コード例、注意点。" section="docs">
+  <Callout kind="tip" title="誰が使うパッケージか"><p><code>Gua.Runtime</code>はゲームのテストを書く人ではなく、engine・UI frameworkとGuaを接続する<strong>adapter作者</strong>が使います。Unity/Godot対応をそのまま利用するプロジェクトでは、通常は直接参照しません。</p></Callout>
+
+  <h2>実際の利用場面</h2>
+  <div class="table-wrap"><table><thead><tr><th>場面</th><th>Gua.Runtimeが担当すること</th><th>adapter側が担当すること</th></tr></thead><tbody>
+    <tr><td>新しいgame engineへ対応</td><td>C ABIのmanaged wrapper、request queue、version、bridge</td><td>engineのUI列挙、座標・状態変換、入力配送</td></tr>
+    <tr><td>独自UI frameworkへ対応</td><td>Semantic node登録、action要求、完了event</td><td>Widgetをroleへ写像し、実際のWidget APIを呼ぶ</td></tr>
+    <tr><td>社内toolkitをInspector/MCPへ公開</td><td>WebSocket bridge、UI Tree JSON、log、screenshot要求</td><td>toolkitの描画loopとcapture APIへ接続</td></tr>
+  </tbody></table></div>
+
+  <figure class="doc-figure">
+    <div class="flow"><span>Inspector / MCP / Tests<small>観測・操作request</small></span><b>↔</b><span>native gua_runtime<small>state・queue・bridge</small></span><b>↔</b><span>Gua.Runtime<small>managed API</small></span><b>↔</b><span>Custom adapter<small>engine固有変換</small></span><b>↔</b><span>Game UI<small>実際のWidget</small></span></div>
+    <figcaption>図1: Gua.Runtimeはprotocol stateを所有するnative runtimeと、engine固有UI APIの間にあるmanaged境界です。</figcaption>
+  </figure>
+
+  <h2>導入とnative library</h2>
+  <CodeBlock title="adapter projectへ追加" lang="powershell" code={`dotnet add package Gua.Runtime --version 0.14.0`} />
+  <p><code>Gua.Runtime</code>は<code>net10.0</code>と<code>netstandard2.1</code>を対象にします。実行時には対象platform/architectureと一致する<code>gua.dll</code>と<code>gua_runtime.dll</code>も配置します。不一致や欠落はconstructorで明示的なload errorになります。</p>
+
+  <h2>adapterの1 frame</h2>
+  <figure class="doc-figure">
+    <div class="flow"><span>BeginFrame<small>screen名を開始</small></span><b>→</b><span>RegisterNode × N<small>現在のUI状態</small></span><b>→</b><span>EndFrame<small>snapshot確定</small></span><b>→</b><span>Consume actions<small>engineへ配送</small></span><b>→</b><span>Emit result<small>requestIdで完了</small></span></div>
+    <figcaption>図2: nodeは差分ではなく、そのframeで観測した状態を登録します。操作はsnapshot確定後に消費し、hostで処理した結果を返します。</figcaption>
+  </figure>
+
+  <CodeBlock title="最小adapter loop" lang="csharp" code={`using Gua.Core;
+using Gua.Runtime;
+
+public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
+{
+    private readonly GuaRuntime runtime = new();
+
+    public void Start()
+    {
+        runtime.SetAdapterVersion("custom_ui", "1.0.0");
+        if (!runtime.StartInspectorBridge(8765))
+            throw new InvalidOperationException("Gua bridge could not start.");
+    }
+
+    public void Tick()
+    {
+        runtime.BeginFrame(ui.ScreenName);
+        foreach (var control in ui.Controls)
+        {
+            runtime.RegisterNode(new GuaNodeDescriptor(
+                control.Id, control.Role, control.Label,
+                new GuaBounds(control.X, control.Y, control.Width, control.Height),
+                Visible: control.Visible,
+                Enabled: control.Enabled,
+                ParentId: control.ParentId,
+                Text: control.Text,
+                Value: control.Value,
+                Focused: control.Focused,
+                Checked: control.Checked));
+        }
+        runtime.EndFrame();
+
+        while (runtime.TryConsumeAction(GuaActionType.Click, null, out var request))
+        {
+            var succeeded = ui.TryClick(request.NodeId!);
+            runtime.EmitActionResult(request, succeeded,
+                succeeded ? GuaActionError.None : GuaActionError.Unsupported);
+        }
+    }
+
+    public void Dispose() => runtime.Dispose();
+}`} />
+  <p><code>ICustomUi</code>は説明用のhost固有interfaceです。実装ではengineのscene graphやWidget registryからControlを列挙します。IDはframeをまたいで安定させ、boundsは物理viewport pixel・左上原点で渡します。</p>
+
+  <h2>actionを正しく完了させる</h2>
+  <p><code>TryConsumeAction</code>は「要求を取り出した」だけです。engineの通常input経路へ操作を配送した後、同じrequestを<code>EmitActionResult</code>へ渡します。成功eventはhost処理の完了を表しますが、次画面の描画完了までは保証しません。テスト側は続けてSemantic stateをwaitします。</p>
+  <div class="table-wrap"><table><thead><tr><th>結果</th><th>返すerror</th><th>例</th></tr></thead><tbody>
+    <tr><td>対象が消えた</td><td><code>NodeNotFound</code></td><td>request後、処理前にsceneが変わった</td></tr>
+    <tr><td>非表示・無効</td><td><code>Hidden</code> / <code>Disabled</code></td><td>host状態が最新snapshotから変化した</td></tr>
+    <tr><td>roleが操作非対応</td><td><code>Unsupported</code></td><td>text nodeへのclick</td></tr>
+    <tr><td>値を解釈できない</td><td><code>InvalidValue</code></td><td>sliderへ数値以外を設定</td></tr>
+  </tbody></table></div>
+
+  <h2>screenshot要求</h2>
+  <CodeBlock title="描画後にscreenshotを完了" lang="csharp" code={`if (runtime.TryConsumeScreenshotRequest(out var request))
+{
+    if (ui.IsHeadless)
+    {
+        runtime.TryCompleteScreenshot(request, GuaScreenshotAvailability.Headless);
+    }
+    else
+    {
+        var png = ui.CapturePngAfterDraw();
+        var dataUri = "data:image/png;base64," + Convert.ToBase64String(png.Bytes);
+        runtime.TryCompleteScreenshot(request, GuaScreenshotAvailability.Available,
+            dataUri, png.Width, png.Height);
+    }
+}`} />
+  <p>captureは可能なら描画完了後に行います。<code>TryCompleteScreenshot</code>が<code>false</code>なら、timeout・cancel・context resetによりrequestが無効化されています。これは正常なlate completionなので再試行しません。</p>
+
+  <h2>実装チェックリスト</h2>
+  <ul>
+    <li><code>SetAdapterVersion</code>へlowercase ASCIIの安定したadapter名とversionを設定する。</li>
+    <li>node ID、role、parent、state、action対応をframe間で一貫させる。</li>
+    <li>外部actionをengineの通常input/listener経路へ配送し、処理後に必ず成功または失敗を返す。</li>
+    <li>秘密値をlog、diagnostics、完了eventへ書かない。</li>
+    <li>headless・rendering disabled・stale sessionをscreenshot結果として区別する。</li>
+    <li>終了時に<code>Dispose()</code>し、bridgeとnative handleを解放する。</li>
+  </ul>
+</DocPage>

@@ -1,0 +1,58 @@
+---
+import DocPage from '../../../components/DocPage.astro';
+import Callout from '../../../components/Callout.astro';
+import CodeBlock from '../../../components/CodeBlock.astro';
+---
+<DocPage eyebrow="UNITY / TESTING" title="テストの仕方" lead="Gua.Testing.UnityはUnity Editor Play ModeまたはWindows Mono Playerを起動し、共通のIGuaContextへ接続します。" description="Gua.Testing.UnityによるUnity UI外部テスト。" section="unity">
+  <h2>1. テストパッケージを追加する</h2>
+  <p><code>Gua.Testing.Unity</code>はまだNuGet未公開です。ブランチpreviewではソースprojectを参照し、公開後はCore、Testing、Testing.Unityを同じrelease versionへ揃えます。</p>
+  <CodeBlock title="previewのProjectReference" lang="xml" code={`<ProjectReference Include="../gua/bindings/dotnet/src/Gua.Testing.Unity/Gua.Testing.Unity.csproj" />`} />
+  <h2>2. PlayerまたはEditorを起動する</h2>
+  <CodeBlock title="ビルドしてrendered Playerをテスト" lang="csharp" code={`using Gua.Core;
+using Gua.Testing;
+using Gua.Testing.Unity;
+
+var player = UnityPlayerBuilder.Build(
+    @"game/Assets/Scenes/Title.unity");
+using var host = UnitySceneTestHost.LoadRenderedPlayer(
+    player, UnitySceneTestHostOptions.StrictIsolation);
+
+var start = host.Context.FindNodeByRole("button", "Start Game");
+host.Context.EnqueueClick(start);
+var screenshot = host.CaptureScreenshot();`} />
+  <div class="table-wrap"><table><thead><tr><th>入口</th><th>用途</th></tr></thead><tbody>
+    <tr><td><code>LoadPlayer</code></td><td><code>-batchmode -nographics</code>の既存Player。高速なsemanticテスト向け</td></tr>
+    <tr><td><code>LoadRenderedPlayer</code></td><td>描画付き既存Player。screenshot/Visual比較向け</td></tr>
+    <tr><td><code>LoadEditor</code></td><td>指定sceneをEditor Play Modeで起動</td></tr>
+    <tr><td><code>BuildAndLoadPlayer</code></td><td>sceneからWindows x64 Mono Playerをビルドして起動</td></tr>
+  </tbody></table></div>
+  <h2>Visual比較と操作記録</h2>
+  <p><code>Gua.Testing.Visual</code>と<code>Gua.Testing.Recording</code>はengine共通パッケージなので、<code>Gua.Testing.Unity</code>の<code>host.Context</code>でも利用できます。Visual比較にはPNGを取得できる<code>LoadRenderedPlayer</code>またはEditor Play Modeを使います。Recordingはsemantic actionを扱うためheadless Playerでも利用できます。</p>
+  <CodeBlock title="Unity hostで共通パッケージを使う" lang="csharp" code={`using Gua.Testing.Recording;
+using Gua.Testing.Visual;
+
+var comparison = await GuaVisualAssertions.ExpectScreenshotAsync(
+    host.Context, "title-screen", new() {
+        BaselineDirectory = "baselines",
+        ArtifactDirectory = "artifacts/gua",
+    });
+
+var recorder = new GuaRecorder(host.Context);
+await recorder.ClickAsync(new(Id: "start"));`} />
+  <h2>並列実行と分離</h2>
+  <p><code>UseAvailableBridgePort</code>は既定で<code>true</code>です。ホストがloopbackの空きポートを予約し、子プロセスへ<code>GUA_BRIDGE_PORT</code>を渡すため、固定8765の衝突を避けられます。</p>
+  <p>ただし番号を選んだ直後にlistenerを閉じてからUnityを起動するため、bind完了までを予約する仕組みではありません。極端な並列負荷では小さな競合余地が残ります。</p>
+  <CodeBlock title="明示オプション" lang="csharp" code={`var options = new UnitySceneTestHostOptions {
+    UnityExecutablePath = @"C:/Program Files/Unity/Hub/Editor/6000.5.3f1/Editor/Unity.exe",
+    ProjectPath = @"C:/src/game",
+    UseAvailableBridgePort = true,
+    ConnectTimeout = TimeSpan.FromSeconds(60),
+    TeardownResetPolicy = GuaResetPolicy.Strict,
+    CaptureDiagnosticsBeforeTeardown = true,
+};`} />
+  <Callout kind="warn" title="Editor project lock"><p><code>LoadEditor</code>は<code>Temp/UnityLockfile</code>を検査します。同じprojectを別のUnity Editorで開いている場合、曖昧に待たず、実行commandとlock pathを含む例外を返します。</p></Callout>
+  <h2>診断とスクリーンショット</h2>
+  <p><code>CreateDiagnosticsSession()</code>はUI Tree、操作履歴、runtime diagnosticsに加え、<code>-logFile</code>で得たUnity log、PID、bridge URL、log pathをartifactへ含めます。stdout/stderrを別々にはredirectしません。必要なら<code>captureScreenshot: true</code>を指定します。Strict teardownは未消費request/event等を黙って消さず失敗として報告します。</p>
+  <p><code>SceneTimeout</code>は現状、主にscreenshot待機の既定値です。Scene遷移を自動で待つAPIではありません。</p>
+  <Callout kind="tip" title="Unity.exeの解決順"><p><code>UnityExecutablePath</code>、環境変数<code>UNITY_EXECUTABLE</code>、<code>C:\Program Files\Unity\Hub\Editor</code>の新しいinstallの順に探索します。</p></Callout>
+</DocPage>
