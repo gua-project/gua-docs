@@ -5,8 +5,8 @@ import CodeBlock from '../../../components/CodeBlock.astro';
 ---
 <DocPage eyebrow="UNITY / TESTING" title="テストの仕方" lead="Gua.Testing.UnityはUnity Editor Play ModeまたはWindows Mono Playerを起動し、共通のIGuaContextへ接続します。" description="Gua.Testing.UnityによるUnity UI外部テスト。" section="unity">
   <h2>1. テストパッケージを追加する</h2>
-  <p><code>Gua.Testing.Unity</code>はまだNuGet未公開です。ブランチpreviewではソースprojectを参照し、公開後はCore、Testing、Testing.Unityを同じrelease versionへ揃えます。</p>
-  <CodeBlock title="previewのProjectReference" lang="xml" code={`<ProjectReference Include="../gua/bindings/dotnet/src/Gua.Testing.Unity/Gua.Testing.Unity.csproj" />`} />
+  <p><code>Gua.Testing.Unity</code>はNuGetで公開されています。次のコマンドは最新の安定版を解決します。projectへ書き込まれたversionをcommitし、3つのGuaパッケージを同じversion系列へ揃えてください。</p>
+  <CodeBlock title="Unity test hostを追加" lang="powershell" code={`dotnet add package Gua.Core\ndotnet add package Gua.Testing\ndotnet add package Gua.Testing.Unity`} />
   <h2>2. PlayerまたはEditorを起動する</h2>
   <CodeBlock title="ビルドしてrendered Playerをテスト" lang="csharp" code={`using Gua.Core;
 using Gua.Testing;

@@ -4,7 +4,7 @@ import Callout from '../../components/Callout.astro';
 import CodeBlock from '../../components/CodeBlock.astro';
 ---
 <DocPage eyebrow="UNITY / TESTING" title="Testing UI" lead="Gua.Testing.Unity starts Unity Editor Play Mode or a Windows Mono Player and connects the shared IGuaContext to its bridge." description="External Unity UI testing with Gua.Testing.Unity." section="unity">
-  <h2>1. Add test packages</h2><p><code>Gua.Testing.Unity</code> is not published to NuGet yet. Reference its source project during the branch preview; after publication, keep Core, Testing, and Testing.Unity on the same release version.</p><CodeBlock title="Preview ProjectReference" lang="xml" code={`<ProjectReference Include="../gua/bindings/dotnet/src/Gua.Testing.Unity/Gua.Testing.Unity.csproj" />`} />
+  <h2>1. Add test packages</h2><p><code>Gua.Testing.Unity</code> is published on NuGet. These commands resolve the latest stable releases; commit the versions written to the project and keep the three Gua packages on the same version line.</p><CodeBlock title="Add the Unity test host" lang="powershell" code={`dotnet add package Gua.Core\ndotnet add package Gua.Testing\ndotnet add package Gua.Testing.Unity`} />
   <h2>2. Start a Player or Editor</h2><CodeBlock title="Build and test a rendered Player" lang="csharp" code={`using Gua.Core;
 using Gua.Testing;
 using Gua.Testing.Unity;

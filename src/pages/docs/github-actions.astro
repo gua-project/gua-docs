@@ -9,10 +9,10 @@ import Callout from '../../components/Callout.astro';
   <h2>Inputs</h2><div class="grid-2"><div class="mini-card"><strong>test-project (required)</strong><p>Path to the test <code>.csproj</code> that references <code>Gua.Testing.Godot</code>.</p></div><div class="mini-card"><strong>project-path</strong><p>Path to the Godot project. The default is <code>game</code>.</p></div><div class="mini-card"><strong>godot-version / godot-status</strong><p>Defaults to <code>4.7</code> and <code>stable</code>. RC and dev suffixes are supported.</p></div><div class="mini-card"><strong>dotnet-version</strong><p>SDK for the external test runner. The default is <code>10.0.x</code>.</p></div><div class="mini-card"><strong>gua-plugin-tag</strong><p>Pins a specific <code>godot-plugin-*</code> tag. Empty selects the latest matching release.</p></div><div class="mini-card"><strong>configuration / test-logger</strong><p>Defaults to <code>Release</code> and <code>trx;LogFileName=godot-gdscript.trx</code>.</p></div></div>
   <p>Advanced overrides include <code>godot-executable-suffix</code> (default <code>win64.exe</code>), <code>gua-repository</code> (default <code>link1345/gua</code>), and <code>gua-plugin-asset-pattern</code> (default <code>gua-godot-plugin-*.zip</code>).</p>
   <h2>Outputs</h2><div class="grid-2"><div class="mini-card"><strong>godot-executable</strong><p>Absolute path to the downloaded Godot executable.</p></div><div class="mini-card"><strong>addon-path</strong><p>The linked add-on path: <code>&lt;project-path&gt;/addons/gua</code>.</p></div></div>
-  <h2>Use the component actions separately</h2><CodeBlock title="Prepare Godot only" lang="yaml" code={`- uses: link1345/gua-tester/setup-godot@v1.2
+  <h2>Use the component actions separately</h2><CodeBlock title="Prepare Godot only" lang="yaml" code={`- uses: link1345/gua-tester/setup-godot@v1.3
   with:
     godot-version: "4.7"
-    godot-status: stable`} /><CodeBlock title="Link only the Gua add-on" lang="yaml" code={`- uses: link1345/gua-tester/link-gua-gdscript-addon@v1.2
+    godot-status: stable`} /><CodeBlock title="Link only the Gua add-on" lang="yaml" code={`- uses: link1345/gua-tester/link-gua-gdscript-addon@v1.3
   with:
     project-path: game`} />
   <Callout kind="warn" title="Consumer requirements"><p>The game must start the bridge through the Gua add-on, and the test project must reference <code>Gua.Testing.Godot</code>. The action does not generate test code or bridge initialization.</p></Callout>

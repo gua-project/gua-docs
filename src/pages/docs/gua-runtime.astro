@@ -1,0 +1,153 @@
+---
+import DocPage from '../../components/DocPage.astro';
+import CodeBlock from '../../components/CodeBlock.astro';
+import Callout from '../../components/Callout.astro';
+---
+<DocPage eyebrow="DOCS / GUA.RUNTIME" title="Gua.Runtime implementation guide" lead="Connect a managed engine adapter to Gua semantic frames, actions, screenshots, and the Inspector bridge." description="Practical Gua.Runtime use cases, lifecycle, implementation examples, and adapter responsibilities." section="docs">
+  <Callout kind="tip" title="Who uses this package"><p><code>Gua.Runtime</code> is for <strong>adapter authors</strong> connecting an engine or UI framework to Gua. A project consuming the existing Unity or Godot integration normally does not reference it directly.</p></Callout>
+
+  <h2>Concrete use cases</h2>
+  <div class="table-wrap"><table><thead><tr><th>Situation</th><th>Gua.Runtime provides</th><th>Your adapter provides</th></tr></thead><tbody>
+    <tr><td>Support another game engine</td><td>Managed C ABI wrapper, request queues, versions, bridge</td><td>UI enumeration, state conversion, and input delivery</td></tr>
+    <tr><td>Support a custom UI framework</td><td>Semantic node registration and correlated action results</td><td>Widget-to-role mapping and real widget operations</td></tr>
+    <tr><td>Expose an internal toolkit to Inspector/MCP</td><td>WebSocket bridge, UI-tree JSON, logs, screenshot requests</td><td>Rendering-loop and capture integration</td></tr>
+  </tbody></table></div>
+
+  <figure class="doc-figure"><div class="flow"><span>Inspector / MCP / Tests<small>observe and request</small></span><b>↔</b><span>native gua_runtime<small>state, queues, bridge</small></span><b>↔</b><span>Gua.Runtime<small>managed API</small></span><b>↔</b><span>Custom adapter<small>engine translation</small></span><b>↔</b><span>Game UI<small>real widgets</small></span></div><figcaption>Figure 1: Gua.Runtime is the managed boundary between the protocol runtime and engine-specific UI APIs.</figcaption></figure>
+
+  <h2>Install and deploy</h2>
+  <CodeBlock title="Add the latest stable package to an adapter project" lang="powershell" code={`dotnet add package Gua.Runtime`} />
+  <p>The package targets <code>net10.0</code> and <code>netstandard2.1</code>. Deploy matching <code>gua.dll</code> and <code>gua_runtime.dll</code> files for the target platform and architecture. Missing or mismatched libraries produce an explicit load error in the constructor.</p>
+
+  <h2>One adapter frame</h2>
+  <figure class="doc-figure"><div class="flow"><span>BeginFrame<small>logical screen</small></span><b>→</b><span>RegisterNode × N<small>current UI state</small></span><b>→</b><span>EndFrame<small>commit snapshot</small></span><b>→</b><span>Consume actions<small>deliver to engine</small></span><b>→</b><span>Emit result<small>correlate requestId</small></span></div><figcaption>Figure 2: Publish observed state each frame, then consume requests and report what the host actually did.</figcaption></figure>
+
+  <CodeBlock title="Minimal adapter loop" lang="csharp" code={`using System;
+using System.Collections.Generic;
+using Gua.Core;
+using Gua.Runtime;
+
+public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
+{
+    // Keep this at least as long as the largest remote action timeout.
+    private static readonly TimeSpan StaleIdRetention = TimeSpan.FromSeconds(30);
+    private readonly GuaRuntime runtime = new();
+    private readonly Dictionary<string, DateTimeOffset> retainedNodeIds =
+        new(StringComparer.Ordinal);
+
+    public void Start()
+    {
+        runtime.SetAdapterVersion("custom_ui", "1.0.0");
+        if (!runtime.StartInspectorBridge(GetBridgePort()))
+            throw new InvalidOperationException("Gua bridge could not start.");
+    }
+
+    private static int GetBridgePort()
+    {
+        const int defaultPort = 8765;
+        var value = Environment.GetEnvironmentVariable("GUA_BRIDGE_PORT");
+        if (string.IsNullOrWhiteSpace(value))
+            return defaultPort;
+        if (!int.TryParse(value, out var port) || port is < 1 or > 65535)
+            throw new InvalidOperationException("GUA_BRIDGE_PORT must be between 1 and 65535.");
+        return port;
+    }
+
+    public void Tick()
+    {
+        var retainUntil = DateTimeOffset.UtcNow + StaleIdRetention;
+        runtime.BeginFrame(ui.ScreenName);
+        foreach (var control in ui.Controls)
+        {
+            retainedNodeIds[control.Id] = retainUntil;
+            runtime.RegisterNode(new GuaNodeDescriptor(
+                control.Id, control.Role, control.Label,
+                new GuaBounds(control.X, control.Y, control.Width, control.Height),
+                Visible: control.Visible, Enabled: control.Enabled,
+                ParentId: control.ParentId,
+                Text: control.Sensitive ? null : control.Text,
+                Value: control.Sensitive ? null : control.Value,
+                Focused: control.Focused,
+                Checked: control.Checked));
+        }
+        runtime.EndFrame();
+
+        foreach (var nodeId in retainedNodeIds.Keys)
+            DrainActions(nodeId);
+        DrainActions(null); // global press_key requests
+
+        var now = DateTimeOffset.UtcNow;
+        var expiredNodeIds = new List<string>();
+        foreach (var pair in retainedNodeIds)
+            if (pair.Value <= now)
+                expiredNodeIds.Add(pair.Key);
+        foreach (var expired in expiredNodeIds)
+            retainedNodeIds.Remove(expired);
+    }
+
+    private void DrainActions(string? nodeId)
+    {
+        foreach (GuaActionType action in Enum.GetValues(typeof(GuaActionType)))
+        {
+            while (runtime.TryConsumeAction(action, nodeId, out var request))
+            {
+                if (request.Action == GuaActionType.Click)
+                {
+                    var error = TryClick(request.NodeId);
+                    runtime.EmitActionResult(request,
+                        error == GuaActionError.None, error);
+                }
+                else
+                {
+                    runtime.EmitActionResult(request, false, GuaActionError.Unsupported);
+                }
+            }
+        }
+    }
+
+    private GuaActionError TryClick(string? nodeId)
+    {
+        if (nodeId is null || !ui.TryGetControl(nodeId, out var control))
+            return GuaActionError.NodeNotFound;
+        if (!control.Visible)
+            return GuaActionError.Hidden;
+        if (!control.Enabled)
+            return GuaActionError.Disabled;
+        return ui.TryClick(nodeId)
+            ? GuaActionError.None
+            : GuaActionError.Unsupported;
+    }
+
+    public void Dispose() => runtime.Dispose();
+}`} />
+  <p><code>GetBridgePort</code> honors the port allocated by an external test host through <code>GUA_BRIDGE_PORT</code>, validates its range, and falls back to <code>8765</code> only when no override is supplied. <code>ICustomUi</code> is a placeholder for the host-specific API. Its <code>Sensitive</code> flag must identify passwords, tokens, and similar controls before registration; omit both <code>Text</code> and <code>Value</code> so secrets never enter snapshots, Inspector/MCP responses, or retained diagnostics. Keep IDs stable across frames and express bounds as physical viewport pixels with a top-left origin.</p>
+
+  <h2>Complete actions correctly</h2>
+  <p><code>TryConsumeAction</code> matches both action type and node ID. A request based on the preceding snapshot may arrive after the first frame where its control is absent, so one drain pass is not enough. Retain each last-seen ID for a bounded staleness window, continue draining it during that window, then remove it. Configure <code>StaleIdRetention</code> to be at least the longest remote action timeout plus transport margin; the example uses 30 seconds. This bounds dynamic-screen memory and per-frame work by the recent ID rate without abandoning callers that are still allowed to submit. Drain the empty ID separately for global key requests.</p>
+  <div class="table-wrap"><table><thead><tr><th>Host outcome</th><th>Error</th><th>Example</th></tr></thead><tbody>
+    <tr><td>Target disappeared</td><td><code>NodeNotFound</code></td><td>Scene changed before processing</td></tr>
+    <tr><td>Hidden or disabled</td><td><code>Hidden</code> / <code>Disabled</code></td><td>Host state changed after the snapshot</td></tr>
+    <tr><td>Unsupported operation</td><td><code>Unsupported</code></td><td>Clicking a read-only text node</td></tr>
+    <tr><td>Invalid host value</td><td><code>InvalidValue</code></td><td>Non-numeric slider value</td></tr>
+  </tbody></table></div>
+
+  <h2>Complete screenshot requests</h2>
+  <CodeBlock title="Capture after rendering" lang="csharp" code={`if (runtime.TryConsumeScreenshotRequest(out var request))
+{
+    if (ui.IsHeadless)
+        runtime.CompleteScreenshot(request, GuaScreenshotAvailability.Headless);
+    else if (ui.IsRenderingDisabled)
+        runtime.CompleteScreenshot(request, GuaScreenshotAvailability.RenderingDisabled);
+    else
+    {
+        var png = ui.CapturePngAfterDraw();
+        var dataUri = "data:image/png;base64," + Convert.ToBase64String(png.Bytes);
+        runtime.CompleteScreenshot(request, GuaScreenshotAvailability.Available,
+            dataUri, png.Width, png.Height);
+    }
+}`} />
+  <p>Check headless and rendering-disabled states separately before attempting PNG capture. <code>CompleteScreenshot</code> is the documented completion API. Call it once for every consumed request. If timeout, cancellation, or context reset already invalidated the request, the runtime ignores the late completion; do not retry it.</p>
+
+  <h2>Adapter checklist</h2>
+  <ul><li>Publish a stable lowercase adapter name and version.</li><li>Keep IDs, roles, parents, states, and supported actions consistent.</li><li>Use the host's real input/listener path and always emit success or failure.</li><li>Never copy sensitive values into logs, diagnostics, or completion events.</li><li>Distinguish headless, rendering-disabled, and stale screenshot outcomes.</li><li>Dispose the runtime to release the bridge and native handle.</li></ul>
+</DocPage>
