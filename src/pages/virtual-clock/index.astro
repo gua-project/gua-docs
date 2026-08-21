@@ -1,0 +1,17 @@
+---
+import DocPage from '../../components/DocPage.astro';
+import CodeBlock from '../../components/CodeBlock.astro';
+import Callout from '../../components/Callout.astro';
+---
+<DocPage eyebrow="GUIDE / VIRTUAL CLOCK" title="Pause and advance game time deterministically" lead="GuaClock pauses explicitly connected schedules and tick-driven logic, then advances them without waiting for wall time." description="Gua virtual clock installation, pause, run-for, scheduler, engine integration, MCP, and limitations." section="virtual-clock">
+  <Callout kind="warn" title="An opt-in clock, not an engine-global pause"><p><code>clock_pause</code> controls only GuaClock schedules and tick subscribers. Godot Timer, Unity Coroutine, physics, animation, audio, OS time, and networking keep their native behavior.</p></Callout>
+  <h2>Test a two-second transition immediately</h2>
+  <CodeBlock title="Install, pause, and run" lang="csharp" code={`var clock = new GuaClock(context);
+clock.Install(step: TimeSpan.FromMilliseconds(16.6667));
+clock.Schedule(TimeSpan.FromSeconds(2), ShowMessage);
+clock.Pause();
+clock.RunFor(TimeSpan.FromSeconds(2));`} />
+  <div class="table-wrap"><table><thead><tr><th>Operation</th><th>Effect</th></tr></thead><tbody><tr><td><code>Install</code></td><td>Starts a monotonic Gua clock at zero in running state.</td></tr><tr><td><code>Pause</code></td><td>Freezes GuaClock time while the bridge and semantic UI collection keep running.</td></tr><tr><td><code>RunFor</code></td><td>Executes due callbacks and tick slices, reaches the exact requested time, and stays paused.</td></tr><tr><td><code>Resume</code></td><td>Returns GuaClock to adapter-provided unscaled real-time advancement.</td></tr></tbody></table></div>
+  <h2>Godot and Unity</h2><p>Godot exposes <code>clock_tick</code>, <code>clock_schedule</code>, and <code>clock_cancel</code> on <code>GuaAutoAdapter</code>. Unity exposes <code>GuaRuntime.Clock.Schedule</code> and <code>Tick</code>; its always-running adapter pump advances the clock with <code>Time.unscaledDeltaTime</code>. Both adapters continue serving bridge commands while GuaClock is paused.</p>
+  <h2>Remote controls</h2><p>The WebSocket protocol, MCP server, and Inspector share <code>get_clock</code>, <code>clock_install</code>, <code>clock_pause</code>, <code>clock_run_for</code>, and <code>clock_resume</code>. .NET tests use the matching synchronous or asynchronous <code>GuaClockControls</code> methods.</p>
+</DocPage>

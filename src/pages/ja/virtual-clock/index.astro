@@ -1,0 +1,17 @@
+---
+import DocPage from '../../../components/DocPage.astro';
+import CodeBlock from '../../../components/CodeBlock.astro';
+import Callout from '../../../components/Callout.astro';
+---
+<DocPage eyebrow="GUIDE / VIRTUAL CLOCK" title="ゲーム時間を停止して決定論的に進める" lead="GuaClockへ明示的に接続したSchedulerとTick処理を停止し、実時間を待たずに指定時間だけ進めます。" description="Gua仮想時計のInstall、Pause、RunFor、Scheduler、Godot・Unity統合、MCP、制限事項。" section="virtual-clock">
+  <Callout kind="warn" title="engine全体のPauseではありません"><p><code>clock_pause</code>が制御するのはGuaClockのSchedulerとTick購読処理だけです。Godot Timer、Unity Coroutine、物理、Animation、Audio、OS時刻、Networkは各engine本来の動作を続けます。</p></Callout>
+  <h2>2秒後の遷移を即座にテスト</h2>
+  <CodeBlock title="Install、Pause、RunFor" lang="csharp" code={`var clock = new GuaClock(context);
+clock.Install(step: TimeSpan.FromMilliseconds(16.6667));
+clock.Schedule(TimeSpan.FromSeconds(2), ShowMessage);
+clock.Pause();
+clock.RunFor(TimeSpan.FromSeconds(2));`} />
+  <div class="table-wrap"><table><thead><tr><th>操作</th><th>効果</th></tr></thead><tbody><tr><td><code>Install</code></td><td>時刻0・running状態でmonotonicなGuaClockを開始。</td></tr><tr><td><code>Pause</code></td><td>bridgeとSemantic UI収集を動かしたままGuaClockだけ停止。</td></tr><tr><td><code>RunFor</code></td><td>期限callbackとTickを刻み幅ごとに実行し、指定時刻へ正確に到達して再停止。</td></tr><tr><td><code>Resume</code></td><td>adapterが渡すunscaled deltaによる通常進行へ復帰。</td></tr></tbody></table></div>
+  <h2>GodotとUnity</h2><p>Godotは<code>GuaAutoAdapter</code>の<code>clock_tick</code>、<code>clock_schedule</code>、<code>clock_cancel</code>を使います。Unityは<code>GuaRuntime.Clock.Schedule</code>と<code>Tick</code>を使い、常時動作するadapter pumpが<code>Time.unscaledDeltaTime</code>で時計を進めます。どちらもPause中にbridge commandを処理できます。</p>
+  <h2>外部からの操作</h2><p>WebSocket、MCP、Inspectorで<code>get_clock</code>、<code>clock_install</code>、<code>clock_pause</code>、<code>clock_run_for</code>、<code>clock_resume</code>を共通利用できます。.NETテストには同期・非同期の<code>GuaClockControls</code>があります。</p>
+</DocPage>
