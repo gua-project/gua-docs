@@ -4,7 +4,7 @@ import CodeBlock from '../../../components/CodeBlock.astro';
 import Callout from '../../../components/Callout.astro';
 ---
 <DocPage eyebrow="DOCS / CI" title="GitHub Actions" lead="link1345/gua-testerは、Godot GDScriptプロジェクトのGua UIテストをWindows runnerで実行するための公開GitHub Actionです。" description="link1345/gua-testerの入力、出力、構成Actionのリファレンス。" section="docs">
-  <Callout title="公式リポジトリ"><p>実装と最新情報は<a href="https://github.com/link1345/gua-tester">link1345/gua-tester</a>を参照してください。このリファレンスではRelease <code>v1.2</code>に固定し、<code>link1345/gua-tester@v1.2</code>を指定します。</p></Callout>
+  <Callout title="公式リポジトリ"><p>実装と最新情報は<a href="https://github.com/link1345/gua-tester">link1345/gua-tester</a>を参照してください。root／setup Actionの例はRelease <code>v1.3</code>、同梱静的Viewerを導入する<code>visual-report</code>の例はRelease <code>v1.4</code>へ固定します。</p></Callout>
   <h2>処理内容</h2><ol class="steps"><li><strong>.NET SDKとGodotを準備</strong><p>指定バージョンのWindows版Godotを取得し、<code>GODOT_EXECUTABLE</code>を設定します。</p></li><li><strong>Guaアドオンを配置</strong><p>Gua Releasesから最新または指定タグの<code>godot-plugin-*</code>を取得し、<code>&lt;project-path&gt;/addons/gua</code>へコピーします。</p></li><li><strong>.NETテストを実行</strong><p>テストプロジェクトをrestoreし、指定configurationとloggerで<code>dotnet test</code>を実行します。</p></li></ol>
   <h2>入力</h2><div class="grid-2"><div class="mini-card"><strong>test-project（必須）</strong><p><code>Gua.Testing.Godot</code>を参照するテスト用<code>.csproj</code>へのパスです。</p></div><div class="mini-card"><strong>project-path</strong><p>Godotプロジェクトのパスです。既定値は<code>game</code>です。</p></div><div class="mini-card"><strong>godot-version / godot-status</strong><p>既定値は<code>4.7</code>と<code>stable</code>です。rc・devも指定できます。</p></div><div class="mini-card"><strong>dotnet-version</strong><p>外部テストrunnerのSDKです。既定値は<code>10.0.x</code>です。</p></div><div class="mini-card"><strong>gua-plugin-tag</strong><p>特定の<code>godot-plugin-*</code>タグへ固定します。空なら最新の該当Releaseです。</p></div><div class="mini-card"><strong>configuration / test-logger</strong><p>既定値は<code>Release</code>と<code>trx;LogFileName=godot-gdscript.trx</code>です。</p></div></div>
   <p>高度な上書きとして、<code>godot-executable-suffix</code>（既定<code>win64.exe</code>）、<code>gua-repository</code>（既定<code>link1345/gua</code>）、<code>gua-plugin-asset-pattern</code>（既定<code>gua-godot-plugin-*.zip</code>）も指定できます。</p>
@@ -18,25 +18,39 @@ import Callout from '../../../components/Callout.astro';
   <h2 id="visual-report">Visual差分レポート</h2><p><code>link1345/gua-tester/visual-report</code>は、<code>Gua.Testing.Visual</code>のmanifestとPNGを静的レポートへ変換します。Astro Viewerは事前ビルド済みでActionへ同梱されるため、利用側workflowでAstroやnpm依存をインストールしません。</p>
   <div class="grid-2"><div class="mini-card"><strong>比較結果を一覧表示</strong><p>hashで結果を選び、run、commit、variant、寸法、差分画素数・率、閾値を確認できます。</p></div><div class="mini-card"><strong>2つの表示モード</strong><p>Expected／Diff／Actualの3列表示と、キーボード操作対応のExpected／Actualスライダーを切り替えます。</p></div><div class="mini-card"><strong>失敗状態を区別</strong><p>baseline欠落、画像サイズ不一致、diff欠落、データなし、成功、キャンセルを個別に表示します。</p></div><div class="mini-card"><strong>公開データを制限</strong><p>公開用<code>report.json</code>にはrawの絶対<code>baselinePath</code>を転記せず、コピーした固定名PNGだけを参照します。</p></div></div>
   <h3>入力と出力</h3><div class="table-wrap"><table><thead><tr><th>入力</th><th>既定値</th><th>用途</th></tr></thead><tbody><tr><td><code>artifact-path</code></td><td><code>artifacts/gua</code></td><td>比較データdirectory</td></tr><tr><td><code>test-outcome</code></td><td>必須</td><td><code>success</code>、<code>failure</code>、<code>cancelled</code></td></tr><tr><td><code>upload-target</code></td><td><code>pages</code></td><td><code>pages</code>または<code>workflow</code></td></tr><tr><td><code>pages-artifact-name</code></td><td><code>github-pages</code></td><td>Pages artifact名</td></tr><tr><td><code>workflow-artifact-name</code></td><td><code>gua-visual-report</code></td><td>通常workflow artifact名</td></tr><tr><td><code>retention-days</code></td><td><code>7</code></td><td>artifact保持日数</td></tr></tbody></table></div><p>出力は<code>comparison-count</code>と<code>artifact-id</code>です。</p>
-  <h3>PRとmainで公開先を分ける</h3><CodeBlock title="テストstepの後にレポートを作る" lang="yaml" code={`- name: Upload pull-request visual report
+  <h3>PRとmainで公開先を分ける</h3><CodeBlock title="テストstepの後にレポートを作る" lang="yaml" code={`- name: Normalize visual report outcome
+  id: visual-outcome
+  if: always()
+  shell: pwsh
+  env:
+    TEST_OUTCOME: \${{ steps.gua-tests.outcome }}
+  run: |
+    $outcome = if ($env:TEST_OUTCOME -in @("success", "failure", "cancelled")) {
+      $env:TEST_OUTCOME
+    } else {
+      "failure"
+    }
+    "value=$outcome" >> $env:GITHUB_OUTPUT
+
+- name: Upload pull-request visual report
   if: failure() && github.event_name == 'pull_request'
-  uses: link1345/gua-tester/visual-report@main
+  uses: link1345/gua-tester/visual-report@v1.4
   with:
     artifact-path: artifacts/gua
-    test-outcome: \${{ steps.gua-tests.outcome }}
+    test-outcome: \${{ steps.visual-outcome.outputs.value }}
     upload-target: workflow
 
 - name: Prepare latest main visual report
   id: visual-report
-  if: always() && github.event_name != 'pull_request'
-  uses: link1345/gua-tester/visual-report@main
+  if: always() && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')
+  uses: link1345/gua-tester/visual-report@v1.4
   with:
     artifact-path: artifacts/gua
-    test-outcome: \${{ steps.gua-tests.outcome }}
+    test-outcome: \${{ steps.visual-outcome.outputs.value }}
     upload-target: pages`} /><p>PRでは失敗時だけ閲覧可能なsiteを通常artifactとして保存します。Viewerは<code>report.json</code>を読み込むため、ダウンロード後は<code>file://</code>で直接開かず、展開先を<code>python -m http.server</code>などでHTTP配信してください。mainと手動実行では成功状態も公開し、古い失敗を最新結果として残しません。</p>
   <h3>Pagesへdeployする</h3><p>ActionはPages artifactのアップロードまでを担当し、実際のdeployは利用側の専用jobで行います。</p><CodeBlock title="専用deploy job" lang="yaml" code={`deploy-visual-report:
   needs: godot
-  if: always() && github.event_name != 'pull_request' && needs.godot.outputs.pages-ready == 'true'
+  if: always() && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') && needs.godot.outputs.pages-ready == 'true'
   runs-on: ubuntu-latest
   permissions:
     pages: write
