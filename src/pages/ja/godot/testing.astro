@@ -136,7 +136,7 @@ GuaAssertions.GetByRole(
     { code: 'DiagnosticsSession = diagnostics', explanation: 'assertion失敗時にUI Tree、履歴、log、process情報を保存する対象を指定します。' },
     { code: '.ToBeVisible()', explanation: '失敗した場合も元のassertion例外を主原因として保ち、診断取得失敗は副次情報にします。' },
   ]} /><p>GitHub Actionsを使う場合は、テスト後に<code>artifacts/gua/**</code>を<code>actions/upload-artifact</code>へ渡すと、失敗した実行から診断ファイルを取得できます。</p>
-  <h2>GitHub Actionsで実行する</h2><p>公開Actionの<a href="https://github.com/link1345/gua-tester"><code>link1345/gua-tester/godot@v2.1</code></a>を使うと、Windows runnerへのGodot導入、最新の配布済みGuaアドオンの配置、<code>GODOT_EXECUTABLE</code>の設定、<code>dotnet test</code>の実行をまとめて行えます。</p><CodeBlock title=".github/workflows/godot.yml" lang="yaml" code={`name: Godot Gua UI tests
+  <h2>GitHub Actionsで実行する</h2><p>公開Actionの<a href="https://github.com/link1345/gua-tester"><code>link1345/gua-tester/godot@v2.2</code></a>を使うと、Windows runnerへのGodot導入、最新の配布済みGuaアドオンの配置、<code>GODOT_EXECUTABLE</code>の設定、<code>dotnet test</code>の実行をまとめて行えます。</p><CodeBlock title=".github/workflows/godot.yml" lang="yaml" code={`name: Godot Gua UI tests
 
 on:
   pull_request:
@@ -149,7 +149,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run Gua UI tests
-        uses: link1345/gua-tester/godot@v2.1
+        uses: link1345/gua-tester/godot@v2.2
         with:
           project-path: game
           test-project: tests/GuaTester.Tests.csproj
@@ -158,7 +158,7 @@ jobs:
     { code: 'on: pull_request / push', explanation: 'pull requestとmainへのpushをtestの起動条件にします。' },
     { code: 'runs-on: windows-latest', explanation: '現在のGua Godot配布物に合うWindows runnerを使います。' },
     { code: 'actions/checkout@v4', explanation: 'gameとtestのsourceをrunnerへcheckoutします。' },
-    { code: 'uses: link1345/gua-tester/godot@v2.1', explanation: 'Godot導入、Gua add-on配置、dotnet testをまとめた公開Actionを実行します。' },
+    { code: 'uses: link1345/gua-tester/godot@v2.2', explanation: 'Godot導入、Gua add-on配置、dotnet testをまとめた公開Actionを実行します。' },
     { code: 'project-path: game', explanation: 'project.godotがあるdirectoryを指定します。' },
     { code: 'test-project: tests/GuaTester.Tests.csproj', explanation: '実行する.NET test projectを指定します。' },
     { code: 'godot-version / godot-status', explanation: '取得するGodotを4.7 stableへ固定します。' },
