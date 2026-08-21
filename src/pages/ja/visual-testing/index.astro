@@ -20,7 +20,7 @@ import Callout from '../../../components/Callout.astro';
   </figure>
 
   <h2>導入</h2>
-  <CodeBlock title="visual test projectへ追加" lang="powershell" code={`dotnet add package Gua.Testing.Visual --version 0.14.0`} />
+  <CodeBlock title="最新安定版をvisual test projectへ追加" lang="powershell" code={`dotnet add package Gua.Testing.Visual`} />
 
   <h2>1. baselineを明示的に作る</h2>
   <p>baselineが無い通常実行は失敗します。初回または意図したUI変更時だけ、developerが明示的に更新します。</p>
@@ -29,7 +29,15 @@ dotnet test tests/Game.Visual.Tests/Game.Visual.Tests.csproj
 Remove-Item Env:GUA_UPDATE_BASELINES`} />
   <p>生成されたPNGを目視reviewし、正しい場合だけtest repositoryへcommitします。通常のpull request jobにこの環境変数を設定してはいけません。</p>
 
-  <h2>2. 通常実行で比較する</h2>
+  <h2>2. baselineをversion管理する</h2>
+  <p>次の比較例はNUnitのtest output directoryからbaselineを読みます。test project直下の<code>baselines</code>へcommitしたPNGがclean checkoutやCIでもoutputへコピーされるよう、project fileへ次のruleを追加します。</p>
+  <CodeBlock title="Game.Visual.Tests.csproj" lang="xml" code={`<ItemGroup>
+  <None Update="baselines/**/*.png"
+        CopyToOutputDirectory="PreserveNewest" />
+</ItemGroup>`} />
+  <p>baselineを作成・更新した場合は、outputに生成されたPNGを目視reviewし、承認したファイルをproject直下の<code>baselines</code>へ戻してからcommitしてください。</p>
+
+  <h2>3. 通常実行で比較する</h2>
   <CodeBlock title="title画面を比較" lang="csharp" code={`using Gua.Testing.Visual;
 
 var result = await GuaVisualAssertions.ExpectScreenshotAsync(

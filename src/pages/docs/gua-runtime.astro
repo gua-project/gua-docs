@@ -16,7 +16,7 @@ import Callout from '../../components/Callout.astro';
   <figure class="doc-figure"><div class="flow"><span>Inspector / MCP / Tests<small>observe and request</small></span><b>↔</b><span>native gua_runtime<small>state, queues, bridge</small></span><b>↔</b><span>Gua.Runtime<small>managed API</small></span><b>↔</b><span>Custom adapter<small>engine translation</small></span><b>↔</b><span>Game UI<small>real widgets</small></span></div><figcaption>Figure 1: Gua.Runtime is the managed boundary between the protocol runtime and engine-specific UI APIs.</figcaption></figure>
 
   <h2>Install and deploy</h2>
-  <CodeBlock title="Add to an adapter project" lang="powershell" code={`dotnet add package Gua.Runtime --version 0.14.0`} />
+  <CodeBlock title="Add the latest stable package to an adapter project" lang="powershell" code={`dotnet add package Gua.Runtime`} />
   <p>The package targets <code>net10.0</code> and <code>netstandard2.1</code>. Deploy matching <code>gua.dll</code> and <code>gua_runtime.dll</code> files for the target platform and architecture. Missing or mismatched libraries produce an explicit load error in the constructor.</p>
 
   <h2>One adapter frame</h2>
@@ -32,8 +32,19 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
     public void Start()
     {
         runtime.SetAdapterVersion("custom_ui", "1.0.0");
-        if (!runtime.StartInspectorBridge(8765))
+        if (!runtime.StartInspectorBridge(GetBridgePort()))
             throw new InvalidOperationException("Gua bridge could not start.");
+    }
+
+    private static int GetBridgePort()
+    {
+        const int defaultPort = 8765;
+        var value = Environment.GetEnvironmentVariable("GUA_BRIDGE_PORT");
+        if (string.IsNullOrWhiteSpace(value))
+            return defaultPort;
+        if (!int.TryParse(value, out var port) || port is < 1 or > 65535)
+            throw new InvalidOperationException("GUA_BRIDGE_PORT must be between 1 and 65535.");
+        return port;
     }
 
     public void Tick()
@@ -61,7 +72,7 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
 
     public void Dispose() => runtime.Dispose();
 }`} />
-  <p><code>ICustomUi</code> is a placeholder for the host-specific API. Keep IDs stable across frames and express bounds as physical viewport pixels with a top-left origin.</p>
+  <p><code>GetBridgePort</code> honors the port allocated by an external test host through <code>GUA_BRIDGE_PORT</code>, validates its range, and falls back to <code>8765</code> only when no override is supplied. <code>ICustomUi</code> is a placeholder for the host-specific API. Keep IDs stable across frames and express bounds as physical viewport pixels with a top-left origin.</p>
 
   <h2>Complete actions correctly</h2>
   <p><code>TryConsumeAction</code> only dequeues a request. Deliver it through the engine's normal input path, then pass the same request to <code>EmitActionResult</code>. Completion proves host processing, not that a later screen has rendered; tests should still wait for the expected semantic state.</p>

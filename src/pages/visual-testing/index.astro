@@ -11,13 +11,21 @@ import Callout from '../../components/Callout.astro';
 
   <figure class="doc-figure"><div class="flow"><span>Stable UI frame<small>optionally wait</small></span><b>→</b><span>Actual PNG<small>from diagnostics</small></span><b>→</b><span>Reviewed baseline<small>name + variant</small></span><b>→</b><span>Pixel comparison<small>threshold + masks</small></span><b>→</b><span>PASS / artifacts<small>review differences</small></span></div><figcaption>Figure 1: The baseline is selected by test name and variant; failures preserve all comparison evidence.</figcaption></figure>
 
-  <h2>Install</h2><CodeBlock title="Add to a visual test project" lang="powershell" code={`dotnet add package Gua.Testing.Visual --version 0.14.0`} />
+  <h2>Install</h2><CodeBlock title="Add the latest stable package to a visual test project" lang="powershell" code={`dotnet add package Gua.Testing.Visual`} />
 
   <h2>Create a baseline deliberately</h2>
   <CodeBlock title="Allow a local baseline update" lang="powershell" code={`$env:GUA_UPDATE_BASELINES = "1"
 dotnet test tests/Game.Visual.Tests/Game.Visual.Tests.csproj
 Remove-Item Env:GUA_UPDATE_BASELINES`} />
   <p>Review the generated PNG and commit it only when it is correct. Never set this variable in an ordinary pull-request job.</p>
+
+  <h2>Keep baselines in source control</h2>
+  <p>The comparison below reads from NUnit's test output directory. Add this rule to the test project so committed PNGs under the project-level <code>baselines</code> directory are copied into that output on clean checkouts and CI builds.</p>
+  <CodeBlock title="Game.Visual.Tests.csproj" lang="xml" code={`<ItemGroup>
+  <None Update="baselines/**/*.png"
+        CopyToOutputDirectory="PreserveNewest" />
+</ItemGroup>`} />
+  <p>When creating or updating a baseline, review the generated output PNG and copy the approved file back to the project's <code>baselines</code> directory before committing it.</p>
 
   <h2>Compare in normal test runs</h2>
   <CodeBlock title="Compare the title screen" lang="csharp" code={`using Gua.Testing.Visual;
