@@ -63,8 +63,8 @@ var result = await GuaVisualAssertions.ExpectScreenshotAsync(
   <p><code>WaitForStableSnapshot</code>が確認するのはSemantic UI snapshotが変化しなくなったことだけです。sprite、shader、caret、画面遷移等のpixel animation停止は検出しません。上の例のようにapplication固有のready条件を先に待ち、animation状態を決定的にしてください。<code>PixelThreshold</code>は各channelの微差、<code>MaxDifferentPixelRatio</code>は差があるpixelの割合を許容します。最初から大きな値を設定せず、renderer由来の安定した差だけを根拠に調整します。</p>
 
   <h2>失敗時に残るもの</h2>
-  <div class="artifact-row"><div><strong>expected.png</strong><small>review済みbaseline</small></div><div><strong>actual.png</strong><small>今回のcapture</small></div><div><strong>diff.png</strong><small>差分の可視化</small></div><div><strong>comparison.json</strong><small>閾値・差分率・path</small></div></div>
-  <p><code>ArtifactDirectory</code>を指定すれば、通常のGua diagnosticsと同じ失敗directoryへVisual artifactをまとめられます。dimension mismatchは暗黙にresizeせず失敗します。</p>
+  <div class="table-wrap"><table><thead><tr><th>理由</th><th>ファイル</th></tr></thead><tbody><tr><td><code>pixel_difference</code></td><td><code>expected.png</code>、<code>actual.png</code>、<code>diff.png</code>、<code>comparison.json</code></td></tr><tr><td><code>baseline_missing</code></td><td><code>actual.png</code>、<code>comparison.json</code></td></tr><tr><td><code>dimension_mismatch</code></td><td><code>expected.png</code>、<code>actual.png</code>、<code>comparison.json</code></td></tr></tbody></table></div>
+  <p><code>ArtifactDirectory</code>を指定すれば、通常のGua diagnosticsと同じ失敗directoryへVisual artifactをまとめられます。dimension mismatchは暗黙にresizeせず失敗します。<code>Gua.Testing.Visual</code>はデータだけを出力してHTMLを生成しません。静的Viewerの構築には<a href="/ja/docs/github-actions/#visual-report">visual-report Action</a>を使います。</p>
 
   <h2>variantとmask</h2>
   <div class="table-wrap"><table><thead><tr><th>設定</th><th>使い方</th><th>避けること</th></tr></thead><tbody>
@@ -78,18 +78,19 @@ var result = await GuaVisualAssertions.ExpectScreenshotAsync(
 };`} />
 
   <h2>CI運用</h2>
-  <CodeBlock title="失敗artifactをアップロード" lang="yaml" code={`- name: Run visual tests
+  <CodeBlock title="PRで閲覧可能なレポートを保存" lang="yaml" code={`- name: Run visual tests
+  id: visual-tests
   shell: pwsh
   env:
     GUA_VISUAL_VARIANT: windows-unity-mono-1920x1080
   run: dotnet test tests/Game.Visual.Tests/Game.Visual.Tests.csproj --configuration Release
 
-- name: Upload visual failures
+- name: Upload visual report
   if: failure()
-  uses: actions/upload-artifact@v4
+  uses: link1345/gua-tester/visual-report@v1.4
   with:
-    name: gua-visual-failures
-    path: artifacts/gua
-    if-no-files-found: ignore`} />
+    artifact-path: artifacts/gua
+    test-outcome: failure
+    upload-target: workflow`} />
   <p>CIでは解像度、DPI scaling、font、locale、theme、engine version、renderer、GPU/driver policyを固定します。baseline更新は通常jobから分離し、差分reviewを必須にします。</p>
 </DocPage>

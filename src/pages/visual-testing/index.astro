@@ -51,8 +51,8 @@ var result = await GuaVisualAssertions.ExpectScreenshotAsync(
   <p><code>WaitForStableSnapshot</code> checks that the semantic UI snapshot stopped changing; it does not inspect pixels or prove that sprite, shader, caret, or transition animations stopped. First wait for an explicit application-ready condition and make animation state deterministic, as above. <code>PixelThreshold</code> tolerates small per-channel differences; <code>MaxDifferentPixelRatio</code> limits how many pixels may differ. Tune them only from known stable renderer noise.</p>
 
   <h2>Failure evidence</h2>
-  <div class="artifact-row"><div><strong>expected.png</strong><small>reviewed baseline</small></div><div><strong>actual.png</strong><small>current capture</small></div><div><strong>diff.png</strong><small>visualized difference</small></div><div><strong>comparison.json</strong><small>policy, ratio, paths</small></div></div>
-  <p>Set <code>ArtifactDirectory</code> to place visual artifacts beside ordinary Gua diagnostics. Dimension mismatches fail without implicit resizing.</p>
+  <div class="table-wrap"><table><thead><tr><th>Reason</th><th>Files</th></tr></thead><tbody><tr><td><code>pixel_difference</code></td><td><code>expected.png</code>, <code>actual.png</code>, <code>diff.png</code>, <code>comparison.json</code></td></tr><tr><td><code>baseline_missing</code></td><td><code>actual.png</code>, <code>comparison.json</code></td></tr><tr><td><code>dimension_mismatch</code></td><td><code>expected.png</code>, <code>actual.png</code>, <code>comparison.json</code></td></tr></tbody></table></div>
+  <p>Set <code>ArtifactDirectory</code> to place visual artifacts beside ordinary Gua diagnostics. Dimension mismatches fail without implicit resizing. <code>Gua.Testing.Visual</code> writes data only and never generates HTML; use the <a href="/docs/github-actions/#visual-report">visual-report action</a> to build the static viewer.</p>
 
   <h2>Variants, masks, and stability</h2>
   <div class="table-wrap"><table><thead><tr><th>Option</th><th>Good use</th><th>Avoid</th></tr></thead><tbody><tr><td><code>BaselineVariant</code></td><td>Name legitimate OS, renderer, and resolution differences</td><td>Creating a variant for every failure</td></tr><tr><td><code>Masks</code></td><td>Exclude a clock or truly random avatar</td><td>Masking important UI</td></tr><tr><td><code>WaitForStableSnapshot</code></td><td>Confirm semantic state remains unchanged after an application-ready condition</td><td>Assuming it freezes or detects pixel animation</td></tr></tbody></table></div>
@@ -62,18 +62,19 @@ var result = await GuaVisualAssertions.ExpectScreenshotAsync(
 };`} />
 
   <h2>CI policy</h2>
-  <CodeBlock title="Upload failure artifacts" lang="yaml" code={`- name: Run visual tests
+  <CodeBlock title="Upload a browsable pull-request report" lang="yaml" code={`- name: Run visual tests
+  id: visual-tests
   shell: pwsh
   env:
     GUA_VISUAL_VARIANT: windows-unity-mono-1920x1080
   run: dotnet test tests/Game.Visual.Tests/Game.Visual.Tests.csproj --configuration Release
 
-- name: Upload visual failures
+- name: Upload visual report
   if: failure()
-  uses: actions/upload-artifact@v4
+  uses: link1345/gua-tester/visual-report@v1.4
   with:
-    name: gua-visual-failures
-    path: artifacts/gua
-    if-no-files-found: ignore`} />
+    artifact-path: artifacts/gua
+    test-outcome: failure
+    upload-target: workflow`} />
   <p>Keep resolution, DPI, fonts, locale, theme, engine version, renderer, and GPU/driver policy deterministic. Separate baseline updates from ordinary CI and require review of the PNG diff.</p>
 </DocPage>
