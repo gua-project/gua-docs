@@ -50,16 +50,20 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
 
     public void Tick()
     {
+        var currentNodeIds = new HashSet<string>(StringComparer.Ordinal);
         runtime.BeginFrame(ui.ScreenName);
         foreach (var control in ui.Controls)
         {
+            currentNodeIds.Add(control.Id);
             knownNodeIds.Add(control.Id);
             runtime.RegisterNode(new GuaNodeDescriptor(
                 control.Id, control.Role, control.Label,
                 new GuaBounds(control.X, control.Y, control.Width, control.Height),
                 Visible: control.Visible, Enabled: control.Enabled,
-                ParentId: control.ParentId, Text: control.Text,
-                Value: control.Value, Focused: control.Focused,
+                ParentId: control.ParentId,
+                Text: control.Sensitive ? null : control.Text,
+                Value: control.Sensitive ? null : control.Value,
+                Focused: control.Focused,
                 Checked: control.Checked));
         }
         runtime.EndFrame();
@@ -67,6 +71,9 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
         foreach (var nodeId in knownNodeIds)
             DrainActions(nodeId);
         DrainActions(null); // global press_key requests
+
+        // Absent IDs were drained once for requests accepted on the previous frame.
+        knownNodeIds.IntersectWith(currentNodeIds);
     }
 
     private void DrainActions(string? nodeId)
@@ -77,9 +84,9 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
             {
                 if (request.Action == GuaActionType.Click)
                 {
-                    var succeeded = ui.TryClick(request.NodeId!);
-                    runtime.EmitActionResult(request, succeeded,
-                        succeeded ? GuaActionError.None : GuaActionError.NodeNotFound);
+                    var error = TryClick(request.NodeId);
+                    runtime.EmitActionResult(request,
+                        error == GuaActionError.None, error);
                 }
                 else
                 {
@@ -89,12 +96,25 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
         }
     }
 
+    private GuaActionError TryClick(string? nodeId)
+    {
+        if (nodeId is null || !ui.TryGetControl(nodeId, out var control))
+            return GuaActionError.NodeNotFound;
+        if (!control.Visible)
+            return GuaActionError.Hidden;
+        if (!control.Enabled)
+            return GuaActionError.Disabled;
+        return ui.TryClick(nodeId)
+            ? GuaActionError.None
+            : GuaActionError.Unsupported;
+    }
+
     public void Dispose() => runtime.Dispose();
 }`} />
-  <p><code>GetBridgePort</code> honors the port allocated by an external test host through <code>GUA_BRIDGE_PORT</code>, validates its range, and falls back to <code>8765</code> only when no override is supplied. <code>ICustomUi</code> is a placeholder for the host-specific API. Keep IDs stable across frames and express bounds as physical viewport pixels with a top-left origin.</p>
+  <p><code>GetBridgePort</code> honors the port allocated by an external test host through <code>GUA_BRIDGE_PORT</code>, validates its range, and falls back to <code>8765</code> only when no override is supplied. <code>ICustomUi</code> is a placeholder for the host-specific API. Its <code>Sensitive</code> flag must identify passwords, tokens, and similar controls before registration; omit both <code>Text</code> and <code>Value</code> so secrets never enter snapshots, Inspector/MCP responses, or retained diagnostics. Keep IDs stable across frames and express bounds as physical viewport pixels with a top-left origin.</p>
 
   <h2>Complete actions correctly</h2>
-  <p><code>TryConsumeAction</code> matches both action type and node ID. Retain previously published IDs so a request can still be completed with <code>NodeNotFound</code> when its control disappears after enqueueing, and drain the empty ID for global key requests. Iterate every <code>GuaActionType</code> so unimplemented operations are completed with <code>Unsupported</code> instead of timing out. Deliver supported operations through the engine's normal input path, then pass the same request to <code>EmitActionResult</code>. Completion proves host processing, not that a later screen has rendered; tests should still wait for the expected semantic state.</p>
+  <p><code>TryConsumeAction</code> matches both action type and node ID. Keep the union of current and previously published IDs only until action queues have been drained. This gives requests accepted on the previous frame one pass to complete after their control disappears; <code>IntersectWith(currentNodeIds)</code> then removes absent IDs so dynamic screens do not accumulate memory or per-frame work. Drain the empty ID separately for global key requests. Before dispatch, inspect current host state and preserve <code>NodeNotFound</code>, <code>Hidden</code>, and <code>Disabled</code>; reserve <code>Unsupported</code> for an operation the adapter cannot perform. Completion proves host processing, not that a later screen has rendered; tests should still wait for the expected semantic state.</p>
   <div class="table-wrap"><table><thead><tr><th>Host outcome</th><th>Error</th><th>Example</th></tr></thead><tbody>
     <tr><td>Target disappeared</td><td><code>NodeNotFound</code></td><td>Scene changed before processing</td></tr>
     <tr><td>Hidden or disabled</td><td><code>Hidden</code> / <code>Disabled</code></td><td>Host state changed after the snapshot</td></tr>
@@ -106,16 +126,16 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
   <CodeBlock title="Capture after rendering" lang="csharp" code={`if (runtime.TryConsumeScreenshotRequest(out var request))
 {
     if (ui.IsHeadless)
-        runtime.TryCompleteScreenshot(request, GuaScreenshotAvailability.Headless);
+        runtime.CompleteScreenshot(request, GuaScreenshotAvailability.Headless);
     else
     {
         var png = ui.CapturePngAfterDraw();
         var dataUri = "data:image/png;base64," + Convert.ToBase64String(png.Bytes);
-        runtime.TryCompleteScreenshot(request, GuaScreenshotAvailability.Available,
+        runtime.CompleteScreenshot(request, GuaScreenshotAvailability.Available,
             dataUri, png.Width, png.Height);
     }
 }`} />
-  <p>A <code>false</code> return from <code>TryCompleteScreenshot</code> means timeout, cancellation, or context reset already invalidated the request. This is a benign late completion; do not retry it.</p>
+  <p><code>CompleteScreenshot</code> is the documented completion API. Call it once for every consumed request. If timeout, cancellation, or context reset already invalidated the request, the runtime ignores the late completion; do not retry it.</p>
 
   <h2>Adapter checklist</h2>
   <ul><li>Publish a stable lowercase adapter name and version.</li><li>Keep IDs, roles, parents, states, and supported actions consistent.</li><li>Use the host's real input/listener path and always emit success or failure.</li><li>Never copy sensitive values into logs, diagnostics, or completion events.</li><li>Distinguish headless, rendering-disabled, and stale screenshot outcomes.</li><li>Dispose the runtime to release the bridge and native handle.</li></ul>

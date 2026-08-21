@@ -29,20 +29,24 @@ var recorder = new GuaRecorder(host.Context);
 await recorder.ClickAsync(
     new GuaRecordingTarget(Id: "open-login"));
 
+var emailTarget = new GuaRecordingTarget(
+    Role: "textbox", Name: "Email", Scope: "login-dialog");
 await recorder.SetValueAsync(
-    new GuaRecordingTarget(Role: "textbox", Name: "Email", Scope: "login-dialog"),
+    emailTarget,
     "player@example.com",
     waitCondition: GuaWaitConditions.Visible("email"));
 
+var passwordTarget = new GuaRecordingTarget(Id: "password");
 await recorder.SetValueAsync(
-    new GuaRecordingTarget(Id: "password"),
+    passwordTarget,
     password,
     sensitive: true,
     secretKey: "login-password");
 
+await recorder.FocusAsync(passwordTarget);
 await recorder.PressKeyAsync("Enter");
 GuaRecordingFile.Save("recordings/login.json", recorder.Recording);`} />
-  <p><code>GuaRecorder</code>は操作を直列化し、monotonicな相対時刻、操作前後のrevision、request IDを保存します。対応actionはclick、focus、set_value、set_checked、select、scroll、press_keyです。</p>
+  <p>各stepの<code>waitCondition</code>は、そのstepがtargetを解決してactionをenqueueする前に評価されます。この例では先行するclickの後、email stepがdialog内の<code>email</code> nodeを待ちます。また、<code>SetValueAsync</code>はtargetをfocusしないため、target未指定の<code>PressKeyAsync</code>でEnterを現在focusへ送る前にpasswordを明示的にfocusします。<code>GuaRecorder</code>はこれらのaction、monotonicな相対時刻、操作前後のrevision、request IDを保存します。</p>
 
   <h2>targetの選び方</h2>
   <div class="table-wrap"><table><thead><tr><th>target</th><th>適する場面</th><th>注意</th></tr></thead><tbody>

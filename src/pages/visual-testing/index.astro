@@ -28,7 +28,11 @@ Remove-Item Env:GUA_UPDATE_BASELINES`} />
   <p>When creating or updating a baseline, review the generated output PNG and copy the approved file back to the project's <code>baselines</code> directory before committing it.</p>
 
   <h2>Compare in normal test runs</h2>
-  <CodeBlock title="Compare the title screen" lang="csharp" code={`using Gua.Testing.Visual;
+  <CodeBlock title="Compare the title screen" lang="csharp" code={`using Gua.Testing;
+using Gua.Testing.Visual;
+
+// The game publishes this only after transitions and animations are deterministic.
+await GuaAssertions.WaitForVisibleAsync(host.Context, "visual-ready");
 
 var result = await GuaVisualAssertions.ExpectScreenshotAsync(
     host.Context, "title-screen", new ScreenshotOptions
@@ -41,14 +45,14 @@ var result = await GuaVisualAssertions.ExpectScreenshotAsync(
         WaitForStableSnapshot = true,
         StableFrames = 3,
     });`} />
-  <p><code>PixelThreshold</code> tolerates small per-channel differences; <code>MaxDifferentPixelRatio</code> limits how many pixels may differ. Tune them only from known stable renderer noise.</p>
+  <p><code>WaitForStableSnapshot</code> checks that the semantic UI snapshot stopped changing; it does not inspect pixels or prove that sprite, shader, caret, or transition animations stopped. First wait for an explicit application-ready condition and make animation state deterministic, as above. <code>PixelThreshold</code> tolerates small per-channel differences; <code>MaxDifferentPixelRatio</code> limits how many pixels may differ. Tune them only from known stable renderer noise.</p>
 
   <h2>Failure evidence</h2>
   <div class="artifact-row"><div><strong>expected.png</strong><small>reviewed baseline</small></div><div><strong>actual.png</strong><small>current capture</small></div><div><strong>diff.png</strong><small>visualized difference</small></div><div><strong>comparison.json</strong><small>policy, ratio, paths</small></div></div>
   <p>Set <code>ArtifactDirectory</code> to place visual artifacts beside ordinary Gua diagnostics. Dimension mismatches fail without implicit resizing.</p>
 
   <h2>Variants, masks, and stability</h2>
-  <div class="table-wrap"><table><thead><tr><th>Option</th><th>Good use</th><th>Avoid</th></tr></thead><tbody><tr><td><code>BaselineVariant</code></td><td>Name legitimate OS, renderer, and resolution differences</td><td>Creating a variant for every failure</td></tr><tr><td><code>Masks</code></td><td>Exclude a clock or truly random avatar</td><td>Masking important UI</td></tr><tr><td><code>WaitForStableSnapshot</code></td><td>Capture after several stable frames</td><td>Baselining an arbitrary animation frame</td></tr></tbody></table></div>
+  <div class="table-wrap"><table><thead><tr><th>Option</th><th>Good use</th><th>Avoid</th></tr></thead><tbody><tr><td><code>BaselineVariant</code></td><td>Name legitimate OS, renderer, and resolution differences</td><td>Creating a variant for every failure</td></tr><tr><td><code>Masks</code></td><td>Exclude a clock or truly random avatar</td><td>Masking important UI</td></tr><tr><td><code>WaitForStableSnapshot</code></td><td>Confirm semantic state remains unchanged after an application-ready condition</td><td>Assuming it freezes or detects pixel animation</td></tr></tbody></table></div>
   <CodeBlock title="Mask one nondeterministic region" lang="csharp" code={`Masks = new[]
 {
     new GuaMaskRectangle(X: 1710, Y: 24, Width: 180, Height: 48), // clock only

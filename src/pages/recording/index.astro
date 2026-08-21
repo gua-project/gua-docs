@@ -17,17 +17,23 @@ import Callout from '../../components/Callout.astro';
 
 var recorder = new GuaRecorder(host.Context);
 await recorder.ClickAsync(new GuaRecordingTarget(Id: "open-login"));
+
+var emailTarget = new GuaRecordingTarget(
+    Role: "textbox", Name: "Email", Scope: "login-dialog");
 await recorder.SetValueAsync(
-    new GuaRecordingTarget(Role: "textbox", Name: "Email", Scope: "login-dialog"),
+    emailTarget,
     "player@example.com",
     waitCondition: GuaWaitConditions.Visible("email"));
+
+var passwordTarget = new GuaRecordingTarget(Id: "password");
 await recorder.SetValueAsync(
-    new GuaRecordingTarget(Id: "password"), password,
+    passwordTarget, password,
     sensitive: true, secretKey: "login-password");
+await recorder.FocusAsync(passwordTarget);
 await recorder.PressKeyAsync("Enter");
 
 GuaRecordingFile.Save("recordings/login.json", recorder.Recording);`} />
-  <p>The recorder serializes actions and stores monotonic relative timing, revisions before and after each operation, and request IDs. Supported actions are click, focus, set_value, set_checked, select, scroll, and press_key.</p>
+  <p>A step's <code>waitCondition</code> is evaluated before that step resolves its target and enqueues its action. Here the email step waits for the dialog's <code>email</code> node after the preceding click. <code>SetValueAsync</code> does not focus its target, so the password receives an explicit focus action before the untargeted <code>PressKeyAsync</code> sends Enter to the current focus. The recorder stores these actions, monotonic relative timing, revisions, and request IDs.</p>
 
   <h2>Choose stable targets</h2>
   <div class="table-wrap"><table><thead><tr><th>Target</th><th>Use when</th><th>Rule</th></tr></thead><tbody><tr><td><code>Id</code></td><td>The game exposes a stable ID</td><td>Preferred; keep it stable through scene refactors</td></tr><tr><td><code>Role + Name</code></td><td>An accessible name is unique</td><td>Add <code>Scope</code> when names repeat</td></tr><tr><td><code>CurrentFocus</code></td><td>Sending a key to current focus</td><td>Valid only for <code>press_key</code></td></tr><tr><td>Coordinate fallback</td><td>Importing legacy data</td><td>Rejected by default</td></tr></tbody></table></div>

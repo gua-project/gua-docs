@@ -38,7 +38,11 @@ Remove-Item Env:GUA_UPDATE_BASELINES`} />
   <p>baselineを作成・更新した場合は、outputに生成されたPNGを目視reviewし、承認したファイルをproject直下の<code>baselines</code>へ戻してからcommitしてください。</p>
 
   <h2>3. 通常実行で比較する</h2>
-  <CodeBlock title="title画面を比較" lang="csharp" code={`using Gua.Testing.Visual;
+  <CodeBlock title="title画面を比較" lang="csharp" code={`using Gua.Testing;
+using Gua.Testing.Visual;
+
+// 遷移とanimationが決定的になった後だけgame側が公開するnode
+await GuaAssertions.WaitForVisibleAsync(host.Context, "visual-ready");
 
 var result = await GuaVisualAssertions.ExpectScreenshotAsync(
     host.Context,
@@ -53,7 +57,7 @@ var result = await GuaVisualAssertions.ExpectScreenshotAsync(
         WaitForStableSnapshot = true,
         StableFrames = 3,
     });`} />
-  <p><code>PixelThreshold</code>は各channelの微差、<code>MaxDifferentPixelRatio</code>は差があるpixelの割合を許容します。最初から大きな値を設定せず、renderer由来の安定した差だけを根拠に調整します。</p>
+  <p><code>WaitForStableSnapshot</code>が確認するのはSemantic UI snapshotが変化しなくなったことだけです。sprite、shader、caret、画面遷移等のpixel animation停止は検出しません。上の例のようにapplication固有のready条件を先に待ち、animation状態を決定的にしてください。<code>PixelThreshold</code>は各channelの微差、<code>MaxDifferentPixelRatio</code>は差があるpixelの割合を許容します。最初から大きな値を設定せず、renderer由来の安定した差だけを根拠に調整します。</p>
 
   <h2>失敗時に残るもの</h2>
   <div class="artifact-row"><div><strong>expected.png</strong><small>review済みbaseline</small></div><div><strong>actual.png</strong><small>今回のcapture</small></div><div><strong>diff.png</strong><small>差分の可視化</small></div><div><strong>comparison.json</strong><small>閾値・差分率・path</small></div></div>
@@ -63,7 +67,7 @@ var result = await GuaVisualAssertions.ExpectScreenshotAsync(
   <div class="table-wrap"><table><thead><tr><th>設定</th><th>使い方</th><th>避けること</th></tr></thead><tbody>
     <tr><td><code>BaselineVariant</code></td><td>OS、engine、renderer、解像度など正当な描画差を名前へ含める</td><td>失敗するたび新variantを増やす</td></tr>
     <tr><td><code>Masks</code></td><td>時計、乱数avatarなど本当に非決定的な矩形だけ除外</td><td>重要UI全体をmaskして回帰を隠す</td></tr>
-    <tr><td><code>WaitForStableSnapshot</code></td><td>UI stateが複数frame安定してからcapture</td><td>animation中の偶然のframeをbaseline化</td></tr>
+    <tr><td><code>WaitForStableSnapshot</code></td><td>application-ready条件の後、Semantic stateが変化しないことを確認</td><td>pixel animationを停止・検出できると仮定する</td></tr>
   </tbody></table></div>
   <CodeBlock title="非決定領域を限定してmask" lang="csharp" code={`Masks = new[]
 {
