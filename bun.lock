@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "gua-docs-ja",
+      "name": "gua-docs",
       "dependencies": {
         "@astrojs/check": "latest",
         "@astrojs/sitemap": "^3.7.3",

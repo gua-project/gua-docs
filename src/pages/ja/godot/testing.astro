@@ -1,0 +1,166 @@
+---
+import DocPage from '../../../components/DocPage.astro'; import CodeBlock from '../../../components/CodeBlock.astro'; import Callout from '../../../components/Callout.astro'; import CodeNotes from '../../../components/CodeNotes.astro';
+const test = `using Gua.Testing;
+using Gua.Testing.Godot;
+
+using var host = GodotSceneTestHost.Load(
+    "res://Main.tscn",
+    new GodotSceneTestHostOptions {
+        ProjectPath = projectPath,
+        UseAvailableBridgePort = true,
+        StartupResetPolicy = GuaResetPolicy.Strict,
+        TeardownResetPolicy = GuaResetPolicy.Strict,
+    });
+
+GuaAssertions.GetByRole(
+    host.Context, "button", "Start Game"
+).ToBeVisible();
+
+await GuaAssertions.GetById(
+    host.Context, "start"
+).ClickAsync();
+
+await GuaAssertions.WaitForTextAsync(
+    host.Context, "loading", "Loading..."
+);`;
+---
+<DocPage eyebrow="GODOT / TESTING" title="テストの仕方" lead="Godotプロセスを起動し、ライブなSemantic UI Treeへ接続します。座標ではなくrole・text・idで操作結果を待ちます。" description="Gua.Testing.GodotでGodotシーンをテストする方法。" section="godot">
+  <h2>1. 必須NuGetパッケージを入れる</h2><p>Godotの外部テストには<strong>Gua.Core、Gua.Testing、Gua.Testing.Godotの3パッケージが必要</strong>です。テストプロジェクトのディレクトリで次を実行して最新の安定版を解決し、projectへ書き込まれたversionをcommitします。</p><CodeBlock title="PowerShell" lang="powershell" code={`dotnet add package Gua.Core\ndotnet add package Gua.Testing\ndotnet add package Gua.Testing.Godot\n\n# NUnitを使う場合\ndotnet add package Microsoft.NET.Test.Sdk\ndotnet add package NUnit\ndotnet add package NUnit3TestAdapter`} /><CodeNotes title="コマンドごとの役割" codeLabel="コマンド" explanationLabel="追加される機能" items={[
+    { code: 'dotnet add package Gua.Core', explanation: 'Guaの共通型とnative runtime境界をテストprojectへ追加します。' },
+    { code: 'dotnet add package Gua.Testing', explanation: 'Semantic locator、action、待機、assertion、diagnosticsを追加します。' },
+    { code: 'dotnet add package Gua.Testing.Godot', explanation: 'Godot processの起動、bridge接続、終了処理を行うtest hostを追加します。' },
+    { code: 'dotnet add package Microsoft.NET.Test.Sdk', explanation: 'dotnet testからtest runnerを起動する基盤です。' },
+    { code: 'dotnet add package NUnit', explanation: '[Test]やAssertなどNUnitのtest APIを追加します。' },
+    { code: 'dotnet add package NUnit3TestAdapter', explanation: 'Microsoft.NET.Test.SdkからNUnit testを検出・実行できるようにします。' },
+  ]} /><Callout title="3パッケージの役割"><p><code>Gua.Core</code>はランタイム境界、<code>Gua.Testing</code>はロケーター・待機・アサーション、<code>Gua.Testing.Godot</code>はGodotプロセス起動とWebSocket接続を担当します。</p></Callout><p>GodotがPATHにない場合は環境変数を設定します。</p><CodeBlock title="PowerShell" lang="powershell" code={`$env:GODOT_EXECUTABLE = "C:\\path\\to\\Godot_v4.7-stable_mono_win64_console.exe"\ndotnet test YourGame.Tests.csproj`} /><CodeNotes title="実行コマンドの意味" codeLabel="記述" explanationLabel="意味" items={[
+    { code: '$env:GODOT_EXECUTABLE = "...console.exe"', explanation: 'このPowerShell processと子processに、test hostが起動すべきGodot実行ファイルを指定します。' },
+    { code: 'dotnet test YourGame.Tests.csproj', explanation: '指定したtest projectをbuildし、検出されたNUnit testを実行します。' },
+  ]} />
+  <h2>2. シーンを起動して意味で操作</h2><CodeBlock title="TitleScreenTests.cs" lang="csharp" code={test} /><CodeNotes title="テストコードを処理順に読む" codeLabel="記述" explanationLabel="意味" items={[
+    { code: 'using Gua.Testing;', explanation: 'locator、action、待機、assertion APIを読み込みます。' },
+    { code: 'using Gua.Testing.Godot;', explanation: 'Godot process用test hostとoption型を読み込みます。' },
+    { code: 'using var host = GodotSceneTestHost.Load(...)', explanation: 'Main.tscnを別Godot processで開き、bridge接続完了まで待ちます。usingによりtest終了時にprocessと接続を破棄します。' },
+    { code: '"res://Main.tscn"', explanation: 'Godot project内で起動するsceneのresource pathです。' },
+    { code: 'ProjectPath = projectPath', explanation: 'project.godotがあるdirectoryをtest hostへ伝えます。' },
+    { code: 'UseAvailableBridgePort = true', explanation: '空いているloopback portを選び、並列testで8765が衝突しにくくします。' },
+    { code: 'StartupResetPolicy = GuaResetPolicy.Strict', explanation: 'test開始時に前sessionの未処理requestやeventがあれば、黙って消さず失敗させます。' },
+    { code: 'TeardownResetPolicy = GuaResetPolicy.Strict', explanation: 'test終了時にも処理漏れを検査し、別testへの持ち越しを検出します。' },
+    { code: 'GetByRole(..., "button", "Start Game")', explanation: '座標ではなくrole=buttonかつ名前=Start GameのControlを検索します。' },
+    { code: '.ToBeVisible()', explanation: 'そのControlが現在のsnapshotで表示状態だと確認します。' },
+    { code: 'GetById(..., "start").ClickAsync()', explanation: '固定ID startへclick要求を送り、Godot adapterから同じrequest IDの完了結果が返るまで待ちます。' },
+    { code: 'WaitForTextAsync(..., "loading", "Loading...")', explanation: '最新snapshotを再取得しながら、ID loadingのtextがLoading...になるまで待ちます。' },
+  ]} />
+  <Callout kind="tip" title="Clickは完了ではない"><p><code>Click()</code>は要求をキューへ積みます。アダプターが次のフレームで要求を消費し、通常入力として処理します。結果を確かめるときは<code>WaitFor...</code>を続けます。</p></Callout>
+  <h2>3. フォーム操作</h2><CodeBlock title="非同期アクション" lang="csharp" code={`var name = GuaAssertions.Query(host.Context)\n    .ByRole("textbox").Within("LoginForm").Get();\n\nawait name.SetValueAsync("alice");\nawait name.FocusAsync();\nawait GuaAssertions.PressKeyAsync(host.Context, "Enter");\nawait GuaAssertions.GetById(host.Context, "RememberMe")\n    .SetCheckedAsync(true);\nawait name.WaitForValueAsync("alice");`} /><CodeNotes title="フォーム操作の意味" codeLabel="記述" explanationLabel="意味" items={[
+    { code: 'GuaAssertions.Query(host.Context)', explanation: '接続中のGodot UI Treeに対するSemantic queryを組み立てます。' },
+    { code: '.ByRole("textbox")', explanation: '候補をtextbox roleに絞ります。' },
+    { code: '.Within("LoginForm")', explanation: 'ID LoginFormの子孫だけを検索範囲にします。' },
+    { code: '.Get()', explanation: '候補がちょうど1件ならlocatorを返し、0件または複数なら曖昧さを報告します。' },
+    { code: 'name.SetValueAsync("alice")', explanation: 'textboxへ値変更を要求し、hostの処理完了まで待ちます。' },
+    { code: 'name.FocusAsync()', explanation: '同じtextboxへfocus actionを送り、次のglobal key入力先にします。' },
+    { code: 'PressKeyAsync(host.Context, "Enter")', explanation: '現在focus中のControlへEnterのkey-down/key-upを配送します。' },
+    { code: 'GetById(..., "RememberMe").SetCheckedAsync(true)', explanation: 'checkboxを固定IDで取得し、checked=trueへ変更します。' },
+    { code: 'name.WaitForValueAsync("alice")', explanation: 'action完了だけで終えず、公開されたvalueが実際にaliceになるまで待ちます。' },
+  ]} />
+  <h2>安定したテストにする4原則</h2><div class="grid-2"><div class="mini-card"><strong>空きポートを使う</strong><p><code>UseAvailableBridgePort = true</code>で並列テストの衝突を避けます。</p></div><div class="mini-card"><strong>厳格にリセット</strong><p>開始・終了時のStrict resetで未消費要求やイベント漏れを検出します。</p></div><div class="mini-card"><strong>待機を使う</strong><p>固定sleepではなく、状態・値・安定スナップショットを待ちます。</p></div><div class="mini-card"><strong>失敗を保存する</strong><p>UI Tree、ログ、stdout/stderr、任意のPNGを診断成果物へ残します。</p></div></div>
+  <h3>1. テストごとに空きポートを確保する</h3><p>固定の<code>8765</code>を共有すると、並列実行時に一方のGodotだけがポートを取得します。ホストに空きポートを予約させ、子プロセスへ<code>GUA_BRIDGE_PORT</code>として渡します。</p><CodeBlock title="空きポートでシーンを起動" lang="csharp" code={`using var host = GodotSceneTestHost.Load(
+    "res://Main.tscn",
+    new GodotSceneTestHostOptions
+    {
+        ProjectPath = projectPath,
+        UseAvailableBridgePort = true,
+    });
+
+// 予約されたURLは子プロセスとRemoteContextへ自動設定されます。`} /><CodeNotes title="空きポート設定の意味" codeLabel="記述" explanationLabel="意味" items={[
+    { code: 'GodotSceneTestHost.Load("res://Main.tscn", ...)', explanation: '指定sceneを起動し、Gua bridgeへ接続したhostを返します。' },
+    { code: 'ProjectPath = projectPath', explanation: 'sceneを解決するGodot projectのdirectoryです。' },
+    { code: 'UseAvailableBridgePort = true', explanation: 'OSに空きportを選ばせ、GUA_BRIDGE_PORTとしてGodot processへ渡します。' },
+    { code: 'using var host', explanation: 'scope終了時に接続とGodot processを確実に終了します。' },
+  ]} />
+  <h3>2. 開始前と終了前にStrict resetを行う</h3><p>前のテストが残したノード・要求・イベントを次のテストへ持ち込みません。終了時に未消費の要求やイベントがあれば、黙って削除せずテストを失敗させます。</p><CodeBlock title="Strict isolation" lang="csharp" code={`using var host = GodotSceneTestHost.Load(
+    "res://Main.tscn",
+    new GodotSceneTestHostOptions
+    {
+        ProjectPath = projectPath,
+        UseAvailableBridgePort = true,
+        StartupResetPolicy = GuaResetPolicy.Strict,
+        TeardownResetPolicy = GuaResetPolicy.Strict,
+        CaptureDiagnosticsBeforeTeardown = true,
+        CleanupAfterLeakReport = true,
+    });`} /><CodeNotes title="Strict isolation optionの意味" codeLabel="option" explanationLabel="意味" items={[
+    { code: 'StartupResetPolicy = GuaResetPolicy.Strict', explanation: '開始時に選択対象のqueueがdirtyならresetせず失敗します。' },
+    { code: 'TeardownResetPolicy = GuaResetPolicy.Strict', explanation: '終了時の未消費request/eventをtest leakとして報告します。' },
+    { code: 'CaptureDiagnosticsBeforeTeardown = true', explanation: '終了検査に失敗した場合、processを破棄する前にUI Treeやlogを保存します。' },
+    { code: 'CleanupAfterLeakReport = true', explanation: 'leakの証拠を取得した後だけ非strict cleanupを行い、後続処理を妨げる残留状態を除きます。' },
+  ]} /><Callout kind="tip" title="簡略形"><p>個別設定が不要な場合は、<code>GodotSceneTestHostOptions.StrictIsolation</code>を基準にできます。プロジェクトパスや空きポートも指定する場合は、上記のように明示します。</p></Callout>
+  <h3>3. Sleepではなく観測したい状態を待つ</h3><p><code>Task.Delay(1000)</code>では、速い環境で時間を無駄にし、遅い環境では不足します。操作後に期待するノード状態を直接待ちます。</p><CodeBlock title="状態ベースの待機" lang="csharp" code={`await GuaAssertions.GetById(host.Context, "start")
+    .ClickAsync();
+
+// 表示されるまで最新スナップショットを再取得します。
+await GuaAssertions.WaitForVisibleAsync(
+    host.Context,
+    "loading",
+    timeout: TimeSpan.FromSeconds(3),
+    pollInterval: TimeSpan.FromMilliseconds(20));
+
+// 描画後の状態が3フレーム変化しないことも確認できます。
+await GuaAssertions.WaitForStableSnapshotAsync(
+    host.Context,
+    stableFrames: 3);`} /><CodeNotes title="状態待機の意味" codeLabel="記述" explanationLabel="意味" items={[
+    { code: 'ClickAsync()', explanation: 'click要求のrequest IDに対応するhost完了結果まで待ちます。画面変化そのものの完了ではありません。' },
+    { code: 'WaitForVisibleAsync(..., "loading", ...)', explanation: 'ID loadingがvisibleになるまで新しいsnapshotをpollします。' },
+    { code: 'timeout: TimeSpan.FromSeconds(3)', explanation: '3秒以内に条件を満たさなければtimeoutとして失敗します。' },
+    { code: 'pollInterval: TimeSpan.FromMilliseconds(20)', explanation: 'snapshotを再確認する間隔です。固定sleep後の一度きりの確認とは異なります。' },
+    { code: 'WaitForStableSnapshotAsync(..., stableFrames: 3)', explanation: 'Semantic snapshotが3frame連続で変化しないことを待ち、遷移途中を避けます。' },
+  ]} /><Callout kind="warn" title="避けるコード"><p><code>await Task.Delay(1000);</code>の直後に断定的なアサーションを書く方法は避けます。待ちたい条件を<code>WaitForVisibleAsync</code>、<code>WaitForTextAsync</code>、<code>WaitForValueAsync</code>などで表現します。</p></Callout>
+  <h3>4. アサーション失敗時の診断成果物を設定する</h3><p>失敗時に最終UI Tree、操作履歴、ログ、Godotのstdout/stderrを<code>artifacts/gua</code>へ保存します。CIではこのディレクトリをテスト成果物としてアップロードします。</p><CodeBlock title="失敗診断を有効化" lang="csharp" code={`using var diagnostics = host.CreateDiagnosticsSession(
+    TestContext.CurrentContext.Test.FullName,
+    outputDirectory: Path.Combine(
+        TestContext.CurrentContext.WorkDirectory,
+        "artifacts", "gua"));
+
+using var assertionScope = GuaAssertionScope.Use(
+    new GuaAssertionOptions
+    {
+        DiagnosticsSession = diagnostics,
+    });
+
+// 失敗すると、主例外を保ったまま診断ファイルが保存されます。
+GuaAssertions.GetByRole(
+    host.Context, "button", "Start Game"
+).ToBeVisible();`} /><CodeNotes title="診断設定の意味" codeLabel="記述" explanationLabel="意味" items={[
+    { code: 'host.CreateDiagnosticsSession(...)', explanation: 'このGodot hostに紐づく失敗証拠の収集sessionを作ります。' },
+    { code: 'TestContext.CurrentContext.Test.FullName', explanation: 'NUnitの完全test名をartifact directoryの識別に使います。' },
+    { code: 'Path.Combine(..., "artifacts", "gua")', explanation: 'OS依存のseparatorを正しく使って出力先を組み立てます。' },
+    { code: 'GuaAssertionScope.Use(...)', explanation: 'このscope内で失敗したGua assertionにdiagnostics sessionを関連付けます。' },
+    { code: 'DiagnosticsSession = diagnostics', explanation: 'assertion失敗時にUI Tree、履歴、log、process情報を保存する対象を指定します。' },
+    { code: '.ToBeVisible()', explanation: '失敗した場合も元のassertion例外を主原因として保ち、診断取得失敗は副次情報にします。' },
+  ]} /><p>GitHub Actionsを使う場合は、テスト後に<code>artifacts/gua/**</code>を<code>actions/upload-artifact</code>へ渡すと、失敗した実行から診断ファイルを取得できます。</p>
+  <h2>GitHub Actionsで実行する</h2><p>公開Actionの<a href="https://github.com/link1345/gua-tester"><code>link1345/gua-tester</code></a>を使うと、Windows runnerへのGodot導入、最新の配布済みGuaアドオンの配置、<code>GODOT_EXECUTABLE</code>の設定、<code>dotnet test</code>の実行をまとめて行えます。</p><CodeBlock title=".github/workflows/godot-gdscript.yml" lang="yaml" code={`name: Godot Gua UI tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Gua UI tests
+        uses: link1345/gua-tester@v1.3
+        with:
+          project-path: game
+          test-project: tests/GuaTester.Tests.csproj
+          godot-version: "4.7"
+          godot-status: stable`} /><CodeNotes title="workflowの各部" codeLabel="記述" explanationLabel="意味" items={[
+    { code: 'on: pull_request / push', explanation: 'pull requestとmainへのpushをtestの起動条件にします。' },
+    { code: 'runs-on: windows-latest', explanation: '現在のGua Godot配布物に合うWindows runnerを使います。' },
+    { code: 'actions/checkout@v4', explanation: 'gameとtestのsourceをrunnerへcheckoutします。' },
+    { code: 'uses: link1345/gua-tester@v1.3', explanation: 'Godot導入、Gua add-on配置、dotnet testをまとめた公開Actionを実行します。' },
+    { code: 'project-path: game', explanation: 'project.godotがあるdirectoryを指定します。' },
+    { code: 'test-project: tests/GuaTester.Tests.csproj', explanation: '実行する.NET test projectを指定します。' },
+    { code: 'godot-version / godot-status', explanation: '取得するGodotを4.7 stableへ固定します。' },
+  ]} /><Callout kind="tip" title="配布済みアドオンを使用"><p>このActionはGua Releasesの最新<code>godot-plugin-*</code>からZIPを取得し、<code>game/addons/gua</code>へ配置します。CI上でGuaのネイティブ拡張をビルドする必要はありません。入力・出力の全一覧は<a href="/ja/docs/github-actions/">GitHub Actionsリファレンス</a>を参照してください。</p></Callout>
+</DocPage>

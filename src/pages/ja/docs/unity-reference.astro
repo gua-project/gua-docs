@@ -1,0 +1,81 @@
+---
+import DocPage from '../../../components/DocPage.astro';
+import Callout from '../../../components/Callout.astro';
+---
+<DocPage eyebrow="DOCS / UNITY" title="Unity API・仕様" lead="Unity向けパッケージの構成、利用できる公開型、対応UIと操作、拡張ポイントを調べるためのリファレンスです。" description="Gua Unity対応の公開APIと仕様リファレンス。" section="docs">
+  <h2>パッケージの選び方</h2>
+  <div class="table-wrap"><table><thead><tr><th>パッケージ</th><th>責務</th><th>target</th></tr></thead><tbody>
+    <tr><td><code>com.link1345.gua</code></td><td>Unityプロジェクトへ導入するUPMパッケージ。自動起動、UI収集、操作、screenshotに対応</td><td>Unity 6000.0+</td></tr>
+    <tr><td><code>Gua.Runtime</code></td><td>別のengine adapterを実装するときに使う共有runtime API</td><td>net10.0 / netstandard2.1</td></tr>
+    <tr><td><code>Gua.Testing.Unity</code></td><td>外部.NETテストからUnity Editor/Playerをbuild・起動・接続</td><td>net10.0 / netstandard2.1</td></tr>
+    <tr><td><code>Gua.Testing</code></td><td>locator、assertion、remote接続、screenshotのengine共通テストAPI</td><td>engine非依存</td></tr>
+    <tr><td><code>Gua.Testing.Visual</code></td><td>Unityを含む任意のGua contextでPNG baseline比較と差分artifactを追加</td><td>net10.0 / netstandard2.1</td></tr>
+    <tr><td><code>Gua.Testing.Recording</code></td><td>Unityを含む任意のGua contextでSemantic操作を記録・Replay</td><td>net10.0 / netstandard2.1</td></tr>
+  </tbody></table></div>
+  <Callout kind="tip" title="Godot C#アダプターとの共有"><p><code>Gua.Runtime</code>はUnity専用ではなく、Godot C#など別engineのアダプターからも利用できます。GodotのGDScript経路と既存C ABIも引き続き利用できます。</p></Callout>
+
+  <h2>Unity公開型</h2>
+  <div class="table-wrap"><table><thead><tr><th>型</th><th>公開契約</th></tr></thead><tbody>
+    <tr><td><code>GuaUnityRuntime</code></td><td>自動起動する<code>MonoBehaviour</code>。<code>EnsureStarted()</code>と手動frame用<code>RunFrame()</code></td></tr>
+    <tr><td><code>GuaId</code></td><td>uGUI/TMP GameObjectへ安定した<code>Value</code>を与える任意Component</td></tr>
+    <tr><td><code>GuaScreen</code></td><td>現在の論理screen名を<code>Value</code>で上書き。無ければactive scene名/path</td></tr>
+    <tr><td><code>IGuaUnityControlAdapter</code></td><td>独自uGUI系Controlの<code>TryDescribe</code>/<code>TryApply</code></td></tr>
+    <tr><td><code>GuaUnityAdapterRegistry</code></td><td><code>Register(adapter)</code>でControlアダプターを追加</td></tr>
+    <tr><td><code>GuaUnityKeyEvent</code></td><td>protocol key/modifierをUnity <code>Event</code>へ変換</td></tr>
+  </tbody></table></div>
+
+  <h2><code>Gua.Runtime</code>公開面</h2>
+  <p>通常のUnity利用ではUPMパッケージがこの層を管理するため、直接呼び出す必要はありません。独自のengine adapterを作る場合、<code>GuaRuntime</code>がnative runtimeを生成・所有し、<code>Dispose()</code>でbridgeとnative handleを破棄します。主要memberは<code>StartInspectorBridge</code>/<code>StopInspectorBridge</code>、<code>SetAdapterVersion</code>、<code>BeginFrame</code>/<code>EndFrame</code>、<code>RegisterNode</code>、<code>TryConsumeAction</code>/<code>EmitActionResult</code>、<code>TryConsumeScreenshotRequest</code>/<code>CompleteScreenshot</code>、<code>AddLog</code>、<code>GetUiTreeJson</code>、<code>GetVersionJson</code>です。</p>
+
+  <h2>テストホスト公開型</h2>
+  <div class="table-wrap"><table><thead><tr><th>型 / member</th><th>意味</th></tr></thead><tbody>
+    <tr><td><code>UnityPlayerBuilder.Build</code></td><td>指定sceneからWindows64 Mono Playerをbatch build</td></tr>
+    <tr><td><code>UnitySceneTestHost.LoadPlayer</code></td><td>headless Playerを起動</td></tr>
+    <tr><td><code>LoadRenderedPlayer</code></td><td>描画付きPlayerを起動</td></tr>
+    <tr><td><code>LoadEditor</code></td><td><code>StartPlayMode</code> editor commandでsceneを開始</td></tr>
+    <tr><td><code>BuildAndLoadPlayer</code></td><td>buildと起動を一括実行</td></tr>
+    <tr><td><code>Context</code> / <code>RemoteContext</code></td><td>共通<code>IGuaContext</code> / Unity WebSocket context</td></tr>
+    <tr><td><code>CaptureScreenshot</code></td><td>frame sequence以後のon-demand PNGを待機</td></tr>
+    <tr><td><code>CreateDiagnosticsSession</code></td><td>共通artifactにUnity log/process metadataを追加</td></tr>
+  </tbody></table></div>
+
+  <h2>UI写像</h2>
+  <div class="table-wrap"><table><thead><tr><th>role</th><th>UI Toolkit</th><th>uGUI / TMP</th><th>主なaction</th></tr></thead><tbody>
+    <tr><td>button</td><td>Button</td><td>Button / TMP label付きButton</td><td>click, focus</td></tr>
+    <tr><td>checkbox</td><td>Toggle</td><td>Toggle</td><td>click, focus, set_checked</td></tr>
+    <tr><td>textbox</td><td>TextField</td><td>InputField / TMP_InputField</td><td>focus, set_value, press_key</td></tr>
+    <tr><td>slider</td><td>Slider / SliderInt</td><td>Slider</td><td>focus, set_value</td></tr>
+    <tr><td>combobox</td><td>DropdownField</td><td>Dropdown / TMP_Dropdown</td><td>focus, select</td></tr>
+    <tr><td>list / listitem</td><td>ListViewと全itemsSource</td><td>標準自動写像なし</td><td>focus, select, scroll</td></tr>
+    <tr><td>tablist / tab</td><td>TabView / Tab</td><td>標準自動写像なし</td><td>select</td></tr>
+    <tr><td>scrollarea</td><td>ScrollView</td><td>ScrollRect</td><td>scroll</td></tr>
+    <tr><td>text / panel</td><td>Label / その他</td><td>Text・TMP_Text / その他</td><td>観測のみ</td></tr>
+  </tbody></table></div>
+  <p>各frameで<code>role</code>、<code>label</code>、<code>text</code>/<code>value</code>、<code>visible</code>、<code>enabled</code>、<code>focused</code>、checkboxの<code>checked</code>、ListView itemの<code>selected</code>、slider range、<code>parentId</code>、boundsを再収集します。ListViewはvirtualizeされて画面外のitemもnodeを作りますが、未realize itemは<code>visible: false</code>かつbounds 0になります。</p>
+
+  <h2>操作と完了通知</h2>
+  <p>外部requestは対象roleが宣言するactionだけ消費されます。Unityの<strong>同期listener</strong>が戻った後、同じ<code>requestId</code>の結果eventを返します。coroutine、<code>async void</code>、次frameの完了までは待ちません。不正な数値・選択肢・keyは<code>invalid_value</code>、実装していない組み合わせは<code>unsupported</code>です。例外はruntime logとUnity Consoleへ出し、失敗結果へ変換します。</p>
+  <p><code>press_key</code> modifier bitは1=Shift、2=Alt、4=Control、8=Commandです。<code>Enter</code>、<code>Esc</code>、<code>Arrow*</code>はUnityのKeyCode名へ正規化されます。global key requestは現在focus中のtextboxへ配送されます。</p>
+
+  <h2>エンジン共通仕様</h2>
+  <ul>
+    <li><code>version_v1</code>に任意の<code>adapterVersions</code> mapを追加。UnityはUPM metadataではなく、読み込んだnative runtime versionを<code>{`{"unity":"<runtime version>"}`}</code>として報告します。</li>
+    <li><code>godotPluginVersion</code>は互換性のため残り、Godot以外では<code>null</code>です。</li>
+    <li>全adapterのbounds座標を「物理viewport pixel、左上原点、右/下が正、NaN/Infinity禁止」と明文化しました。</li>
+    <li><code>GuaWebSocketContext</code>、remote tree、captured screenshotは<code>Gua.Testing</code>から利用できます。</li>
+    <li>native C ABIへ<code>gua_runtime_set_adapter_version(runtime, adapter, version)</code>を追加。既存ABIは削除していません。</li>
+    <li>screenshot要求のconsume後にsession resetされた場合は<code>stale_session</code>で完了し、古い画像を新sessionへ公開しません。</li>
+  </ul>
+
+  <h2>ライフサイクルと所有権</h2>
+  <p><code>BeforeSceneLoad</code>でbootstrap driverとruntimeの2つの永続GameObjectを生成し、driverの<code>LateUpdate()</code>がbegin → UI収集 → end → action配送 → screenshot要求を進めます。runtime破棄時はbridgeを停止してnative handleをdisposeします。UPM artifactは<code>Gua.Core.dll</code>、<code>Gua.Runtime.dll</code>と依存assembly、<code>gua.dll</code>、<code>gua_runtime.dll</code>を同梱します。</p>
+
+  <h2>利用上の注意</h2>
+  <ul>
+    <li>外部から整数sliderの値を変更する必要がある画面では、現在は<code>SliderInt</code>ではなく<code>Slider</code>を使用してください。<code>SliderInt</code>の状態は観測できます。</li>
+    <li>Toggleのclickは値の変更として配送されます。独自処理はpointer eventだけでなくvalue/change listenerでも受け取れるようにしてください。</li>
+    <li>独自Controlを登録する場合は、roleに対応するactionを<code>TryApply</code>へ実装してください。観測だけのControlでは操作用actionを持たないroleを選べます。</li>
+    <li>Unityを並列起動するテストでは各hostが動的portを使います。同じportを固定利用する別processとの同時実行は避けてください。</li>
+  </ul>
+  <Callout kind="tip" title="現在の対応範囲"><p>Unity 6000.0以降のWindows x64 Mono Playerで、UI Toolkit、uGUI、TMPのruntime UIを利用できます。IL2CPP、macOS/Linux、mobile/Web、Unity IMGUI、EditorWindow、自動uGUI list/tab写像は現在のパッケージに含まれません。</p></Callout>
+</DocPage>

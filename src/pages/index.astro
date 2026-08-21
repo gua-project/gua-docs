@@ -1,61 +1,65 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
-<BaseLayout title="Godot・UnityのUIテストとAIプレイテスト" description="GuaはGodot 4.7とUnity 6にPlaywrightスタイルのSemantic UI自動化を提供し、MCP対応AIコーディングエージェントから実行中ゲームを観測・操作・検証できます。">
+<BaseLayout title="Playwright-like UI testing and automation for Godot and Unity" description="Gua is a UI testing and automation library for Godot 4.7 and Unity 6, built around a Playwright-like approach. Use semantic UI to inspect, operate, and verify running games.">
   <section class="hero-home"><div class="inner">
     <span class="kicker">PLAYWRIGHT-STYLE UI AUTOMATION FOR GAMES</span>
-    <h1>ゲームUIを、<em>意味</em>で操作する。</h1>
-    <p><strong>Godot・UnityのUIテストとAIプレイテスト。</strong> Guaは、実行中のゲームUIをSemantic UI Treeとして公開するランタイムUI自動化基盤です。Godot 4.7とUnity 6に対応し、座標や画像認識に頼らず、テストとMCP対応AIコーディングエージェントから「開始ボタン」をその名前で見つけ、操作し、結果を検証できます。</p>
-    <div class="hero-actions"><a class="button" href="/godot/">Godot UIテストを始める →</a><a class="button secondary" href="/ai-coding/">AIプレイテストを見る</a></div>
+    <h1>Drive game UI by <em>meaning</em>.</h1>
+    <p><strong>Gua is a UI testing and automation library for Godot and Unity, built around a Playwright-like approach.</strong> It exposes a running game's UI as a Semantic UI Tree. With Godot 4.7 and Unity 6, tests and MCP-enabled AI coding agents can find, operate, and verify a “Start Game” button by identity and role—without brittle coordinates or image recognition.</p>
+    <div class="hero-actions"><a class="button" href="/godot/">Start testing Godot UI →</a><a class="button secondary" href="/ai-coding/">Explore AI playtesting</a></div>
     <figure class="hero-demo">
-      <img src="/gua-hero-demo.webp" alt="AIエージェントがGua MCPサーバーを使い、Semantic UI Treeを読み取ってGodotゲームのStart Gameボタンを遠隔操作するデモ" width="1280" height="720" decoding="async" />
-      <figcaption><span>DEMO</span> AIエージェントがMCP経由でゲームUIを操作</figcaption>
+      <img src="/gua-hero-demo.webp" alt="An AI agent uses the Gua MCP server to inspect the semantic UI tree and remotely activate the Start Game button in a Godot game" width="1280" height="720" decoding="async" />
+      <figcaption><span>DEMO</span> An AI agent operates game UI through MCP</figcaption>
     </figure>
   </div></section>
   <section class="home-content">
-    <span class="kicker">AI-ASSISTED GAME DEVELOPMENT</span><h2>AIが実装したゲームを、AI自身が検証する</h2>
-    <p>AIコーディングエージェントがコードを変更し、ゲームを起動し、Gua MCPで実行中UIを観測・操作する。期待した状態を確認し、失敗時はログやスクリーンショットを調べて修正する。この反復をSemantic UI情報で支えます。</p>
-    <div class="hero-actions"><a class="button secondary" href="/ai-coding/">AI Coding &amp; AI Playtestingガイド →</a></div>
-    <span class="kicker">GET THE LATEST</span><h2>まず最新Releaseを取得する</h2>
-    <p>GodotアドオンとWindows版Inspectorは<a href="https://github.com/link1345/gua/releases/latest" style="color:var(--mint);text-decoration:underline">GitHub Releases / Latest</a>から取得できます。ソースビルドはGua本体を開発するときの経路です。</p>
-    <span class="kicker">HOW IT WORKS</span><h2>ゲームの入力経路を壊さずに観測する</h2>
-    <div class="pipeline"><div><strong>01 / DRAW</strong>ゲームエンジンが通常どおりUIを描画</div><div><strong>02 / REFLECT</strong>アダプターが意味情報を自動収集</div><div><strong>03 / CONNECT</strong>WebSocketブリッジが外部へ公開</div><div><strong>04 / ACT</strong>テスト・Inspector・MCPが操作</div></div>
-    <span class="kicker">WHAT YOU CAN DO</span><h2>観測、操作、検証、再現までを一つのプロトコルで</h2>
-    <p class="section-lead">Guaは「スクリーンショットが撮れる」「UIテストができる」だけの道具ではありません。実行中ゲームのUIを意味情報として公開し、その同じ情報をテスト、差分比較、操作録画、Inspector、AIから利用できます。</p>
+    <span class="kicker">AI-ASSISTED GAME DEVELOPMENT</span><h2>Let the AI verify the game it builds</h2>
+    <p>An AI coding agent changes the code, launches the game, and uses Gua MCP to inspect and operate the live UI. It verifies the expected state, investigates logs or screenshots on failure, fixes the implementation, and tests again—all through semantic UI evidence.</p>
+    <div class="hero-actions"><a class="button secondary" href="/ai-coding/">AI Coding &amp; AI Playtesting guide →</a></div>
+    <span class="kicker">GET THE LATEST</span><h2>Start with the latest release</h2>
+    <p>Download the Godot add-on and Windows Inspector from <a href="https://github.com/link1345/gua/releases/latest" style="color:var(--mint);text-decoration:underline">GitHub Releases / Latest</a>. Building Gua from source is intended for contributors working on Gua itself.</p>
+    <span class="kicker">HOW IT WORKS</span><h2>Observe the real input path</h2>
+    <div class="pipeline"><div><strong>01 / DRAW</strong>The game engine renders UI normally</div><div><strong>02 / REFLECT</strong>The adapter collects semantic state</div><div><strong>03 / CONNECT</strong>The bridge publishes it over WebSocket</div><div><strong>04 / ACT</strong>Tests, Inspector, and MCP operate it</div></div>
+    <span class="kicker">WHAT YOU CAN DO</span><h2>Observe, operate, verify, and reproduce through one protocol</h2>
+    <p class="section-lead">Gua goes beyond taking screenshots or running UI tests. It publishes a running game's UI as semantic information, then shares that same model with tests, visual comparison, operation recording, Inspector, and AI agents.</p>
     <div class="capability-grid">
-      <article class="capability-card"><span>OBSERVE / 01</span><h3>UIを意味のあるツリーとして観測</h3><p>id、role、text、親子関係、boundsに加え、visible、enabled、value、focus、checked、selected、caret、scroll、rangeなどの状態をframe・revision付きで取得します。</p><small>Semantic UI Tree · Node state · Logs · Runtime capabilities</small></article>
-      <article class="capability-card"><span>LOCATE / 02</span><h3>座標ではなく、役割と状態から検索</h3><p>id・role・text・valueを完全一致、部分一致、正規表現で検索。親要素の内側、直下の子、表示中、有効、選択中などを組み合わせ、件数も検証できます。</p><small>GetById · GetByRole · GetByText · Within · QueryAll</small></article>
-      <article class="capability-card"><span>ACT / 03</span><h3>通常のゲーム入力経路で操作</h3><p>click、focus、値入力、check、select、scroll、key入力をSemantic targetへ送ります。queueへの受理ではなく、同じrequest IDのホスト完了eventまで確認できます。</p><small>Click · SetValue · SetChecked · Select · Scroll · PressKey</small></article>
-      <article class="capability-card"><span>TEST / 04</span><h3>UIの状態変化を待ってテスト</h3><p>NUnit、xUnit、MSTestなどの通常の.NETテストから、表示・値・focus・選択・件数・安定snapshotを待機。固定sleepに頼らないテストを構築できます。</p><small>Gua.Testing · C++ helpers · Async waits · Cancellation</small></article>
-      <article class="capability-card"><span>CAPTURE / 05</span><h3>描画frameのスクリーンショットを取得</h3><p>GodotやUnityの描画付き実行からPNGを要求し、寸法、session、frame情報とともに保存。headless、未対応、timeout、cancelも区別できます。</p><small>CaptureScreenshot · SaveScreenshot · Test attachment</small></article>
-      <article class="capability-card"><span>VISUAL / 06</span><h3>PNGベースラインとの差分を検出</h3><p><code>Gua.Testing.Visual</code>でpixel閾値、許容差分率、mask、OS・renderer別variantを指定。失敗時はExpected、Actual、Diff画像とmanifestを出力します。</p><small>Baseline comparison · Masks · CI artifacts</small></article>
-      <article class="capability-card"><span>RECORD / 07</span><h3>Semantic操作を録画して再生</h3><p><code>Gua.Testing.Recording</code>で操作、timing、前後revision、待機条件を記録し、ホスト完了確認付きでReplay。機密値は平文ではなくsecret keyだけを保存します。</p><small>GuaRecorder · GuaReplayer · recording.schema.json</small></article>
-      <article class="capability-card"><span>DIAGNOSE / 08</span><h3>失敗した瞬間の証拠を残す</h3><p>UI Tree、前後差分、pending request、event履歴、ログ、runtime version、環境情報、スクリーンショット、ゲームプロセス出力を一つのartifactへ集約します。</p><small>Failure diagnostics · stdout/stderr · Strict isolation</small></article>
-      <article class="capability-card"><span>INSPECT / 09</span><h3>Inspectorから人間が調査・操作</h3><p>ブラウザー版とWindowsデスクトップ版で、UI Tree、ノード状態、ログ、スクリーンショットを確認。全Semantic action、Recording、Replay、Visual比較を画面から実行できます。</p><small>Tree inspector · Node bounds · Automation panel</small></article>
-      <article class="capability-card"><span>AGENT / 10</span><h3>MCPからAIエージェントへ公開</h3><p><code>gui-mcp</code>が同じWebSocketブリッジへ接続し、UI取得、待機、全操作、ログ・PNG取得、Recording、Replay、Visual比較をAIのtoolとして公開します。</p><small>get_ui_tree · wait_for_node · run_test · visual artifacts</small></article>
+      <article class="capability-card"><span>OBSERVE / 01</span><h3>Observe UI as a meaningful tree</h3><p>Read id, role, text, hierarchy, and bounds together with visible, enabled, value, focus, checked, selected, caret, scroll, and range state, all tied to a frame and revision.</p><small>Semantic UI Tree · Node state · Logs · Runtime capabilities</small></article>
+      <article class="capability-card"><span>LOCATE / 02</span><h3>Find controls by role and state</h3><p>Match id, role, text, and value exactly, by substring, or by regular expression. Combine parent scope, direct children, visibility, enabled, selection, and count conditions.</p><small>GetById · GetByRole · GetByText · Within · QueryAll</small></article>
+      <article class="capability-card"><span>ACT / 03</span><h3>Operate the game's normal input path</h3><p>Send click, focus, value, check, select, scroll, and key actions to semantic targets. Confirm the correlated host completion event instead of treating queue acceptance as success.</p><small>Click · SetValue · SetChecked · Select · Scroll · PressKey</small></article>
+      <article class="capability-card"><span>TEST / 04</span><h3>Wait for UI state in ordinary tests</h3><p>From NUnit, xUnit, MSTest, or C++, wait for visibility, values, focus, selection, counts, and stable snapshots. Build deterministic tests without fixed sleeps.</p><small>Gua.Testing · C++ helpers · Async waits · Cancellation</small></article>
+      <article class="capability-card"><span>CAPTURE / 05</span><h3>Capture a rendered frame as PNG</h3><p>Request PNGs from rendered Godot or Unity runs and save them with dimensions, session, and frame metadata. Headless, unsupported, timeout, and cancellation remain distinct outcomes.</p><small>CaptureScreenshot · SaveScreenshot · Test attachment</small></article>
+      <article class="capability-card"><span>VISUAL / 06</span><h3>Detect PNG baseline regressions</h3><p><code>Gua.Testing.Visual</code> supports pixel thresholds, allowed difference ratios, masks, and OS/renderer variants. Failures produce Expected, Actual, Diff, and a comparison manifest.</p><small>Baseline comparison · Masks · CI artifacts</small></article>
+      <article class="capability-card"><span>RECORD / 07</span><h3>Record and replay semantic actions</h3><p><code>Gua.Testing.Recording</code> stores actions, timing, revisions, and wait conditions, then replays with host completion checks. Sensitive values are represented only by secret keys.</p><small>GuaRecorder · GuaReplayer · recording.schema.json</small></article>
+      <article class="capability-card"><span>DIAGNOSE / 08</span><h3>Keep evidence from the failing moment</h3><p>Collect the UI tree and diff, pending requests, event history, logs, runtime version, environment, screenshot, and game-process output into one failure artifact.</p><small>Failure diagnostics · stdout/stderr · Strict isolation</small></article>
+      <article class="capability-card"><span>INSPECT / 09</span><h3>Investigate and operate through Inspector</h3><p>The browser and Windows desktop Inspector show the tree, node state, logs, and screenshot. Invoke every semantic action, Recording, Replay, and Visual comparison from the UI.</p><small>Tree inspector · Node bounds · Automation panel</small></article>
+      <article class="capability-card"><span>AGENT / 10</span><h3>Expose the same abilities over MCP</h3><p><code>gui-mcp</code> connects to the same WebSocket bridge and exposes tree reads, waits, all actions, logs, PNG capture, Recording, Replay, and Visual comparison as AI tools.</p><small>get_ui_tree · wait_for_node · run_test · visual artifacts</small></article>
     </div>
-    <span class="kicker">ENGINE SUPPORT</span><h2>GodotとUnityの実UIを自動収集</h2>
+    <span class="kicker">ENGINE SUPPORT</span><h2>Automatically reflect real Godot and Unity UI</h2>
     <div class="grid-2">
-      <div class="mini-card"><strong>Godot 4.7</strong><p>推奨GDScriptアドオンがControlツリーを再帰収集し、Button、LineEdit、TextEdit、CheckBox、OptionButton、ItemList、Range、ScrollContainerなどを観測・操作します。外部テストホストはシーン起動、空きport、headless/rendered実行、stdout/stderr、Strict resetを管理します。</p></div>
-      <div class="mini-card"><strong>Unity 6</strong><p>UPMパッケージがUI Toolkit、uGUI、TextMeshProを自動収集します。Editor Play ModeまたはWindows Mono Playerを外部テストから起動し、headless Semanticテストと描画付きScreenshot・Visualテストを実行できます。</p></div>
+      <div class="mini-card"><strong>Godot 4.7</strong><p>The recommended GDScript add-on recursively reflects the Control tree, including Button, LineEdit, TextEdit, CheckBox, OptionButton, ItemList, Range, and ScrollContainer. The external host manages scene startup, available ports, headless/rendered runs, stdout/stderr, and strict resets.</p></div>
+      <div class="mini-card"><strong>Unity 6</strong><p>The UPM package automatically reflects UI Toolkit, uGUI, and TextMeshPro. External tests can launch Editor Play Mode or a Windows Mono Player for headless semantic tests and rendered Screenshot or Visual tests.</p></div>
     </div>
-    <span class="kicker">RELIABLE AUTOMATION</span><h2>テストを壊れにくくする仕組み</h2>
+    <span class="kicker">RELIABLE AUTOMATION</span><h2>Built to keep tests deterministic</h2>
     <div class="card-grid reliability-grid">
-      <div class="mini-card"><strong>状態ベースの待機</strong><p>visible、enabled、text、value、focus、checked、selected、件数、安定snapshotを最新frameから待ちます。</p></div>
-      <div class="mini-card"><strong>厳密なロケーター</strong><p>0件や複数件を曖昧に通さず失敗させ、複数取得が必要な場合だけ明示的にQueryAllを使います。</p></div>
-      <div class="mini-card"><strong>request相関</strong><p>操作要求とホスト側の観測結果をrequest IDで結び、別のeventを誤って成功扱いしません。</p></div>
-      <div class="mini-card"><strong>テスト間の分離</strong><p>Strict resetが未消費request、処理中操作、event漏れを検出し、前のテストの状態を持ち込みません。</p></div>
-      <div class="mini-card"><strong>機密情報の保護</strong><p>sensitiveな入力値をsnapshot、log、diagnostics、Recordingからredactし、Replay時だけmemory上で解決します。</p></div>
-      <div class="mini-card"><strong>CIで再現</strong><p>Godot用公開Actionと通常の<code>dotnet test</code>を使い、失敗時の診断・Visual artifactをCIへ残せます。</p></div>
+      <div class="mini-card"><strong>State-based waits</strong><p>Wait for visible, enabled, text, value, focus, checked, selected, count, or a stable snapshot from fresh frames.</p></div>
+      <div class="mini-card"><strong>Strict locators</strong><p>Zero or multiple matches fail clearly; multi-result queries are explicit through QueryAll.</p></div>
+      <div class="mini-card"><strong>Request correlation</strong><p>Pair actions with observed host results by request ID without consuming unrelated events.</p></div>
+      <div class="mini-card"><strong>Test isolation</strong><p>Strict reset detects pending requests, in-flight actions, and leaked events between tests.</p></div>
+      <div class="mini-card"><strong>Secret handling</strong><p>Redact sensitive values from snapshots, logs, diagnostics, and recordings, resolving them in memory only during replay.</p></div>
+      <div class="mini-card"><strong>CI reproduction</strong><p>Run ordinary <code>dotnet test</code> with the public Godot Action and retain diagnostic and Visual artifacts on failure.</p></div>
     </div>
-    <span class="kicker">GUIDES &amp; REFERENCES</span><h2>導入するエンジンと道具から読む</h2>
+    <span class="kicker">GUIDES &amp; REFERENCES</span><h2>Start with your engine or tool</h2>
     <div class="card-grid">
-      <a class="chapter-card" href="/godot/"><span>USE CASE / 01</span><h3>Godot UI Testing</h3><p>GDScriptアダプターを取り付け、Controlツリーを自動収集します。Semantic locatorで実シーンを外部テストします。</p></a>
-      <a class="chapter-card" href="/ai-coding/"><span>USE CASE / 02</span><h3>AI Coding &amp; AI Playtesting</h3><p>MCP対応AIコーディングエージェントから実行中ゲームを観測・操作・検証します。</p></a>
-      <a class="chapter-card" href="/unity/"><span>ENGINE / 03</span><h3>Unity編</h3><p>Unity 6のUI Toolkit、uGUI、TextMeshProを自動収集し、Editor/Playerを外部テストします。</p></a>
-      <a class="chapter-card" href="/inspector/"><span>TOOL / 03</span><h3>インスペクタ編</h3><p>UI Treeを診断し、Semantic操作、Recording/Replay、PNG差分比較を画面から実行する。</p></a>
-      <a class="chapter-card" href="/mcp/"><span>TOOL / 04</span><h3>MCPサーバー操作編</h3><p>AIから全Semantic action、Recording、Replay、Visual比較を操作する。</p></a>
-      <a class="chapter-card" href="/docs/"><span>REFERENCE / 05</span><h3>Docs</h3><p>Godot推奨構成、.NET Standard 2.1対応、独立したVisual/Recordingパッケージを調べる。</p></a>
+      <a class="chapter-card" href="/godot/"><span>USE CASE / 01</span><h3>Godot UI Testing</h3><p>Attach the GDScript adapter, collect the Control tree, and test live scenes with semantic locators.</p></a>
+      <a class="chapter-card" href="/ai-coding/"><span>USE CASE / 02</span><h3>AI Coding &amp; AI Playtesting</h3><p>Let an MCP-enabled AI coding agent inspect, operate, and verify a running game.</p></a>
+      <a class="chapter-card" href="/unity/"><span>ENGINE / 03</span><h3>Unity guide</h3><p>Reflect Unity 6 UI Toolkit, uGUI, and TextMeshPro and test Editor or Player processes externally.</p></a>
+      <a class="chapter-card" href="/inspector/"><span>TOOL / 02</span><h3>Inspector</h3><p>Diagnose the tree, invoke semantic actions, record/replay, and compare PNGs.</p></a>
+      <a class="chapter-card" href="/mcp/"><span>TOOL / 03</span><h3>MCP server</h3><p>Expose all semantic actions, Recording, Replay, and visual comparison to AI agents.</p></a>
+      <a class="chapter-card" href="/docs/"><span>REFERENCE / 04</span><h3>API docs</h3><p>Understand the recommended Godot path, .NET Standard 2.1 support, and separate Visual/Recording packages.</p></a>
     </div>
+    <aside class="advertisement" aria-label="Advertisement">
+      <p>Advertisement</p>
+      <script is:inline async src="https://ar-cdn.net/widget/v1.js" data-site-id="714545fe-7b3b-4521-95ce-93eda23f5876" data-variant="card"></script>
+    </aside>
   </section>
 </BaseLayout>

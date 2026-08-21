@@ -1,0 +1,80 @@
+---
+import DocPage from '../../components/DocPage.astro';
+import CodeBlock from '../../components/CodeBlock.astro';
+import Callout from '../../components/Callout.astro';
+---
+<DocPage eyebrow="GUIDE / VISUAL TESTING" title="Visual testing guide" lead="Gua.Testing.Visual compares screenshots from a running game with reviewed PNG baselines to detect overlap, clipping, layout shifts, wrong assets, themes, and other defects that can remain even when semantic controls exist and behave correctly. It provides engine-independent visual regression coverage for the rendering contract that semantic assertions cannot prove." description="Gua.Testing.Visual use cases, baseline workflow, comparison settings, artifacts, masks, variants, and CI." section="visual-testing">
+  <Callout kind="tip" title="Game-engine independent"><p><code>Gua.Testing.Visual</code> consumes an <code>IGuaContext</code> and the PNG in Gua diagnostics, so the same API and baseline workflow applies to Godot, Unity, and custom adapters. Only screenshot capture and legitimate baseline variants differ by engine environment.</p></Callout>
+  <h2>When it adds value</h2>
+  <div class="table-wrap"><table><thead><tr><th>Use visual comparison for</th><th>Prefer semantic assertions for</th></tr></thead><tbody><tr><td>Clipping, overlap, and layout shifts</td><td>Control existence and visibility</td></tr><tr><td>Wrong textures, fonts, themes, or overlays</td><td>Expected text and values</td></tr><tr><td>Resolution-dependent layout breakage</td><td>State transitions after actions</td></tr></tbody></table></div>
+  <Callout kind="tip" title="Use both"><p>Visual comparison complements semantic tests. Add it only to screens where appearance is part of the contract.</p></Callout>
+
+  <figure class="doc-figure"><div class="flow"><span>Stable UI frame<small>optionally wait</small></span><b>→</b><span>Actual PNG<small>from diagnostics</small></span><b>→</b><span>Reviewed baseline<small>name + variant</small></span><b>→</b><span>Pixel comparison<small>threshold + masks</small></span><b>→</b><span>PASS / artifacts<small>review differences</small></span></div><figcaption>Figure 1: The baseline is selected by test name and variant; failures preserve all comparison evidence.</figcaption></figure>
+
+  <h2>Install</h2><CodeBlock title="Add the latest stable package to a visual test project" lang="powershell" code={`dotnet add package Gua.Testing.Visual`} />
+
+  <h2>Create a baseline deliberately</h2>
+  <CodeBlock title="Allow a local baseline update" lang="powershell" code={`$env:GUA_UPDATE_BASELINES = "1"
+dotnet test tests/Game.Visual.Tests/Game.Visual.Tests.csproj
+Remove-Item Env:GUA_UPDATE_BASELINES`} />
+  <p>Review the generated PNG and commit it only when it is correct. Never set this variable in an ordinary pull-request job.</p>
+
+  <h2>Keep baselines in source control</h2>
+  <p>The comparison below reads from NUnit's test output directory. Add this rule to the test project so committed PNGs under the project-level <code>baselines</code> directory are copied into that output on clean checkouts and CI builds.</p>
+  <CodeBlock title="Game.Visual.Tests.csproj" lang="xml" code={`<ItemGroup>
+  <None Update="baselines/**/*.png"
+        CopyToOutputDirectory="PreserveNewest" />
+</ItemGroup>`} />
+  <p>When creating or updating a baseline, review the generated output PNG and copy the approved file back to the project's <code>baselines</code> directory before committing it.</p>
+
+  <h2>Compare in normal test runs</h2>
+  <CodeBlock title="Compare the title screen" lang="csharp" code={`using Gua.Testing;
+using Gua.Testing.Visual;
+
+// The game publishes this only after transitions and animations are deterministic.
+await GuaAssertions.WaitForVisibleAsync(host.Context, "visual-ready");
+
+var baselineVariant = Environment.GetEnvironmentVariable("GUA_VISUAL_VARIANT")
+    ?? "windows-unity-mono-1920x1080";
+
+var result = await GuaVisualAssertions.ExpectScreenshotAsync(
+    host.Context, "title-screen", new ScreenshotOptions
+    {
+        BaselineDirectory = Path.Combine(TestContext.CurrentContext.TestDirectory, "baselines"),
+        ArtifactDirectory = Path.Combine(TestContext.CurrentContext.WorkDirectory, "artifacts", "gua"),
+        BaselineVariant = baselineVariant,
+        PixelThreshold = 0.02f,
+        MaxDifferentPixelRatio = 0.001,
+        WaitForStableSnapshot = true,
+        StableFrames = 3,
+    });`} />
+  <p><code>WaitForStableSnapshot</code> checks that the semantic UI snapshot stopped changing; it does not inspect pixels or prove that sprite, shader, caret, or transition animations stopped. First wait for an explicit application-ready condition and make animation state deterministic, as above. <code>PixelThreshold</code> tolerates small per-channel differences; <code>MaxDifferentPixelRatio</code> limits how many pixels may differ. Tune them only from known stable renderer noise.</p>
+
+  <h2>Failure evidence</h2>
+  <div class="table-wrap"><table><thead><tr><th>Reason</th><th>Files</th></tr></thead><tbody><tr><td><code>pixel_difference</code></td><td><code>expected.png</code>, <code>actual.png</code>, <code>diff.png</code>, <code>comparison.json</code></td></tr><tr><td><code>baseline_missing</code></td><td><code>actual.png</code>, <code>comparison.json</code></td></tr><tr><td><code>dimension_mismatch</code></td><td><code>expected.png</code>, <code>actual.png</code>, <code>comparison.json</code></td></tr></tbody></table></div>
+  <p>Set <code>ArtifactDirectory</code> to place visual artifacts beside ordinary Gua diagnostics. Dimension mismatches fail without implicit resizing. <code>Gua.Testing.Visual</code> writes data only and never generates HTML; use the <a href="/docs/github-actions/#visual-report">visual-report action</a> to build the static viewer.</p>
+
+  <h2>Variants, masks, and stability</h2>
+  <div class="table-wrap"><table><thead><tr><th>Option</th><th>Good use</th><th>Avoid</th></tr></thead><tbody><tr><td><code>BaselineVariant</code></td><td>Name legitimate OS, renderer, and resolution differences</td><td>Creating a variant for every failure</td></tr><tr><td><code>Masks</code></td><td>Exclude a clock or truly random avatar</td><td>Masking important UI</td></tr><tr><td><code>WaitForStableSnapshot</code></td><td>Confirm semantic state remains unchanged after an application-ready condition</td><td>Assuming it freezes or detects pixel animation</td></tr></tbody></table></div>
+  <CodeBlock title="Mask one nondeterministic region" lang="csharp" code={`Masks = new[]
+{
+    new GuaMaskRectangle(X: 1710, Y: 24, Width: 180, Height: 48), // clock only
+};`} />
+
+  <h2>CI policy</h2>
+  <CodeBlock title="Upload a browsable pull-request report" lang="yaml" code={`- name: Run visual tests
+  id: visual-tests
+  shell: pwsh
+  env:
+    GUA_VISUAL_VARIANT: windows-unity-mono-1920x1080
+  run: dotnet test tests/Game.Visual.Tests/Game.Visual.Tests.csproj --configuration Release
+
+- name: Upload visual report
+  if: failure()
+  uses: link1345/gua-tester/visual-report@main
+  with:
+    artifact-path: artifacts/gua
+    test-outcome: \${{ steps.visual-tests.outcome }}
+    upload-target: workflow`} />
+  <p>Keep resolution, DPI, fonts, locale, theme, engine version, renderer, and GPU/driver policy deterministic. Separate baseline updates from ordinary CI and require review of the PNG diff.</p>
+</DocPage>

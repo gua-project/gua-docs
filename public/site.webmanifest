@@ -2,7 +2,7 @@
   "name": "Gua Reference",
   "short_name": "Gua",
   "description": "Official documentation for Gua runtime UI automation.",
-  "start_url": "/en/",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#0d1117",
   "theme_color": "#0d1117",

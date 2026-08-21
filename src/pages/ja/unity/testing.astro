@@ -1,0 +1,146 @@
+---
+import DocPage from '../../../components/DocPage.astro';
+import Callout from '../../../components/Callout.astro';
+import CodeBlock from '../../../components/CodeBlock.astro';
+import CodeNotes from '../../../components/CodeNotes.astro';
+---
+<DocPage eyebrow="UNITY / TESTING" title="テストの仕方" lead="Gua.Testing.UnityはUnity Editor Play ModeまたはWindows Mono Playerを起動し、共通のIGuaContextへ接続します。" description="Gua.Testing.UnityによるUnity UI外部テスト。" section="unity">
+  <h2>1. テストパッケージを追加する</h2>
+  <p><code>Gua.Testing.Unity</code>はNuGetで公開されています。次のコマンドは最新の安定版を解決します。projectへ書き込まれたversionをcommitし、3つのGuaパッケージを同じversion系列へ揃えてください。</p>
+  <CodeBlock title="Unity test hostを追加" lang="powershell" code={`dotnet add package Gua.Core\ndotnet add package Gua.Testing\ndotnet add package Gua.Testing.Unity`} />
+  <CodeNotes title="パッケージごとの役割" codeLabel="コマンド" explanationLabel="追加される機能" items={[
+    { code: 'dotnet add package Gua.Core', explanation: 'Guaの共通型とnative runtime境界を追加します。' },
+    { code: 'dotnet add package Gua.Testing', explanation: 'Godot版と共通のSemantic locator、action、待機、assertion、diagnosticsを追加します。' },
+    { code: 'dotnet add package Gua.Testing.Unity', explanation: 'Unity Editor/Playerのbuild・起動・bridge接続・終了処理を行うhostを追加します。' },
+  ]} />
+  <h2>2. PlayerまたはEditorを起動する</h2>
+  <CodeBlock title="ビルドしてrendered Playerをテスト" lang="csharp" code={`using Gua.Core;
+using Gua.Testing;
+using Gua.Testing.Unity;
+
+var player = UnityPlayerBuilder.Build(
+    @"game/Assets/Scenes/Title.unity");
+using var host = UnitySceneTestHost.LoadRenderedPlayer(
+    player, UnitySceneTestHostOptions.StrictIsolation);
+
+GuaAssertions.GetByRole(
+    host.Context, "button", "Start Game"
+).ToBeVisible();
+
+await GuaAssertions.GetById(
+    host.Context, "start"
+).ClickAsync();
+
+await GuaAssertions.WaitForTextAsync(
+    host.Context, "loading", "Loading..."
+);
+
+var screenshot = host.CaptureScreenshot();`} />
+  <CodeNotes title="Unityテストを処理順に読む" codeLabel="記述" explanationLabel="意味" items={[
+    { code: 'using Gua.Core;', explanation: 'reset policyなど共通runtime型を読み込みます。' },
+    { code: 'using Gua.Testing;', explanation: 'Semantic locator、action、待機、assertionを読み込みます。' },
+    { code: 'using Gua.Testing.Unity;', explanation: 'Unity Player builderとscene test hostを読み込みます。' },
+    { code: 'UnityPlayerBuilder.Build("...Title.unity")', explanation: 'Unity Editorをbatchmodeで起動し、指定sceneを含むWindows x64 Mono Playerを一時directoryへbuildします。' },
+    { code: 'LoadRenderedPlayer(player, StrictIsolation)', explanation: '描画付きPlayerを起動してbridgeへ接続し、開始・終了時の状態漏れを厳格に検査します。' },
+    { code: 'GetByRole(..., "button", "Start Game")', explanation: 'UI Toolkit/uGUI/TMPの違いを意識せず、roleと名前でButtonを検索します。' },
+    { code: '.ToBeVisible()', explanation: '現在のSemantic snapshotでButtonが表示されていることを確認します。' },
+    { code: 'GetById(..., "start").ClickAsync()', explanation: '固定ID startへclickを送り、Unity listenerが同期処理を終えた結果まで待ちます。' },
+    { code: 'WaitForTextAsync(..., "loading", "Loading...")', explanation: '新しいsnapshotを再取得し、画面側の結果が実際に公開されるまで待ちます。' },
+    { code: 'host.CaptureScreenshot()', explanation: '現在frameより後の描画完了時にUnityへPNG取得を要求します。rendered hostが必要です。' },
+    { code: 'using var host', explanation: 'scope終了時にbridgeを閉じ、設定に従ってUnity processを終了します。' },
+  ]} />
+  <div class="table-wrap"><table><thead><tr><th>入口</th><th>用途</th></tr></thead><tbody>
+    <tr><td><code>LoadPlayer</code></td><td><code>-batchmode -nographics</code>の既存Player。高速なsemanticテスト向け</td></tr>
+    <tr><td><code>LoadRenderedPlayer</code></td><td>描画付き既存Player。screenshot/Visual比較向け</td></tr>
+    <tr><td><code>LoadEditor</code></td><td>指定sceneをEditor Play Modeで起動</td></tr>
+    <tr><td><code>BuildAndLoadPlayer</code></td><td>sceneからWindows x64 Mono Playerをビルドして起動</td></tr>
+  </tbody></table></div>
+  <h2>3. Godot版と同じSemantic APIで操作する</h2>
+  <p><code>host.Context</code>はengine共通の<code>IGuaContext</code>です。Unity固有APIでButtonを探すのではなく、Godot版と同じlocatorと状態待機を利用します。</p>
+  <CodeBlock title="入力・focus・状態待機" lang="csharp" code={`var name = GuaAssertions.Query(host.Context)
+    .ByRole("textbox").Within("LoginForm").Get();
+
+await name.SetValueAsync("alice");
+await name.FocusAsync();
+await GuaAssertions.PressKeyAsync(host.Context, "Enter");
+
+await GuaAssertions.GetById(host.Context, "RememberMe")
+    .SetCheckedAsync(true);
+await name.WaitForValueAsync("alice");`} />
+  <CodeNotes title="各Semantic操作の意味" codeLabel="記述" explanationLabel="意味" items={[
+    { code: 'Query(host.Context).ByRole("textbox")', explanation: 'Unity UIをtextboxという共通roleで検索します。' },
+    { code: '.Within("LoginForm").Get()', explanation: 'LoginForm配下に範囲を絞り、ちょうど1件の一致を要求します。' },
+    { code: 'SetValueAsync("alice")', explanation: 'TextField、uGUI InputField、TMP_InputFieldのいずれでも共通actionとして値を設定します。' },
+    { code: 'FocusAsync()', explanation: '対象をUnityのfocus経路へ設定し、続くglobal key入力の宛先にします。' },
+    { code: 'PressKeyAsync(..., "Enter")', explanation: 'focus中のtextboxへkey-down/key-up gestureを送ります。' },
+    { code: 'SetCheckedAsync(true)', explanation: 'UI ToolkitまたはuGUI/TMPのcheckbox/toggleをchecked状態にします。' },
+    { code: 'WaitForValueAsync("alice")', explanation: 'action結果だけでなく、次の公開frameで値が観測されるまで待ちます。' },
+  ]} />
+  <h2>安定したUnityテストにする4原則</h2><div class="grid-2"><div class="mini-card"><strong>目的に合うhostを選ぶ</strong><p>Semantic testはheadless、screenshot/Visualはrendered PlayerまたはEditorを使います。</p></div><div class="mini-card"><strong>状態を待つ</strong><p>Unityのframe時間を固定sleepで推測せず、期待するnode・text・valueを待ちます。</p></div><div class="mini-card"><strong>testごとに分離する</strong><p>空きportとStrict resetでprocess間の衝突や未消費requestを検出します。</p></div><div class="mini-card"><strong>失敗証拠を残す</strong><p>UI Tree、操作履歴、Unity log、process情報、必要ならPNGを保存します。</p></div></div>
+  <h2>Visual比較と操作記録</h2>
+  <p><code>Gua.Testing.Visual</code>と<code>Gua.Testing.Recording</code>はengine共通パッケージなので、<code>Gua.Testing.Unity</code>の<code>host.Context</code>でも利用できます。Visual比較にはPNGを取得できる<code>LoadRenderedPlayer</code>またはEditor Play Modeを使います。Recordingはsemantic actionを扱うためheadless Playerでも利用できます。</p>
+  <CodeBlock title="Unity hostで共通パッケージを使う" lang="csharp" code={`using Gua.Testing.Recording;
+using Gua.Testing.Visual;
+
+var comparison = await GuaVisualAssertions.ExpectScreenshotAsync(
+    host.Context, "title-screen", new() {
+        BaselineDirectory = "baselines",
+        ArtifactDirectory = "artifacts/gua",
+    });
+
+var recorder = new GuaRecorder(host.Context);
+await recorder.ClickAsync(new(Id: "start"));`} />
+  <CodeNotes title="VisualとRecordingの記述" codeLabel="記述" explanationLabel="意味" items={[
+    { code: 'using Gua.Testing.Visual;', explanation: 'engine非依存のPNG baseline比較APIを読み込みます。' },
+    { code: 'ExpectScreenshotAsync(host.Context, "title-screen", ...)', explanation: 'UnityへPNGを要求し、title-screenというtest名のreview済みbaselineと比較します。' },
+    { code: 'BaselineDirectory = "baselines"', explanation: '期待画像をversion管理するdirectoryです。通常実行では暗黙更新しません。' },
+    { code: 'ArtifactDirectory = "artifacts/gua"', explanation: '不一致時のactual、expected、diff、manifestを保存します。' },
+    { code: 'new GuaRecorder(host.Context)', explanation: '同じUnity contextへ送るSemantic操作をrecordingへ記録します。' },
+    { code: 'recorder.ClickAsync(new(Id: "start"))', explanation: 'startへのclickを実行し、request-correlated完了を待って再生可能なstepとして残します。' },
+  ]} />
+  <h2>並列実行と分離</h2>
+  <p><code>UseAvailableBridgePort</code>は既定で<code>true</code>です。ホストがloopbackの空きポートを予約し、子プロセスへ<code>GUA_BRIDGE_PORT</code>を渡すため、固定8765の衝突を避けられます。</p>
+  <p>ただし番号を選んだ直後にlistenerを閉じてからUnityを起動するため、bind完了までを予約する仕組みではありません。極端な並列負荷では小さな競合余地が残ります。</p>
+  <CodeBlock title="明示オプション" lang="csharp" code={`var options = new UnitySceneTestHostOptions {
+    UnityExecutablePath = @"C:/Program Files/Unity/Hub/Editor/6000.5.3f1/Editor/Unity.exe",
+    ProjectPath = @"C:/src/game",
+    UseAvailableBridgePort = true,
+    ConnectTimeout = TimeSpan.FromSeconds(60),
+    TeardownResetPolicy = GuaResetPolicy.Strict,
+    CaptureDiagnosticsBeforeTeardown = true,
+};`} />
+  <CodeNotes title="Unity host optionの意味" codeLabel="option" explanationLabel="意味" items={[
+    { code: 'UnityExecutablePath', explanation: '使用するUnity.exeを明示します。省略時は環境変数とHub installを探索します。' },
+    { code: 'ProjectPath', explanation: 'AssetsとProjectSettingsを含むUnity project rootです。' },
+    { code: 'UseAvailableBridgePort = true', explanation: 'loopbackの空きportを選び、GUA_BRIDGE_PORTとして子processへ渡します。' },
+    { code: 'ConnectTimeout = 60秒', explanation: 'Unity起動後、bridgeへ接続できるまで待つ上限です。' },
+    { code: 'TeardownResetPolicy = Strict', explanation: '終了時の未消費request/eventを黙って捨てず失敗として報告します。' },
+    { code: 'CaptureDiagnosticsBeforeTeardown = true', explanation: 'teardown失敗時、Unity processを終了する前に証拠を取得します。' },
+  ]} />
+  <Callout kind="warn" title="Editor project lock"><p><code>LoadEditor</code>は<code>Temp/UnityLockfile</code>を検査します。同じprojectを別のUnity Editorで開いている場合、曖昧に待たず、実行commandとlock pathを含む例外を返します。</p></Callout>
+  <h2>診断とスクリーンショット</h2>
+  <p><code>CreateDiagnosticsSession()</code>はUI Tree、操作履歴、runtime diagnosticsに加え、<code>-logFile</code>で得たUnity log、PID、bridge URL、log pathをartifactへ含めます。stdout/stderrを別々にはredirectしません。必要なら<code>captureScreenshot: true</code>を指定します。Strict teardownは未消費request/event等を黙って消さず失敗として報告します。</p>
+  <CodeBlock title="assertion失敗時にUnity証拠を保存" lang="csharp" code={`using var diagnostics = host.CreateDiagnosticsSession(
+    TestContext.CurrentContext.Test.FullName,
+    outputDirectory: "artifacts/gua",
+    captureScreenshot: true);
+
+using var assertionScope = GuaAssertionScope.Use(
+    new GuaAssertionOptions {
+        DiagnosticsSession = diagnostics,
+    });
+
+GuaAssertions.GetByRole(
+    host.Context, "button", "Start Game"
+).ToBeVisible();`} />
+  <CodeNotes title="診断設定の意味" codeLabel="記述" explanationLabel="意味" items={[
+    { code: 'host.CreateDiagnosticsSession(...)', explanation: '共通Gua diagnosticsへUnity process固有のlogとmetadataを加えるsessionを作ります。' },
+    { code: 'TestContext...Test.FullName', explanation: 'NUnitのtest名をartifact識別子にします。' },
+    { code: 'outputDirectory: "artifacts/gua"', explanation: '失敗証拠の保存先を指定します。' },
+    { code: 'captureScreenshot: true', explanation: 'semantic情報に加えてon-demand PNGも取得します。headless hostでは利用できません。' },
+    { code: 'GuaAssertionScope.Use(...)', explanation: 'scope内のGua assertion失敗とdiagnostics sessionを関連付けます。' },
+    { code: '.ToBeVisible()', explanation: '失敗時は元のassertionを主例外として保ったまま証拠を保存します。' },
+  ]} />
+  <p><code>SceneTimeout</code>は現状、主にscreenshot待機の既定値です。Scene遷移を自動で待つAPIではありません。</p>
+  <Callout kind="tip" title="Unity.exeの解決順"><p><code>UnityExecutablePath</code>、環境変数<code>UNITY_EXECUTABLE</code>、<code>C:\Program Files\Unity\Hub\Editor</code>の新しいinstallの順に探索します。</p></Callout>
+</DocPage>
