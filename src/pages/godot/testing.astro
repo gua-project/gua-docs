@@ -1,5 +1,5 @@
 ---
-import DocPage from '../../components/DocPage.astro'; import CodeBlock from '../../components/CodeBlock.astro'; import Callout from '../../components/Callout.astro';
+import DocPage from '../../components/DocPage.astro'; import CodeBlock from '../../components/CodeBlock.astro'; import Callout from '../../components/Callout.astro'; import CodeNotes from '../../components/CodeNotes.astro';
 const test = `using Gua.Testing;
 using Gua.Testing.Godot;
 
@@ -25,10 +25,43 @@ await GuaAssertions.WaitForTextAsync(
 );`;
 ---
 <DocPage eyebrow="GODOT / TESTING" title="Testing UI" lead="Launch a Godot process and connect to its live semantic UI tree. Locate controls by role, text, and ID, then wait for observable results instead of clicking coordinates." description="Test live Godot scenes with Gua.Testing.Godot." section="godot">
-  <h2>1. Install the required NuGet packages</h2><p>External Godot tests require all three packages: <strong>Gua.Core, Gua.Testing, and Gua.Testing.Godot</strong>. Run these commands in the test project directory to resolve the latest stable releases, then commit the versions written to the project.</p><CodeBlock title="PowerShell" lang="powershell" code={`dotnet add package Gua.Core\ndotnet add package Gua.Testing\ndotnet add package Gua.Testing.Godot\n\n# When using NUnit\ndotnet add package Microsoft.NET.Test.Sdk\ndotnet add package NUnit\ndotnet add package NUnit3TestAdapter`} /><Callout title="What each package owns"><p><code>Gua.Core</code> provides the runtime boundary, <code>Gua.Testing</code> adds locators, waits, and assertions, and <code>Gua.Testing.Godot</code> starts the Godot process and connects to its WebSocket bridge.</p></Callout><p>If Godot is not on <code>PATH</code>, set its executable explicitly.</p><CodeBlock title="PowerShell" lang="powershell" code={`$env:GODOT_EXECUTABLE = "C:\\path\\to\\Godot_v4.7-stable_mono_win64_console.exe"\ndotnet test YourGame.Tests.csproj`} />
-  <h2>2. Launch and operate a scene semantically</h2><CodeBlock title="TitleScreenTests.cs" lang="csharp" code={test} />
+  <h2>1. Install the required NuGet packages</h2><p>External Godot tests require all three packages: <strong>Gua.Core, Gua.Testing, and Gua.Testing.Godot</strong>. Run these commands in the test project directory to resolve the latest stable releases, then commit the versions written to the project.</p><CodeBlock title="PowerShell" lang="powershell" code={`dotnet add package Gua.Core\ndotnet add package Gua.Testing\ndotnet add package Gua.Testing.Godot\n\n# When using NUnit\ndotnet add package Microsoft.NET.Test.Sdk\ndotnet add package NUnit\ndotnet add package NUnit3TestAdapter`} /><CodeNotes title="What each command adds" items={[
+    { code: 'dotnet add package Gua.Core', explanation: 'Adds shared Gua types and the native runtime boundary.' },
+    { code: 'dotnet add package Gua.Testing', explanation: 'Adds semantic locators, actions, waits, assertions, and diagnostics.' },
+    { code: 'dotnet add package Gua.Testing.Godot', explanation: 'Adds the process host that starts Godot and connects to its bridge.' },
+    { code: 'dotnet add package Microsoft.NET.Test.Sdk', explanation: 'Lets dotnet test discover and run a test framework.' },
+    { code: 'dotnet add package NUnit', explanation: 'Adds NUnit tests, fixtures, and assertions.' },
+    { code: 'dotnet add package NUnit3TestAdapter', explanation: 'Connects NUnit discovery to Microsoft.NET.Test.Sdk.' },
+  ]} /><Callout title="What each package owns"><p><code>Gua.Core</code> provides the runtime boundary, <code>Gua.Testing</code> adds locators, waits, and assertions, and <code>Gua.Testing.Godot</code> starts the Godot process and connects to its WebSocket bridge.</p></Callout><p>If Godot is not on <code>PATH</code>, set its executable explicitly.</p><CodeBlock title="PowerShell" lang="powershell" code={`$env:GODOT_EXECUTABLE = "C:\\path\\to\\Godot_v4.7-stable_mono_win64_console.exe"\ndotnet test YourGame.Tests.csproj`} /><CodeNotes title="What the run commands mean" items={[
+    { code: '$env:GODOT_EXECUTABLE = "...console.exe"', explanation: 'Selects the Godot executable inherited by the test process and its child.' },
+    { code: 'dotnet test YourGame.Tests.csproj', explanation: 'Builds the named test project and runs its discovered NUnit tests.' },
+  ]} />
+  <h2>2. Launch and operate a scene semantically</h2><CodeBlock title="TitleScreenTests.cs" lang="csharp" code={test} /><CodeNotes title="Read the test in execution order" items={[
+    { code: 'using Gua.Testing;', explanation: 'Imports locators, actions, waits, and assertions.' },
+    { code: 'using Gua.Testing.Godot;', explanation: 'Imports the Godot process host and its options.' },
+    { code: 'using var host = GodotSceneTestHost.Load(...)', explanation: 'Starts Main.tscn in a child Godot process and waits for the bridge; using disposes both.' },
+    { code: '"res://Main.tscn"', explanation: 'Selects the scene resource inside the Godot project.' },
+    { code: 'ProjectPath = projectPath', explanation: 'Points the host at the directory containing project.godot.' },
+    { code: 'UseAvailableBridgePort = true', explanation: 'Selects a loopback port instead of sharing fixed port 8765.' },
+    { code: 'StartupResetPolicy = GuaResetPolicy.Strict', explanation: 'Fails rather than silently deleting dirty state at startup.' },
+    { code: 'TeardownResetPolicy = GuaResetPolicy.Strict', explanation: 'Reports leaked requests or events at the end of the test.' },
+    { code: 'GetByRole(..., "button", "Start Game")', explanation: 'Finds a button by semantic role and accessible name, not coordinates.' },
+    { code: '.ToBeVisible()', explanation: 'Asserts that the matched node is visible in the current snapshot.' },
+    { code: 'GetById(..., "start").ClickAsync()', explanation: 'Sends a click and waits for the request-correlated host completion.' },
+    { code: 'WaitForTextAsync(..., "loading", "Loading...")', explanation: 'Refreshes snapshots until node loading exposes the expected text.' },
+  ]} />
   <Callout kind="tip" title="Click is a request, not completion"><p><code>Click()</code> enqueues a request. The adapter consumes it on a later frame and routes it through normal input. Follow the click with a <code>WaitFor...</code> call that observes the intended outcome.</p></Callout>
-  <h2>3. Operate forms</h2><CodeBlock title="Correlated asynchronous actions" lang="csharp" code={`var name = GuaAssertions.Query(host.Context)\n    .ByRole("textbox").Within("LoginForm").Get();\n\nawait name.SetValueAsync("alice");\nawait name.FocusAsync();\nawait GuaAssertions.PressKeyAsync(host.Context, "Enter");\nawait GuaAssertions.GetById(host.Context, "RememberMe")\n    .SetCheckedAsync(true);\nawait name.WaitForValueAsync("alice");`} />
+  <h2>3. Operate forms</h2><CodeBlock title="Correlated asynchronous actions" lang="csharp" code={`var name = GuaAssertions.Query(host.Context)\n    .ByRole("textbox").Within("LoginForm").Get();\n\nawait name.SetValueAsync("alice");\nawait name.FocusAsync();\nawait GuaAssertions.PressKeyAsync(host.Context, "Enter");\nawait GuaAssertions.GetById(host.Context, "RememberMe")\n    .SetCheckedAsync(true);\nawait name.WaitForValueAsync("alice");`} /><CodeNotes title="What each form operation does" items={[
+    { code: 'GuaAssertions.Query(host.Context)', explanation: 'Starts a semantic query against the connected UI tree.' },
+    { code: '.ByRole("textbox")', explanation: 'Limits candidates to textbox nodes.' },
+    { code: '.Within("LoginForm")', explanation: 'Searches only descendants of node LoginForm.' },
+    { code: '.Get()', explanation: 'Requires exactly one match and reports zero or ambiguous results.' },
+    { code: 'name.SetValueAsync("alice")', explanation: 'Requests a value change and waits for host completion.' },
+    { code: 'name.FocusAsync()', explanation: 'Focuses the textbox so a global key action has a target.' },
+    { code: 'PressKeyAsync(host.Context, "Enter")', explanation: 'Sends an Enter key-down/key-up gesture to the focused Control.' },
+    { code: 'GetById(..., "RememberMe").SetCheckedAsync(true)', explanation: 'Finds the checkbox by stable ID and checks it.' },
+    { code: 'name.WaitForValueAsync("alice")', explanation: 'Observes the published value instead of treating action completion as state completion.' },
+  ]} />
   <h2>Four rules for reliable tests</h2><div class="grid-2"><div class="mini-card"><strong>Use an available port</strong><p>Set <code>UseAvailableBridgePort = true</code> to avoid collisions in parallel runs.</p></div><div class="mini-card"><strong>Reset strictly</strong><p>Detect leaked requests and events at startup and teardown.</p></div><div class="mini-card"><strong>Wait for state</strong><p>Wait for nodes, values, or stable snapshots instead of sleeping for a fixed time.</p></div><div class="mini-card"><strong>Keep failure evidence</strong><p>Capture the UI tree, logs, stdout/stderr, and optional PNG evidence.</p></div></div>
   <h3>1. Reserve a port per test</h3><p>If every test uses <code>8765</code>, only one Godot process can bind it during a parallel run. Let the host reserve a loopback port and pass it to the child as <code>GUA_BRIDGE_PORT</code>.</p><CodeBlock title="Launch on an available port" lang="csharp" code={`using var host = GodotSceneTestHost.Load(
     "res://Main.tscn",
@@ -38,7 +71,12 @@ await GuaAssertions.WaitForTextAsync(
         UseAvailableBridgePort = true,
     });
 
-// The reserved URL is assigned to the child and RemoteContext.`} />
+// The reserved URL is assigned to the child and RemoteContext.`} /><CodeNotes title="What the port options do" items={[
+    { code: 'GodotSceneTestHost.Load("res://Main.tscn", ...)', explanation: 'Starts the scene and returns a host connected to its Gua bridge.' },
+    { code: 'ProjectPath = projectPath', explanation: 'Selects the Godot project used to resolve the scene.' },
+    { code: 'UseAvailableBridgePort = true', explanation: 'Asks the OS for an available port and passes it as GUA_BRIDGE_PORT.' },
+    { code: 'using var host', explanation: 'Closes the connection and child process when the scope ends.' },
+  ]} />
   <h3>2. Reset strictly before and after the test</h3><p>Do not carry nodes, requests, or events from one test into the next. A strict teardown reports unconsumed work instead of silently deleting it.</p><CodeBlock title="Strict isolation" lang="csharp" code={`using var host = GodotSceneTestHost.Load(
     "res://Main.tscn",
     new GodotSceneTestHostOptions
@@ -49,7 +87,12 @@ await GuaAssertions.WaitForTextAsync(
         TeardownResetPolicy = GuaResetPolicy.Strict,
         CaptureDiagnosticsBeforeTeardown = true,
         CleanupAfterLeakReport = true,
-    });`} /><Callout kind="tip" title="Convenience preset"><p>Use <code>GodotSceneTestHostOptions.StrictIsolation</code> as the baseline when its defaults are sufficient. Use the explicit form above when you also need a project path and an available port.</p></Callout>
+    });`} /><CodeNotes title="What strict isolation changes" items={[
+    { code: 'StartupResetPolicy = GuaResetPolicy.Strict', explanation: 'Rejects dirty selected queues before the test starts.' },
+    { code: 'TeardownResetPolicy = GuaResetPolicy.Strict', explanation: 'Reports unconsumed work as a test leak at teardown.' },
+    { code: 'CaptureDiagnosticsBeforeTeardown = true', explanation: 'Captures evidence before the process is destroyed when teardown fails.' },
+    { code: 'CleanupAfterLeakReport = true', explanation: 'Performs cleanup only after preserving the leak report.' },
+  ]} /><Callout kind="tip" title="Convenience preset"><p>Use <code>GodotSceneTestHostOptions.StrictIsolation</code> as the baseline when its defaults are sufficient. Use the explicit form above when you also need a project path and an available port.</p></Callout>
   <h3>3. Wait for observed state, not elapsed time</h3><p><code>Task.Delay(1000)</code> wastes time on a fast machine and may still be too short on a slow one. Wait directly for the state that should follow the action.</p><CodeBlock title="State-based synchronization" lang="csharp" code={`await GuaAssertions.GetById(host.Context, "start")
     .ClickAsync();
 
@@ -63,7 +106,13 @@ await GuaAssertions.WaitForVisibleAsync(
 // Optionally require three unchanged rendered frames.
 await GuaAssertions.WaitForStableSnapshotAsync(
     host.Context,
-    stableFrames: 3);`} /><Callout kind="warn" title="Avoid fixed sleeps"><p>Do not place a definitive assertion immediately after <code>await Task.Delay(1000);</code>. Express the condition with <code>WaitForVisibleAsync</code>, <code>WaitForTextAsync</code>, <code>WaitForValueAsync</code>, or another state-specific wait.</p></Callout>
+    stableFrames: 3);`} /><CodeNotes title="What the waits guarantee" items={[
+    { code: 'ClickAsync()', explanation: 'Waits for the correlated click result, not the full screen transition.' },
+    { code: 'WaitForVisibleAsync(..., "loading", ...)', explanation: 'Polls fresh snapshots until loading is visible.' },
+    { code: 'timeout: TimeSpan.FromSeconds(3)', explanation: 'Fails if the condition is still false after three seconds.' },
+    { code: 'pollInterval: TimeSpan.FromMilliseconds(20)', explanation: 'Controls how often the state is checked.' },
+    { code: 'WaitForStableSnapshotAsync(..., stableFrames: 3)', explanation: 'Waits for three consecutive unchanged semantic frames.' },
+  ]} /><Callout kind="warn" title="Avoid fixed sleeps"><p>Do not place a definitive assertion immediately after <code>await Task.Delay(1000);</code>. Express the condition with <code>WaitForVisibleAsync</code>, <code>WaitForTextAsync</code>, <code>WaitForValueAsync</code>, or another state-specific wait.</p></Callout>
   <h3>4. Capture diagnostics when an assertion fails</h3><p>Write the final UI tree, operation history, logs, and Godot stdout/stderr to <code>artifacts/gua</code>. In CI, upload that directory as a test artifact.</p><CodeBlock title="Enable failure diagnostics" lang="csharp" code={`using var diagnostics = host.CreateDiagnosticsSession(
     TestContext.CurrentContext.Test.FullName,
     outputDirectory: Path.Combine(
@@ -79,7 +128,14 @@ using var assertionScope = GuaAssertionScope.Use(
 // A failure preserves the primary exception and writes diagnostics.
 GuaAssertions.GetByRole(
     host.Context, "button", "Start Game"
-).ToBeVisible();`} /><p>With GitHub Actions, pass <code>artifacts/gua/**</code> to <code>actions/upload-artifact</code> after the test step so evidence remains available from a failed run.</p>
+).ToBeVisible();`} /><CodeNotes title="What the diagnostics setup does" items={[
+    { code: 'host.CreateDiagnosticsSession(...)', explanation: 'Creates an evidence collector tied to this Godot host.' },
+    { code: 'TestContext.CurrentContext.Test.FullName', explanation: 'Uses the full NUnit test name to identify the artifact set.' },
+    { code: 'Path.Combine(..., "artifacts", "gua")', explanation: 'Builds a portable output path.' },
+    { code: 'GuaAssertionScope.Use(...)', explanation: 'Associates assertion failures in this scope with the diagnostics session.' },
+    { code: 'DiagnosticsSession = diagnostics', explanation: 'Selects the UI tree, history, logs, and process evidence collector.' },
+    { code: '.ToBeVisible()', explanation: 'Keeps the assertion as the primary failure even if evidence capture also fails.' },
+  ]} /><p>With GitHub Actions, pass <code>artifacts/gua/**</code> to <code>actions/upload-artifact</code> after the test step so evidence remains available from a failed run.</p>
   <h2>Run tests with GitHub Actions</h2><p>The public <a href="https://github.com/link1345/gua-tester"><code>link1345/gua-tester</code></a> action installs Godot on a Windows runner, links the latest released Gua add-on, sets <code>GODOT_EXECUTABLE</code>, and runs <code>dotnet test</code>.</p><CodeBlock title=".github/workflows/godot-gdscript.yml" lang="yaml" code={`name: Godot Gua UI tests
 
 on:
@@ -98,5 +154,13 @@ jobs:
           project-path: game
           test-project: tests/GuaTester.Tests.csproj
           godot-version: "4.7"
-          godot-status: stable`} /><Callout kind="tip" title="Use the released add-on"><p>The action downloads a ZIP from the latest matching <code>godot-plugin-*</code> release and places it at <code>game/addons/gua</code>. It does not build Gua's native extension in the consumer workflow. See the <a href="/docs/github-actions/">GitHub Actions reference</a> for every input and output.</p></Callout>
+          godot-status: stable`} /><CodeNotes title="What each workflow section controls" items={[
+    { code: 'on: pull_request / push', explanation: 'Runs the workflow for pull requests and pushes to main.' },
+    { code: 'runs-on: windows-latest', explanation: 'Uses the Windows runner supported by the released Godot integration.' },
+    { code: 'actions/checkout@v4', explanation: 'Checks out the game and test sources.' },
+    { code: 'uses: link1345/gua-tester@v1.3', explanation: 'Installs Godot, links the released add-on, and runs dotnet test.' },
+    { code: 'project-path: game', explanation: 'Points to the directory containing project.godot.' },
+    { code: 'test-project: tests/GuaTester.Tests.csproj', explanation: 'Selects the .NET test project to run.' },
+    { code: 'godot-version / godot-status', explanation: 'Pins the runner to Godot 4.7 stable.' },
+  ]} /><Callout kind="tip" title="Use the released add-on"><p>The action downloads a ZIP from the latest matching <code>godot-plugin-*</code> release and places it at <code>game/addons/gua</code>. It does not build Gua's native extension in the consumer workflow. See the <a href="/docs/github-actions/">GitHub Actions reference</a> for every input and output.</p></Callout>
 </DocPage>

@@ -2,15 +2,33 @@
 import DocPage from '../../../components/DocPage.astro';
 import Callout from '../../../components/Callout.astro';
 import CodeBlock from '../../../components/CodeBlock.astro';
+import CodeNotes from '../../../components/CodeNotes.astro';
 ---
 <DocPage eyebrow="UNITY / UI" title="導入とUI実装" lead="最新ReleaseのUPMアーカイブを追加すると、ランタイムが自動起動し、UI Toolkit、uGUI、TextMeshProの実行時UIを収集します。" description="Gua Unityパッケージの導入とUI自動収集。" section="unity">
   <h2>1. UPMパッケージを追加する</h2>
   <Callout kind="tip" title="Latest Releaseから導入"><p><a href="https://github.com/link1345/gua/releases/latest">Guaの最新Release</a>を開き、<code>com.link1345.gua-&lt;version&gt;.tgz</code>を取得します。UnityのPackage Managerで<strong>Add package from tarball</strong>を選び、このファイルを指定してください。通常利用では配布済みUPMパッケージを使用します。</p></Callout>
   <ol class="steps"><li><strong>Latest Releaseを開く</strong><p>AssetsからUnity用<code>.tgz</code>をダウンロードします。</p></li><li><strong>Package Managerへ追加</strong><p><strong>＋ → Add package from tarball</strong>を選択して、ダウンロードしたファイルを指定します。</p></li><li><strong>サンプルを取り込む</strong><p>Package ManagerのGua詳細画面で<strong>Samples</strong>を開き、<strong>Runtime UI Fixture</strong>をImportすると、対応UIをまとめたシーンを確認できます。</p></li></ol>
   <Callout kind="warn" title="Player設定"><p>Windows x86_64、Mono、.NET Standard 2.1 API Compatibility Levelを使用します。TextMeshProを使う場合は<strong>Import TMP Essential Resources</strong>を先に実行します。</p></Callout>
-  <h2>2. UI Toolkitで実装する</h2>
+  <h2>2. 自動起動の仕組みを理解する</h2>
+  <p>Godot版ではゲーム側が<code>attach()</code>と<code>update()</code>を呼びますが、Unity版ではUPMパッケージが同じ責務を自動で引き受けます。sceneごとにGua初期化scriptを追加する必要はありません。</p>
+  <div class="flow"><span>BeforeSceneLoad</span><b>→</b><span>Runtime / Driverを生成</span><b>→</b><span>LateUpdate</span><b>→</b><span>UI収集・action配送</span></div>
+  <div class="table-wrap"><table><thead><tr><th>内部処理</th><th>利用者から見た意味</th></tr></thead><tbody>
+    <tr><td><code>GuaUnityRuntime.EnsureStarted()</code></td><td>scene読込前にruntimeとWebSocket bridgeを一度だけ作ります。</td></tr>
+    <tr><td><code>GuaUnityBootstrap.LateUpdate()</code></td><td>通常の<code>Update()</code>後に、そのframeのUI状態を収集します。</td></tr>
+    <tr><td><code>BeginFrame → collect → EndFrame</code></td><td>UI Toolkit、uGUI、TMPを一つの整合したSemantic UI Treeとして公開します。</td></tr>
+    <tr><td>action配送</td><td>外部requestをUnity Controlのevent/value変更へ適用し、request ID付き結果を返します。</td></tr>
+  </tbody></table></div>
+  <Callout kind="tip" title="ゲーム側で書かなくてよいもの"><p><code>new GuaRuntime()</code>、<code>attach()</code>、毎frameの<code>update()</code>、semantic nodeの手動登録、bridgeの開始・破棄はUPMパッケージが管理します。ゲーム側は通常のUnity UIと、必要な安定IDだけを実装します。</p></Callout>
+  <h2>3. UI Toolkitで実装する</h2>
   <p><code>BeforeSceneLoad</code>でbootstrap driverとruntimeの<strong>2つ</strong>の非表示・永続GameObjectが作られます。driverの<code>LateUpdate()</code>がruntimeのframe処理を進めます。利用者による初期化、semantic node登録、毎フレーム呼び出し、破棄処理は不要です。</p>
   <p><code>UIDocument</code>以下へ標準Controlを配置します。<code>name</code>または<code>viewDataKey</code>がGuaの安定IDとして使われます。</p>
+  <CodeBlock title="TitleScreen.uxml" lang="xml" code={`<ui:UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:Button name="start" text="Start Game" />
+</ui:UXML>`} />
+  <CodeNotes title="UXMLの各記述" codeLabel="記述" explanationLabel="意味" items={[
+    { code: '<ui:UXML xmlns:ui="UnityEngine.UIElements">', explanation: 'UI Toolkit標準elementを使うUXML documentのルートです。' },
+    { code: '<ui:Button name="start" text="Start Game" />', explanation: '表示textがStart GameのButtonを作り、name=startをGuaの安定ID候補にします。' },
+  ]} />
   <CodeBlock title="UI Toolkitの短縮例" lang="csharp" code={`using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -25,8 +43,17 @@ public sealed class TitleScreen : MonoBehaviour
         start.clicked += () => Debug.Log("Start Game");
     }
 }`} />
+  <CodeNotes title="UI Toolkit scriptを上から読む" codeLabel="記述" explanationLabel="意味" items={[
+    { code: 'using UnityEngine.UIElements;', explanation: 'UIDocument、VisualElement、ButtonなどUI Toolkit型を読み込みます。' },
+    { code: 'public sealed class TitleScreen : MonoBehaviour', explanation: 'scene上のGameObjectへ付ける通常のgame scriptです。Gua専用base classではありません。' },
+    { code: '[SerializeField] private UIDocument document;', explanation: 'Inspectorから、このscriptが操作するUIDocumentを割り当てます。' },
+    { code: 'private void OnEnable()', explanation: 'GameObjectが有効になった時点でButton listenerを登録します。' },
+    { code: 'var root = document.rootVisualElement;', explanation: 'UIDocumentが生成したVisualElement treeのルートを取得します。' },
+    { code: 'root.Q<Button>("start")', explanation: 'UXMLのname=startを持つButtonを検索します。このnameはGuaのnode IDにも使われます。' },
+    { code: 'start.clicked += ...', explanation: '通常のUnity click listenerです。Guaの外部clickもこのevent経路を通るため、test専用分岐は不要です。' },
+  ]} />
   <p>上の例ではUXML側のButtonへ<code>name="start"</code>を設定します。Button、Toggle、TextField、Slider、DropdownField、ListViewなどは自動的にSemantic UI Treeへ反映されます。</p>
-  <h2>3. uGUI / TextMeshProで実装する</h2>
+  <h2>4. uGUI / TextMeshProで実装する</h2>
   <p>Canvas以下へ標準uGUI Controlを配置します。長期間テストから参照するGameObjectには<code>GuaId</code>を追加してIDを固定します。</p>
   <CodeBlock title="uGUIの短縮例" lang="csharp" code={`using Gua.Unity;
 using UnityEngine;
@@ -44,16 +71,30 @@ public sealed class TitleScreen : MonoBehaviour
         startButton.onClick.AddListener(() => Debug.Log("Start Game"));
     }
 }`} />
+  <CodeNotes title="uGUI scriptを上から読む" codeLabel="記述" explanationLabel="意味" items={[
+    { code: 'using Gua.Unity;', explanation: '任意の安定IDを付けるGuaIdなどUnity向け公開型を読み込みます。' },
+    { code: '[SerializeField] private Button startButton;', explanation: 'Canvas上のuGUI ButtonをInspectorから割り当てます。' },
+    { code: 'private void Awake()', explanation: 'listenerやIDを、最初のGua frameが収集される前に準備します。' },
+    { code: 'startButton.GetComponent<GuaId>()', explanation: '既にGuaIdが付いていれば再利用します。' },
+    { code: '?? startButton.gameObject.AddComponent<GuaId>()', explanation: '無い場合だけGuaIdを追加し、componentの重複を避けます。' },
+    { code: 'id.Value = "start"', explanation: 'scene階層変更に影響されない固定node IDを設定します。' },
+    { code: 'startButton.onClick.AddListener(...)', explanation: '通常のuGUI listenerを登録します。Gua clickもこのlistenerを発火させます。' },
+  ]} />
   <p>TextMeshProのButton、InputField、Dropdown、Textも同じCanvas階層から収集されます。サンプル全体は<a href="https://github.com/link1345/gua/blob/47515fb/bindings/unity/Samples~/Runtime%20UI%20Fixture/GuaRuntimeUiSample.cs"><code>GuaRuntimeUiSample.cs</code></a>と<a href="https://github.com/link1345/gua/blob/47515fb/examples/unity-smoke/Assets/GuaUnityFixture.cs"><code>GuaUnityFixture.cs</code></a>で確認できます。</p>
-  <h2>4. 安定IDと画面名を付ける</h2>
+  <h2>5. 安定IDと画面名を付ける</h2>
   <p>IDは自動生成されますが、テストから長期間参照する要素には<code>GuaId</code>を付けます。UI Toolkitは<code>viewDataKey</code>、次に<code>name</code>を優先します。uGUI/TMPは<code>GuaId.Value</code>が無ければscene path、Transform名、sibling indexから生成します。</p>
   <CodeBlock title="任意の明示IDと論理画面" lang="csharp" code={`using Gua.Unity;
 
 startButton.gameObject.AddComponent<GuaId>().Value = "start";
 screenRoot.AddComponent<GuaScreen>().Value = "title";`} />
+  <CodeNotes title="IDと画面名の意味" codeLabel="記述" explanationLabel="意味" items={[
+    { code: 'using Gua.Unity;', explanation: 'GuaIdとGuaScreen componentを参照できるようにします。' },
+    { code: 'AddComponent<GuaId>().Value = "start"', explanation: 'ButtonのGameObjectを外部testからstartという固定IDで参照できるようにします。既存componentがある場合はGetComponentで再利用してください。' },
+    { code: 'AddComponent<GuaScreen>().Value = "title"', explanation: '現在の論理画面名をtitleとして公開します。画面単位のroot GameObjectへ一つだけ付けます。' },
+  ]} />
   <Callout kind="tip" title="IDの契約"><p><code>/</code>は<code>~1</code>へescapeされ、UTF-8で127 byteを超えるIDはhash suffix付きで短縮されます。同一frameの重複IDは最初のnodeだけが採用され、残りはruntime logへ記録されます。</p></Callout>
   <Callout kind="warn" title="GuaScreenは一つにする"><p>複数の<code>GuaScreen</code>がある場合は最初に見つかったものが使われますが、探索順は公開契約ではありません。一つの論理画面につき一つだけ配置します。</p></Callout>
-  <h2>5. 外部接続を許可する</h2>
+  <h2>6. 外部接続を許可する</h2>
   <p>既定のWebSocketポートは<code>8765</code>です。プロセス起動前に<code>GUA_BRIDGE_PORT</code>を設定すると変更できます。Inspectorと<code>gui-mcp</code>はGodot版と同じブリッジへ接続します。</p>
   <h2>観測と操作の原則</h2>
   <ul>

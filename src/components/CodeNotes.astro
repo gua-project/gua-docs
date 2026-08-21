@@ -1,0 +1,24 @@
+---
+interface CodeNote {
+  code: string;
+  explanation: string;
+}
+
+interface Props {
+  title: string;
+  items: CodeNote[];
+  codeLabel?: string;
+  explanationLabel?: string;
+}
+
+const { title, items, codeLabel = 'Code', explanationLabel = 'Meaning' } = Astro.props;
+---
+<div class="code-notes">
+  <p><strong>{title}</strong></p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>{codeLabel}</th><th>{explanationLabel}</th></tr></thead>
+      <tbody>{items.map((item) => <tr><td><code>{item.code}</code></td><td>{item.explanation}</td></tr>)}</tbody>
+    </table>
+  </div>
+</div>

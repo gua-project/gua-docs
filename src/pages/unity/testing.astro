@@ -2,9 +2,14 @@
 import DocPage from '../../components/DocPage.astro';
 import Callout from '../../components/Callout.astro';
 import CodeBlock from '../../components/CodeBlock.astro';
+import CodeNotes from '../../components/CodeNotes.astro';
 ---
 <DocPage eyebrow="UNITY / TESTING" title="Testing UI" lead="Gua.Testing.Unity starts Unity Editor Play Mode or a Windows Mono Player and connects the shared IGuaContext to its bridge." description="External Unity UI testing with Gua.Testing.Unity." section="unity">
-  <h2>1. Add test packages</h2><p><code>Gua.Testing.Unity</code> is published on NuGet. These commands resolve the latest stable releases; commit the versions written to the project and keep the three Gua packages on the same version line.</p><CodeBlock title="Add the Unity test host" lang="powershell" code={`dotnet add package Gua.Core\ndotnet add package Gua.Testing\ndotnet add package Gua.Testing.Unity`} />
+  <h2>1. Add test packages</h2><p><code>Gua.Testing.Unity</code> is published on NuGet. These commands resolve the latest stable releases; commit the versions written to the project and keep the three Gua packages on the same version line.</p><CodeBlock title="Add the Unity test host" lang="powershell" code={`dotnet add package Gua.Core\ndotnet add package Gua.Testing\ndotnet add package Gua.Testing.Unity`} /><CodeNotes title="What each package adds" items={[
+    { code: 'dotnet add package Gua.Core', explanation: 'Adds shared Gua types and the native runtime boundary.' },
+    { code: 'dotnet add package Gua.Testing', explanation: 'Adds the same semantic locators, actions, waits, assertions, and diagnostics used with Godot.' },
+    { code: 'dotnet add package Gua.Testing.Unity', explanation: 'Adds Unity Editor/Player build, startup, bridge connection, and teardown.' },
+  ]} />
   <h2>2. Start a Player or Editor</h2><CodeBlock title="Build and test a rendered Player" lang="csharp" code={`using Gua.Core;
 using Gua.Testing;
 using Gua.Testing.Unity;
@@ -12,10 +17,52 @@ using Gua.Testing.Unity;
 var player = UnityPlayerBuilder.Build(@"game/Assets/Scenes/Title.unity");
 using var host = UnitySceneTestHost.LoadRenderedPlayer(
     player, UnitySceneTestHostOptions.StrictIsolation);
-var start = host.Context.FindNodeByRole("button", "Start Game");
-host.Context.EnqueueClick(start);
+GuaAssertions.GetByRole(
+    host.Context, "button", "Start Game"
+).ToBeVisible();
+
+await GuaAssertions.GetById(
+    host.Context, "start"
+).ClickAsync();
+
+await GuaAssertions.WaitForTextAsync(
+    host.Context, "loading", "Loading..."
+);
+
 var screenshot = host.CaptureScreenshot();`} />
+  <CodeNotes title="Read the Unity test in execution order" items={[
+    { code: 'using Gua.Core;', explanation: 'Imports shared runtime types such as reset policies.' },
+    { code: 'using Gua.Testing;', explanation: 'Imports semantic locators, actions, waits, and assertions.' },
+    { code: 'using Gua.Testing.Unity;', explanation: 'Imports the Unity Player builder and scene host.' },
+    { code: 'UnityPlayerBuilder.Build("...Title.unity")', explanation: 'Runs Unity Editor in batch mode and builds a temporary Windows x64 Mono Player.' },
+    { code: 'LoadRenderedPlayer(player, StrictIsolation)', explanation: 'Starts a rendered Player, connects to its bridge, and checks isolation at startup and teardown.' },
+    { code: 'GetByRole(..., "button", "Start Game")', explanation: 'Finds the button semantically across UI Toolkit, uGUI, or TMP.' },
+    { code: '.ToBeVisible()', explanation: 'Asserts visibility in the current semantic snapshot.' },
+    { code: 'GetById(..., "start").ClickAsync()', explanation: 'Clicks the stable ID and waits for Unity listener completion.' },
+    { code: 'WaitForTextAsync(..., "loading", "Loading...")', explanation: 'Refreshes snapshots until the game publishes the expected result.' },
+    { code: 'host.CaptureScreenshot()', explanation: 'Requests a PNG after a later rendered frame.' },
+    { code: 'using var host', explanation: 'Closes the bridge and child process when the scope ends.' },
+  ]} />
   <div class="table-wrap"><table><thead><tr><th>Entry point</th><th>Use</th></tr></thead><tbody><tr><td><code>LoadPlayer</code></td><td>Existing <code>-batchmode -nographics</code> Player for fast semantic tests</td></tr><tr><td><code>LoadRenderedPlayer</code></td><td>Rendered existing Player for screenshots and visual tests</td></tr><tr><td><code>LoadEditor</code></td><td>Open a scene in Editor Play Mode</td></tr><tr><td><code>BuildAndLoadPlayer</code></td><td>Build and start a Windows x64 Mono Player</td></tr></tbody></table></div>
+  <h2>3. Use the same semantic API as Godot</h2><p><code>host.Context</code> is the engine-neutral <code>IGuaContext</code>. Tests use the same locators and waits instead of branching on Unity UI technology.</p><CodeBlock title="Input, focus, and observed state" lang="csharp" code={`var name = GuaAssertions.Query(host.Context)
+    .ByRole("textbox").Within("LoginForm").Get();
+
+await name.SetValueAsync("alice");
+await name.FocusAsync();
+await GuaAssertions.PressKeyAsync(host.Context, "Enter");
+
+await GuaAssertions.GetById(host.Context, "RememberMe")
+    .SetCheckedAsync(true);
+await name.WaitForValueAsync("alice");`} /><CodeNotes title="What each semantic operation does" items={[
+    { code: 'Query(host.Context).ByRole("textbox")', explanation: 'Queries Unity UI through the shared textbox role.' },
+    { code: '.Within("LoginForm").Get()', explanation: 'Scopes the query and requires exactly one match.' },
+    { code: 'SetValueAsync("alice")', explanation: 'Sets a UI Toolkit, uGUI, or TMP text input through one action.' },
+    { code: 'FocusAsync()', explanation: 'Uses Unity focus so the next global key gesture has a target.' },
+    { code: 'PressKeyAsync(..., "Enter")', explanation: 'Sends key-down and key-up to the focused textbox.' },
+    { code: 'SetCheckedAsync(true)', explanation: 'Checks a UI Toolkit or uGUI/TMP toggle.' },
+    { code: 'WaitForValueAsync("alice")', explanation: 'Waits for a later published frame to expose the value.' },
+  ]} />
+  <h2>Four rules for reliable Unity tests</h2><div class="grid-2"><div class="mini-card"><strong>Choose the host for the purpose</strong><p>Use headless for semantic tests and a rendered Player or Editor for screenshots.</p></div><div class="mini-card"><strong>Wait for state</strong><p>Observe nodes, text, and values instead of guessing Unity frame timing with sleeps.</p></div><div class="mini-card"><strong>Isolate each test</strong><p>Use available ports and strict reset to detect collisions and leaked work.</p></div><div class="mini-card"><strong>Keep failure evidence</strong><p>Retain the UI tree, history, Unity log, process data, and optional PNG.</p></div></div>
   <h2>Visual comparison and recording</h2><p><code>Gua.Testing.Visual</code> and <code>Gua.Testing.Recording</code> are engine-neutral packages, so both work with the <code>host.Context</code> supplied by <code>Gua.Testing.Unity</code>. Use <code>LoadRenderedPlayer</code> or Editor Play Mode when Visual needs a PNG. Recording operates on semantic actions and also works with a headless Player.</p><CodeBlock title="Use shared packages with a Unity host" lang="csharp" code={`using Gua.Testing.Recording;
 using Gua.Testing.Visual;
 
@@ -26,7 +73,14 @@ var comparison = await GuaVisualAssertions.ExpectScreenshotAsync(
     });
 
 var recorder = new GuaRecorder(host.Context);
-await recorder.ClickAsync(new(Id: "start"));`} />
+await recorder.ClickAsync(new(Id: "start"));`} /><CodeNotes title="What the Visual and Recording calls do" items={[
+    { code: 'using Gua.Testing.Visual;', explanation: 'Imports engine-neutral PNG baseline comparison.' },
+    { code: 'ExpectScreenshotAsync(host.Context, "title-screen", ...)', explanation: 'Captures Unity and compares it with the reviewed title-screen baseline.' },
+    { code: 'BaselineDirectory = "baselines"', explanation: 'Selects the version-controlled expected images.' },
+    { code: 'ArtifactDirectory = "artifacts/gua"', explanation: 'Stores expected, actual, diff, and manifest on mismatch.' },
+    { code: 'new GuaRecorder(host.Context)', explanation: 'Records semantic operations sent to the same Unity context.' },
+    { code: 'recorder.ClickAsync(new(Id: "start"))', explanation: 'Performs and records a request-correlated click step.' },
+  ]} />
   <h2>Parallel isolation</h2><p><code>UseAvailableBridgePort</code> defaults to <code>true</code>. The host selects a loopback port and passes it as <code>GUA_BRIDGE_PORT</code>, avoiding a fixed collision on port 8765. It closes the listener before Unity binds, so a small selection-to-bind race remains under extreme concurrency.</p>
   <CodeBlock title="Explicit options" lang="csharp" code={`var options = new UnitySceneTestHostOptions {
     UnityExecutablePath = @"C:/Program Files/Unity/Hub/Editor/6000.5.3f1/Editor/Unity.exe",
@@ -34,8 +88,33 @@ await recorder.ClickAsync(new(Id: "start"));`} />
     UseAvailableBridgePort = true,
     TeardownResetPolicy = GuaResetPolicy.Strict,
     CaptureDiagnosticsBeforeTeardown = true,
-};`} />
+};`} /><CodeNotes title="What each Unity host option means" items={[
+    { code: 'UnityExecutablePath', explanation: 'Selects Unity.exe explicitly before environment and Hub discovery.' },
+    { code: 'ProjectPath', explanation: 'Points to the Unity root containing Assets and ProjectSettings.' },
+    { code: 'UseAvailableBridgePort = true', explanation: 'Selects a loopback port and passes it as GUA_BRIDGE_PORT.' },
+    { code: 'TeardownResetPolicy = Strict', explanation: 'Reports unconsumed requests and events instead of deleting them.' },
+    { code: 'CaptureDiagnosticsBeforeTeardown = true', explanation: 'Captures evidence before terminating Unity when teardown fails.' },
+  ]} />
   <Callout kind="warn" title="Editor project lock"><p><code>LoadEditor</code> checks <code>Temp/UnityLockfile</code>. If another Editor owns the project, it fails with the command and lock path instead of waiting ambiguously.</p></Callout>
-  <h2>Diagnostics</h2><p><code>CreateDiagnosticsSession()</code> adds the single <code>-logFile</code> Unity log, PID, bridge URL, and log path to shared artifacts. stdout and stderr are not redirected separately. Strict teardown reports leaked requests or events instead of deleting them silently. <code>SceneTimeout</code> currently serves mainly as the default screenshot timeout; it does not wait for scene transitions automatically.</p>
+  <h2>Diagnostics</h2><p><code>CreateDiagnosticsSession()</code> adds the single <code>-logFile</code> Unity log, PID, bridge URL, and log path to shared artifacts. stdout and stderr are not redirected separately. Strict teardown reports leaked requests or events instead of deleting them silently.</p><CodeBlock title="Capture Unity evidence on assertion failure" lang="csharp" code={`using var diagnostics = host.CreateDiagnosticsSession(
+    TestContext.CurrentContext.Test.FullName,
+    outputDirectory: "artifacts/gua",
+    captureScreenshot: true);
+
+using var assertionScope = GuaAssertionScope.Use(
+    new GuaAssertionOptions {
+        DiagnosticsSession = diagnostics,
+    });
+
+GuaAssertions.GetByRole(
+    host.Context, "button", "Start Game"
+).ToBeVisible();`} /><CodeNotes title="What the diagnostics setup does" items={[
+    { code: 'host.CreateDiagnosticsSession(...)', explanation: 'Adds Unity process logs and metadata to shared Gua diagnostics.' },
+    { code: 'TestContext...Test.FullName', explanation: 'Uses the full NUnit test name as the artifact identity.' },
+    { code: 'outputDirectory: "artifacts/gua"', explanation: 'Selects the evidence directory.' },
+    { code: 'captureScreenshot: true', explanation: 'Adds an on-demand PNG; use a rendered host.' },
+    { code: 'GuaAssertionScope.Use(...)', explanation: 'Associates failures in the scope with this diagnostics session.' },
+    { code: '.ToBeVisible()', explanation: 'Keeps the assertion as the primary error while collecting evidence.' },
+  ]} /><p><code>SceneTimeout</code> currently serves mainly as the default screenshot timeout; it does not wait for scene transitions automatically.</p>
   <Callout kind="tip" title="Unity.exe resolution"><p>The host checks <code>UnityExecutablePath</code>, then <code>UNITY_EXECUTABLE</code>, then the newest install below <code>C:\Program Files\Unity\Hub\Editor</code>.</p></Callout>
 </DocPage>
