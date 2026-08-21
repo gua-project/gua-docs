@@ -145,6 +145,10 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
     {
         runtime.CompleteScreenshot(request, GuaScreenshotAvailability.Headless);
     }
+    else if (ui.IsRenderingDisabled)
+    {
+        runtime.CompleteScreenshot(request, GuaScreenshotAvailability.RenderingDisabled);
+    }
     else
     {
         var png = ui.CapturePngAfterDraw();
@@ -153,7 +157,7 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
             dataUri, png.Width, png.Height);
     }
 }`} />
-  <p>captureは可能なら描画完了後に行います。<code>CompleteScreenshot</code>がdocumented completion APIです。consumeしたrequestごとに一度だけ呼びます。timeout・cancel・context reset後のlate completionはruntimeが無視するため、再試行しません。</p>
+  <p>PNG captureを試す前に、headlessとrendering disabledを別々に判定します。captureは可能なら描画完了後に行います。<code>CompleteScreenshot</code>がdocumented completion APIです。consumeしたrequestごとに一度だけ呼びます。timeout・cancel・context reset後のlate completionはruntimeが無視するため、再試行しません。</p>
 
   <h2>実装チェックリスト</h2>
   <ul>

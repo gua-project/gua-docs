@@ -136,6 +136,8 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
 {
     if (ui.IsHeadless)
         runtime.CompleteScreenshot(request, GuaScreenshotAvailability.Headless);
+    else if (ui.IsRenderingDisabled)
+        runtime.CompleteScreenshot(request, GuaScreenshotAvailability.RenderingDisabled);
     else
     {
         var png = ui.CapturePngAfterDraw();
@@ -144,7 +146,7 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
             dataUri, png.Width, png.Height);
     }
 }`} />
-  <p><code>CompleteScreenshot</code> is the documented completion API. Call it once for every consumed request. If timeout, cancellation, or context reset already invalidated the request, the runtime ignores the late completion; do not retry it.</p>
+  <p>Check headless and rendering-disabled states separately before attempting PNG capture. <code>CompleteScreenshot</code> is the documented completion API. Call it once for every consumed request. If timeout, cancellation, or context reset already invalidated the request, the runtime ignores the late completion; do not retry it.</p>
 
   <h2>Adapter checklist</h2>
   <ul><li>Publish a stable lowercase adapter name and version.</li><li>Keep IDs, roles, parents, states, and supported actions consistent.</li><li>Use the host's real input/listener path and always emit success or failure.</li><li>Never copy sensitive values into logs, diagnostics, or completion events.</li><li>Distinguish headless, rendering-disabled, and stale screenshot outcomes.</li><li>Dispose the runtime to release the bridge and native handle.</li></ul>
