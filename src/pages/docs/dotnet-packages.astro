@@ -37,7 +37,9 @@ import DocPage from '../../components/DocPage.astro'; import CodeBlock from '../
     <tr><td><code>GuaRemoteUiTree</code></td><td>リモートJSON snapshotを.NETのノード表現へ変換。</td></tr>
     <tr><td><code>GuaScreenshot</code></td><td>公開済みPNGの保存結果、絶対パス、寸法等を表す。</td></tr>
   </tbody></table></div>
-  <h2>Gua.Testing.Visual</h2><p>明示的に取得したPNGをbaselineと比較するオプトイン層です。pixel threshold、許容差分率、mask、OS/renderer別variant、dimension mismatchを扱い、失敗時に<code>expected.png</code>、<code>actual.png</code>、<code>diff.png</code>、<code>comparison.json</code>を出力します。通常CIではbaselineを自動更新せず、明示的な更新だけを許可します。</p>
+  <h2>Gua.Testing.Visual</h2><p>明示的に取得したPNGをbaselineと比較するオプトイン層です。pixel threshold、許容差分率、mask、OS/renderer別variant、dimension mismatchを扱います。通常CIではbaselineを自動更新せず、明示的な更新だけを許可します。</p>
+  <div class="table-wrap"><table><thead><tr><th>失敗理由</th><th>出力ファイル</th></tr></thead><tbody><tr><td><code>pixel_difference</code></td><td><code>expected.png</code>、<code>actual.png</code>、<code>diff.png</code>、<code>comparison.json</code></td></tr><tr><td><code>baseline_missing</code></td><td><code>actual.png</code>、<code>comparison.json</code></td></tr><tr><td><code>dimension_mismatch</code></td><td><code>expected.png</code>、<code>actual.png</code>、<code>comparison.json</code></td></tr></tbody></table></div>
+  <p><code>comparison.json</code>には比較名、variant、実画像の寸法、差分画素数・率、閾値、mask、失敗理由を記録します。診断用の絶対<code>baselinePath</code>はraw artifactに残ります。パッケージ自身はHTMLを生成せず、表示と公開は<a href="/docs/github-actions/#visual-report">gua-testerのvisual-report Action</a>が担当します。</p>
   <h2>Gua.Testing.Recording</h2><p>Semantic actionを記録し、同じrequest IDを持つホスト完了eventまで待って再生します。<code>GuaRecorder</code>、<code>GuaReplayer</code>、<code>GuaRecordingFile</code>を提供し、固定delayよりSemantic wait conditionを優先できます。機密な<code>set_value</code>は平文を保存せず<code>secretKey</code>だけを記録します。</p>
   <Callout kind="tip" title="依存の向き"><p>Unityゲーム側は<code>Gua.Unity → Gua.Runtime → Gua.Core → ネイティブGua</code>、外部テスト側は<code>Gua.Testing.Unity → Gua.Testing → Gua.Core</code>です。VisualとRecordingは独立して追加します。</p></Callout>
 </DocPage>

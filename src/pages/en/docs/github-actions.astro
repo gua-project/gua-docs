@@ -15,5 +15,39 @@ import Callout from '../../../components/Callout.astro';
     godot-status: stable`} /><CodeBlock title="Link only the Gua add-on" lang="yaml" code={`- uses: link1345/gua-tester/link-gua-gdscript-addon@v1.2
   with:
     project-path: game`} />
+  <h2 id="visual-report">Visual difference reports</h2><p><code>link1345/gua-tester/visual-report</code> converts the <code>comparison.json</code> manifests and PNGs from <code>Gua.Testing.Visual</code> into a static viewer. The Astro build is produced ahead of time and bundled with the action, so consumer workflows do not install Astro, Node.js, or npm dependencies.</p>
+  <div class="grid-2"><div class="mini-card"><strong>Browse comparison results</strong><p>Select a comparison by hash and inspect its run, commit, variant, dimensions, different-pixel metrics, and thresholds.</p></div><div class="mini-card"><strong>Two viewing modes</strong><p>Switch between Expected／Diff／Actual columns and a keyboard-accessible Expected／Actual overlay slider.</p></div><div class="mini-card"><strong>Explicit unavailable states</strong><p>The viewer distinguishes missing baselines, dimension mismatches, missing diffs, no comparison data, success, and cancellation.</p></div><div class="mini-card"><strong>Restricted public data</strong><p>The public <code>report.json</code> omits the raw artifact's absolute <code>baselinePath</code> and copies only existing fixed-name PNG files.</p></div></div>
+  <h3>Inputs and outputs</h3><div class="table-wrap"><table><thead><tr><th>Input</th><th>Default</th><th>Purpose</th></tr></thead><tbody><tr><td><code>artifact-path</code></td><td><code>artifacts/gua</code></td><td>Directory searched for Visual comparison data</td></tr><tr><td><code>test-outcome</code></td><td>Required</td><td><code>success</code>, <code>failure</code>, or <code>cancelled</code></td></tr><tr><td><code>upload-target</code></td><td><code>pages</code></td><td><code>pages</code> or <code>workflow</code></td></tr><tr><td><code>pages-artifact-name</code></td><td><code>github-pages</code></td><td>Pages artifact name</td></tr><tr><td><code>workflow-artifact-name</code></td><td><code>gua-visual-report</code></td><td>Regular Actions artifact name</td></tr><tr><td><code>retention-days</code></td><td><code>7</code></td><td>Artifact retention period</td></tr></tbody></table></div><p>The outputs are <code>comparison-count</code>, the number of included comparisons, and <code>artifact-id</code>, the uploaded artifact ID.</p>
+  <h3>Separate pull-request and main publication</h3><CodeBlock title="Build the report after the test step" lang="yaml" code={`- name: Upload pull-request visual report
+  if: failure() && github.event_name == 'pull_request'
+  uses: link1345/gua-tester/visual-report@main
+  with:
+    artifact-path: artifacts/gua
+    test-outcome: \${{ steps.gua-tests.outcome }}
+    upload-target: workflow
+
+- name: Prepare latest main visual report
+  id: visual-report
+  if: always() && github.event_name != 'pull_request'
+  uses: link1345/gua-tester/visual-report@main
+  with:
+    artifact-path: artifacts/gua
+    test-outcome: \${{ steps.gua-tests.outcome }}
+    upload-target: pages`} /><p>On pull requests, retain a regular workflow artifact only after failure. Because the downloaded viewer fetches <code>report.json</code>, serve the extracted directory over HTTP, such as with <code>python -m http.server</code>, instead of opening <code>index.html</code> through <code>file://</code>. Main and manually dispatched runs also publish a success state so an old failure is never presented as current.</p>
+  <h3>Deploy to Pages</h3><p><code>visual-report</code> builds and uploads the Pages artifact. Deployment remains in a dedicated job owned by the consumer workflow.</p><CodeBlock title="Dedicated deployment job" lang="yaml" code={`deploy-visual-report:
+  needs: godot
+  if: always() && github.event_name != 'pull_request' && needs.godot.outputs.pages-ready == 'true'
+  runs-on: ubuntu-latest
+  permissions:
+    pages: write
+    id-token: write
+  environment:
+    name: github-pages
+    url: \${{ steps.deployment.outputs.page_url }}
+  steps:
+    - name: Deploy visual report
+      id: deployment
+      uses: actions/deploy-pages@v4`} /><p>Expose <code>steps.visual-report.outcome == 'success'</code> as <code>pages-ready</code> from the test job. If you customize <code>pages-artifact-name</code>, pass the same value as <code>artifact_name</code> to <code>actions/deploy-pages</code>.</p>
+  <Callout kind="warn" title="Screenshot visibility"><p>Screenshots may contain secrets or personal information rendered by the game. Review the captured content and publication scope before enabling Pages, especially for public repositories.</p></Callout>
   <Callout kind="warn" title="Consumer requirements"><p>The game must start the bridge through the Gua add-on, and the test project must reference <code>Gua.Testing.Godot</code>. The action does not generate test code or bridge initialization.</p></Callout>
 </DocPage>
