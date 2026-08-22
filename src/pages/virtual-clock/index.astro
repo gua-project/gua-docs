@@ -3,15 +3,29 @@ import DocPage from '../../components/DocPage.astro';
 import CodeBlock from '../../components/CodeBlock.astro';
 import Callout from '../../components/Callout.astro';
 ---
-<DocPage eyebrow="GUIDE / VIRTUAL CLOCK" title="Pause and advance game time deterministically" lead="GuaClock pauses explicitly connected schedules and tick-driven logic, then advances them without waiting for wall time." description="Gua virtual clock installation, pause, run-for, scheduler, engine integration, MCP, and limitations." section="virtual-clock">
-  <Callout kind="warn" title="An opt-in clock, not an engine-global pause"><p><code>clock_pause</code> controls only GuaClock schedules and tick subscribers. Godot Timer, Unity Coroutine, physics, animation, audio, OS time, and networking keep their native behavior.</p></Callout>
-  <h2>Test a two-second transition immediately</h2>
-  <CodeBlock title="Install, pause, and run" lang="csharp" code={`var clock = new GuaClock(context);
-clock.Install(step: TimeSpan.FromMilliseconds(16.6667));
+<DocPage eyebrow="GUIDE / VIRTUAL CLOCK" title="Pause and advance GuaClock-driven game logic" lead="Game logic that uses GuaClock as its time source can be paused and advanced without waiting for wall time." description="Gua virtual clock installation, pause, run-for, scheduler, engine integration, MCP, and limitations." section="virtual-clock">
+  <Callout kind="warn" title="You must connect the game logic first"><p>Gua does not rewrite existing timers when you call <code>clock_install</code>. Change each time-dependent subsystem you want to control so that it uses GuaClock schedules or ticks instead of an engine-native time source.</p></Callout>
+  <h2>What can be paused?</h2>
+  <div class="table-wrap"><table><thead><tr><th>Time-dependent behavior</th><th>Controlled by GuaClock?</th></tr></thead><tbody><tr><td>Callbacks scheduled on GuaClock</td><td>Yes</td></tr><tr><td>Logic updated from the GuaClock tick stream</td><td>Yes</td></tr><tr><td>Godot <code>Timer</code> / <code>SceneTreeTimer</code></td><td>No, unless the logic is migrated to GuaClock</td></tr><tr><td>Unity <code>Time.deltaTime</code> / <code>WaitForSeconds</code> / Coroutine</td><td>No, unless the logic is migrated to GuaClock</td></tr><tr><td>Physics, animation, audio, OS time, networking</td><td>No</td></tr></tbody></table></div>
+  <p>Think of integration as two separate steps: production game code receives GuaClock as its time source, and test code installs and controls that same shared clock. “Install” activates the virtual clock; it does not install itself into arbitrary game objects.</p>
+  <h2>Connect game logic, then control it</h2>
+  <CodeBlock title="Game-side integration" lang="csharp" code={`// Replace the native timer used by this game subsystem.
+var clock = GuaUnityRuntime.Clock;
 clock.Schedule(TimeSpan.FromSeconds(2), ShowMessage);
-clock.Pause();
-clock.RunFor(TimeSpan.FromSeconds(2));`} />
+
+// Tick-driven systems can subscribe to clock.Tick instead.
+clock.Tick += UpdateCountdown;`} />
+  <CodeBlock title="Godot game-side integration" lang="gdscript" code={`# Replace the Timer used by this game subsystem.
+gua.clock_schedule(2000.0, _show_message)
+
+# Tick-driven systems can subscribe to clock_tick instead.
+gua.clock_tick.connect(_update_countdown)`} />
+  <CodeBlock title="Test-side control" lang="csharp" code={`GuaClockControls.InstallClock(host.Context);
+GuaClockControls.PauseClock(host.Context);
+GuaClockControls.RunClockFor(host.Context, TimeSpan.FromSeconds(2));
+
+GuaAssertions.WaitForText(host.Context, "Ready").ToBeVisible();`} />
   <div class="table-wrap"><table><thead><tr><th>Operation</th><th>Effect</th></tr></thead><tbody><tr><td><code>Install</code></td><td>Starts a monotonic Gua clock at zero in running state.</td></tr><tr><td><code>Pause</code></td><td>Freezes GuaClock time while the bridge and semantic UI collection keep running.</td></tr><tr><td><code>RunFor</code></td><td>Executes due callbacks and tick slices, reaches the exact requested time, and stays paused.</td></tr><tr><td><code>Resume</code></td><td>Returns GuaClock to adapter-provided unscaled real-time advancement.</td></tr></tbody></table></div>
-  <h2>Godot and Unity</h2><p>Godot exposes <code>clock_tick</code>, <code>clock_schedule</code>, and <code>clock_cancel</code> on <code>GuaAutoAdapter</code>. Unity exposes <code>GuaRuntime.Clock.Schedule</code> and <code>Tick</code>; its always-running adapter pump advances the clock with <code>Time.unscaledDeltaTime</code>. Both adapters continue serving bridge commands while GuaClock is paused.</p>
+  <h2>Godot and Unity</h2><p>In Godot, migrate the target logic to <code>GuaAutoAdapter.clock_schedule</code> or its <code>clock_tick</code> signal. In Unity, inject or access <code>GuaUnityRuntime.Clock</code> and use <code>Schedule</code> or <code>Tick</code>. Their adapter pumps continue serving bridge commands while GuaClock is paused.</p>
   <h2>Remote controls</h2><p>The WebSocket protocol, MCP server, and Inspector share <code>get_clock</code>, <code>clock_install</code>, <code>clock_pause</code>, <code>clock_run_for</code>, and <code>clock_resume</code>. .NET tests use the matching synchronous or asynchronous <code>GuaClockControls</code> methods.</p>
 </DocPage>
