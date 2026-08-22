@@ -9,7 +9,7 @@ import Callout from '../../../components/Callout.astro';
   <div class="table-wrap"><table><thead><tr><th>時間依存処理</th><th>GuaClockで制御できるか</th></tr></thead><tbody><tr><td>GuaClockへScheduleしたcallback</td><td>できる</td></tr><tr><td>GuaClockのTickで更新するゲームロジック</td><td>できる</td></tr><tr><td>Godotの<code>Timer</code> / <code>SceneTreeTimer</code></td><td>GuaClockへ移行しない限りできない</td></tr><tr><td>Unityの<code>Time.deltaTime</code> / <code>WaitForSeconds</code> / Coroutine</td><td>GuaClockへ移行しない限りできない</td></tr><tr><td>物理、Animation、Audio、OS時刻、Network</td><td>できない</td></tr></tbody></table></div>
   <p>導入は二段階です。まずproduction codeで対象ロジックの時刻源としてGuaClockを注入し、次にtest codeからその共有ClockをInstallして操作します。ここでの「Install」は仮想Clockを有効化する操作であり、任意のgame objectへClockを自動注入する操作ではありません。</p>
   <h2>ゲームへ組み込んでからテストで操作する</h2>
-  <CodeBlock title="ゲーム側の組み込み" lang="csharp" code={`// このgame subsystemが使っていた標準Timerを置き換える。
+  <CodeBlock title="Unityゲーム側の組み込み" lang="csharp" code={`// このgame subsystemが使っていた標準Timerを置き換える。
 var clock = GuaUnityRuntime.Clock;
 clock.Schedule(TimeSpan.FromSeconds(2), ShowMessage);
 
