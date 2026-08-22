@@ -24,7 +24,7 @@ gua.clock_tick.connect(_update_countdown)`} />
 GuaClockControls.PauseClock(host.Context);
 GuaClockControls.RunClockFor(host.Context, TimeSpan.FromSeconds(2));
 
-GuaAssertions.WaitForText(host.Context, "Ready").ToBeVisible();`} />
+GuaAssertions.WaitForText(host.Context, "ready", "Ready").ToBeVisible();`} />
   <div class="table-wrap"><table><thead><tr><th>Operation</th><th>Effect</th></tr></thead><tbody><tr><td><code>Install</code></td><td>Starts a monotonic Gua clock at zero in running state.</td></tr><tr><td><code>Pause</code></td><td>Freezes GuaClock time while the bridge and semantic UI collection keep running.</td></tr><tr><td><code>RunFor</code></td><td>Executes due callbacks and tick slices, reaches the exact requested time, and stays paused.</td></tr><tr><td><code>Resume</code></td><td>Returns GuaClock to adapter-provided unscaled real-time advancement.</td></tr></tbody></table></div>
   <h2>Godot and Unity</h2><p>In Godot, migrate the target logic to <code>GuaAutoAdapter.clock_schedule</code> or its <code>clock_tick</code> signal. In Unity, inject or access <code>GuaUnityRuntime.Clock</code> and use <code>Schedule</code> or <code>Tick</code>. Their adapter pumps continue serving bridge commands while GuaClock is paused.</p>
   <h2>Remote controls</h2><p>The WebSocket protocol, MCP server, and Inspector share <code>get_clock</code>, <code>clock_install</code>, <code>clock_pause</code>, <code>clock_run_for</code>, and <code>clock_resume</code>. .NET tests use the matching synchronous or asynchronous <code>GuaClockControls</code> methods.</p>
