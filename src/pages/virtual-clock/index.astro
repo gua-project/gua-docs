@@ -9,7 +9,7 @@ import Callout from '../../components/Callout.astro';
   <div class="table-wrap"><table><thead><tr><th>Time-dependent behavior</th><th>Controlled by GuaClock?</th></tr></thead><tbody><tr><td>Callbacks scheduled on GuaClock</td><td>Yes</td></tr><tr><td>Logic updated from the GuaClock tick stream</td><td>Yes</td></tr><tr><td>Godot <code>Timer</code> / <code>SceneTreeTimer</code></td><td>No, unless the logic is migrated to GuaClock</td></tr><tr><td>Unity <code>Time.deltaTime</code> / <code>WaitForSeconds</code> / Coroutine</td><td>No, unless the logic is migrated to GuaClock</td></tr><tr><td>Physics, animation, audio, OS time, networking</td><td>No</td></tr></tbody></table></div>
   <p>Think of integration as two separate steps: production game code receives GuaClock as its time source, and test code installs and controls that same shared clock. “Install” activates the virtual clock; it does not install itself into arbitrary game objects.</p>
   <h2>Connect game logic, then control it</h2>
-  <CodeBlock title="Game-side integration" lang="csharp" code={`// Replace the native timer used by this game subsystem.
+  <CodeBlock title="Unity game-side integration" lang="csharp" code={`// Replace the native timer used by this game subsystem.
 var clock = GuaUnityRuntime.Clock;
 clock.Schedule(TimeSpan.FromSeconds(2), ShowMessage);
 
