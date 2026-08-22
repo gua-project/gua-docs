@@ -16,6 +16,7 @@ export const sections = [
   },
   { label: 'Visualテスト編', href: '/ja/visual-testing/', accent: 'violet', children: [] },
   { label: 'Recording編', href: '/ja/recording/', accent: 'blue', children: [] },
+  { label: '仮想時計編', href: '/ja/virtual-clock/', accent: 'mint', children: [] },
   { label: 'インスペクタ編', href: '/ja/inspector/', accent: 'violet', children: [] },
   { label: 'MCPサーバー操作編', href: '/ja/mcp/', accent: 'blue', children: [] },
 ] as const;
@@ -47,6 +48,7 @@ export const sectionsEn = [
   },
   { label: 'Visual testing', href: '/visual-testing/', accent: 'violet', children: [] },
   { label: 'Recording', href: '/recording/', accent: 'blue', children: [] },
+  { label: 'Virtual clock', href: '/virtual-clock/', accent: 'mint', children: [] },
   { label: 'Inspector', href: '/inspector/', accent: 'violet', children: [] },
   { label: 'MCP Server', href: '/mcp/', accent: 'blue', children: [] },
 ] as const;
