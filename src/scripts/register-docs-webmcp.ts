@@ -5,6 +5,7 @@ import {
   type DocsProvider,
   type DocsSearchResult,
 } from 'webmcp-docs';
+import { renderDocumentation } from './docs-markdown';
 
 const pathsElement = document.querySelector<HTMLScriptElement>('#webmcp-document-paths');
 
@@ -108,40 +109,6 @@ async function fetchDocument(path: string): Promise<DocsDocument | null> {
     canonicalUrl,
     headings: extractHeadings(contentRoot),
   };
-}
-
-function renderDocumentation(root: HTMLElement): string {
-  const clone = root.cloneNode(true) as HTMLElement;
-  clone.querySelectorAll('script, style, iframe, .ad-label').forEach((element) => element.remove());
-  return renderNode(clone).replace(/\n{3,}/g, '\n\n').trim();
-}
-
-function renderNode(node: Node): string {
-  if (node.nodeType === Node.TEXT_NODE) {
-    return node.textContent?.replace(/\s+/g, ' ') ?? '';
-  }
-  if (!(node instanceof HTMLElement)) return '';
-
-  const tag = node.tagName.toLowerCase();
-  if (tag === 'br') return '\n';
-  if (tag === 'pre') return `\n\n\`\`\`\n${node.textContent?.trim() ?? ''}\n\`\`\`\n\n`;
-  if (tag === 'code') return `\`${node.textContent?.trim() ?? ''}\``;
-
-  const content = Array.from(node.childNodes, renderNode).join('').trim();
-  if (!content) return '';
-
-  if (/^h[1-6]$/.test(tag)) {
-    return `\n\n${'#'.repeat(Number(tag[1]))} ${content}\n\n`;
-  }
-  if (tag === 'p' || tag === 'blockquote') return `\n\n${content}\n\n`;
-  if (tag === 'li') return `\n- ${content}`;
-  if (tag === 'tr') {
-    const cells = Array.from(node.querySelectorAll(':scope > th, :scope > td'))
-      .map((cell) => cell.textContent?.replace(/\s+/g, ' ').trim() ?? '');
-    return cells.length > 0 ? `\n| ${cells.join(' | ')} |` : '';
-  }
-  if (tag === 'table') return `\n\n${content}\n\n`;
-  return content;
 }
 
 function extractHeadings(root: HTMLElement): DocsHeading[] {
