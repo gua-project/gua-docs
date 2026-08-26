@@ -9,6 +9,7 @@
         "@astrojs/sitemap": "^3.7.3",
         "astro": "latest",
         "typescript": "5.9.3",
+        "webmcp-docs": "^0.1.0",
       },
     },
   },
@@ -702,6 +703,8 @@
     "vscode-nls": ["vscode-nls@5.2.0", "", {}, "sha512-RAaHx7B14ZU04EU31pT+rKz2/zSl7xMsfIZuo8pd+KZO6PXtQmpevpq3vxvWNcrGbdmhM/rr5Uw5Mz+NBfhVng=="],
 
     "vscode-uri": ["vscode-uri@3.1.0", "", {}, "sha512-/BpdSx+yCQGnCvecbyXdxHDkuk55/G3xwnC0GqY4gmQ3j+A+g8kzzgB4Nk/SINjqn6+waqw3EgbVF2QKExkRxQ=="],
+
+    "webmcp-docs": ["webmcp-docs@0.1.0", "", {}, "sha512-Fju1LrGaRYl+TglIxks+eVCUytksZwOp3bS6nWqaR1T6aNyQVeq1WlrF/TWlYQAws66KDwthN69zvJBYwDoJiw=="],
 
     "wrap-ansi": ["wrap-ansi@7.0.0", "", { "dependencies": { "ansi-styles": "^4.0.0", "string-width": "^4.1.0", "strip-ansi": "^6.0.0" } }, "sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q=="],
 

@@ -12,7 +12,8 @@
     "@astrojs/check": "latest",
     "@astrojs/sitemap": "^3.7.3",
     "astro": "latest",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "webmcp-docs": "^0.1.0"
   },
   "devDependencies": {}
 }

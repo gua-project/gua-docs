@@ -38,6 +38,17 @@ const structuredData = {
     url: 'https://github.com/link1345/gua',
   },
 };
+const webMcpDocumentPaths = Object.keys(import.meta.glob('../pages/**/*.astro'))
+  .map((sourcePath) => {
+    const pagePath = sourcePath
+      .replace('../pages', '')
+      .replace(/\.astro$/, '')
+      .replace(/\/index$/, '/');
+
+    if (pagePath === '/index') return '/';
+    return pagePath.endsWith('/') ? pagePath : `${pagePath}/`;
+  })
+  .sort();
 ---
 <!doctype html>
 <html lang={isEnglish ? 'en' : 'ja'}>
@@ -71,6 +82,7 @@ const structuredData = {
     <meta name="twitter:image" content={ogImageUrl} />
     <meta name="twitter:image:alt" content="Gua — Runtime UI Automation for Games" />
     <script type="application/ld+json" set:html={JSON.stringify(structuredData)} is:inline />
+    <script id="webmcp-document-paths" type="application/json" set:html={JSON.stringify(webMcpDocumentPaths)} is:inline />
     <title>{fullTitle}</title>
   </head>
   <body>
@@ -112,6 +124,8 @@ const structuredData = {
     </div>
     <footer><span>{isEnglish ? 'Gua Reference' : 'Gua 日本語リファレンス'}</span><span>{isEnglish ? 'Official documentation' : '公式ドキュメント'}</span><a href="https://github.com/link1345/gua/blob/main/LICENSE">MIT License</a></footer>
     <script>
+      import '../scripts/register-docs-webmcp';
+
       const toggle = document.querySelector<HTMLButtonElement>('.menu-toggle');
       const sidebar = document.querySelector<HTMLElement>('#site-sidebar');
       const backdrop = document.querySelector<HTMLButtonElement>('.menu-backdrop');
