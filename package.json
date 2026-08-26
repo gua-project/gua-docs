@@ -6,13 +6,20 @@
     "dev": "astro dev",
     "build": "astro check && astro build",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "test": "bun test"
   },
   "dependencies": {
     "@astrojs/check": "latest",
     "@astrojs/sitemap": "^3.7.3",
     "astro": "latest",
-    "typescript": "5.9.3"
+    "turndown": "^7.2.4",
+    "turndown-plugin-gfm": "^1.0.2",
+    "typescript": "5.9.3",
+    "webmcp-docs": "^0.1.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/bun": "^1.4.0",
+    "@types/turndown": "^5.0.6"
+  }
 }
