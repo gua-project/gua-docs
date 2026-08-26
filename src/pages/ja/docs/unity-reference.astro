@@ -5,7 +5,7 @@ import Callout from '../../../components/Callout.astro';
 <DocPage eyebrow="DOCS / UNITY" title="Unity API・仕様" lead="Unity向けパッケージの構成、利用できる公開型、対応UIと操作、拡張ポイントを調べるためのリファレンスです。" description="Gua Unity対応の公開APIと仕様リファレンス。" section="docs">
   <h2>パッケージの選び方</h2>
   <div class="table-wrap"><table><thead><tr><th>パッケージ</th><th>責務</th><th>target</th></tr></thead><tbody>
-    <tr><td><code>com.link1345.gua</code></td><td>Unityプロジェクトへ導入するUPMパッケージ。自動起動、UI収集、操作、screenshotに対応</td><td>Unity 6000.0+</td></tr>
+    <tr><td><code>com.link1345.gua</code></td><td>Unityプロジェクトへ導入するUPMパッケージ。自動起動、UI収集、操作、screenshotに対応</td><td>Unity 6000.5+</td></tr>
     <tr><td><code>Gua.Runtime</code></td><td>別のengine adapterを実装するときに使う共有runtime API</td><td>net10.0 / netstandard2.1</td></tr>
     <tr><td><code>Gua.Testing.Unity</code></td><td>外部.NETテストからUnity Editor/Playerをbuild・起動・接続</td><td>net10.0 / netstandard2.1</td></tr>
     <tr><td><code>Gua.Testing</code></td><td>locator、assertion、remote接続、screenshotのengine共通テストAPI</td><td>engine非依存</td></tr>
@@ -77,5 +77,5 @@ import Callout from '../../../components/Callout.astro';
     <li>独自Controlを登録する場合は、roleに対応するactionを<code>TryApply</code>へ実装してください。観測だけのControlでは操作用actionを持たないroleを選べます。</li>
     <li>Unityを並列起動するテストでは各hostが動的portを使います。同じportを固定利用する別processとの同時実行は避けてください。</li>
   </ul>
-  <Callout kind="tip" title="現在の対応範囲"><p>Unity 6000.0以降のWindows x64 Mono Playerで、UI Toolkit、uGUI、TMPのruntime UIを利用できます。IL2CPP、macOS/Linux、mobile/Web、Unity IMGUI、EditorWindow、自動uGUI list/tab写像は現在のパッケージに含まれません。</p></Callout>
+  <Callout kind="tip" title="現在の対応範囲"><p>Unity 6000.5以降のWindows x64 Mono Playerで、UI Toolkit、uGUI、TMPのruntime UIを利用できます。IL2CPP、macOS/Linux、mobile/Web、Unity IMGUI、EditorWindow、自動uGUI list/tab写像は現在のパッケージに含まれません。</p></Callout>
 </DocPage>
