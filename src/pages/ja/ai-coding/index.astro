@@ -1,12 +1,20 @@
 ---
 import DocPage from '../../../components/DocPage.astro';
 ---
-<DocPage eyebrow="USE CASE / AI CODING" title="Godot・UnityのAI CodingとAI Playtesting" lead="Guaを使うと、MCP対応AIコーディングエージェントが、自ら開発を支援しているGodot 4.7またはUnity 6ゲームの実行中UIを観測・操作・検証できます。" description="Gua MCPを使ったGodot・UnityのAI支援ゲーム開発、AI UIテスト、AIプレイテストの仕組みと開発ループ。" section="mcp">
-  <h2>AIコーディングエージェントに、実行中ゲームを確かめる手段を与える</h2>
+<DocPage eyebrow="USE CASE / AI" title="AIによるゲーム開発と、リリース版を遊ぶAIプレイヤー" lead="Guaは、ゲームを実装・検証するAIコーディングエージェントと、許可された情報と操作を使ってリリース版を遊ぶAIエージェントプレイヤーの両方を支えます。" description="Guaを使ったGodot・UnityのAI支援ゲーム開発と、Player profileで安全に公開されたリリース版を遊ぶAIプレイヤーの仕組み。" section="mcp">
+  <h2>Guaが支える2種類のAI</h2>
+  <div class="grid-2"><div class="mini-card"><strong>開発を支援するAI</strong><p>コードを変更し、Debug情報、ログ、スクリーンショットを使って実行結果を検証し、問題を修正します。</p></div><div class="mini-card"><strong>リリース版を遊ぶAI</strong><p>コードは変更せず、Player向けに許可されたUI・World情報と操作だけを使い、プレイヤーとしてゲームを進めます。</p></div></div>
+  <h2>1. AIコーディングエージェントに、実行中ゲームを確かめる手段を与える</h2>
   <p>コーディングエージェントはゲームのコードを書き、Guaは実行中ゲームを確認するためのランタイムUIレイヤーを提供します。<code>gui-mcp</code>を通じてSemantic UI Tree、操作、待機、ログ、スクリーンショット、Recording、Visual比較、テスト実行を利用できます。</p>
   <div class="flow"><span>AIが実装</span><b>→</b><span>ゲームを起動</span><b>→</b><span>UIを観測・操作</span><b>→</b><span>検証・修正</span></div>
   <h2>AI開発ループ</h2>
   <ol class="steps"><li><strong>機能を実装する</strong><p>AIコーディングエージェントがGodotのGDScript/C#またはUnityのC#とゲームUIを変更します。</p></li><li><strong>ゲームを起動する</strong><p>GodotはGDScriptアドオンがControlを収集します。UnityはUPMパッケージがUI Toolkit、uGUI、TextMeshProのランタイムUIを自動収集します。どちらもGua WebSocketブリッジで公開します。</p></li><li><strong>Semantic UI Treeを調べる</strong><p>AIは<code>get_ui_tree</code>でID、role、text、状態を読み、engine固有object APIへ依存せず対象Controlを特定します。</p></li><li><strong>操作して結果を待つ</strong><p>click、値入力、選択、scroll、key入力を送り、期待するUI状態まで待機します。</p></li><li><strong>証拠から検証・修正する</strong><p>失敗時はUI Tree、engine log、スクリーンショット、Visual差分を確認し、実装修正後に再実行します。</p></li></ol>
+  <h2>2. AIエージェントプレイヤーがリリース版を遊ぶ</h2>
+  <p>リリース版では、AIは開発者権限を持つテスト担当者ではなく、ゲームへ参加するプレイヤーです。ゲーム側がPlayer profileと公開ポリシーを固定し、AIに見せるUI、World Object、UI操作を選びます。Semantic Game ActionとRaw Inputは別権限として必要なものだけを許可します。</p>
+  <div class="flow"><span>Release版を起動</span><b>→</b><span>Player情報を観測</span><b>→</b><span>目的・状況を判断</span><b>→</b><span>許可された入力で遊ぶ</span></div>
+  <div class="grid-2"><div class="mini-card"><strong>ゲーム世界を理解する</strong><p>World Object Treeからobjective、enemy、door、checkpointなど、ゲームが明示した意味情報を読みます。scene nodeや内部状態を無差別には公開しません。</p></div><div class="mini-card"><strong>ゲームを操作する</strong><p>メニューはSemantic UI Action、ゲームプレイはjumpやmoveなどのSemantic Game Action、必要な場合だけRaw Inputで操作します。</p></div><div class="mini-card"><strong>Player向け情報だけを見る</strong><p>privateなobject、内部値、Debug logは除外され、screenshotも既定では拒否されます。AIからDebugへ昇格することはできません。</p></div><div class="mini-card"><strong>安全に入力を終了する</strong><p>保持入力は接続ごとに分離され、lease満了、切断、登録解除、engine終了時にニュートラルへ戻ります。</p></div></div>
+  <h2>開発AIとAIプレイヤーの違い</h2>
+  <div class="table-wrap"><table><thead><tr><th></th><th>AIによる開発・検証</th><th>リリース版のAIプレイヤー</th></tr></thead><tbody><tr><td>目的</td><td>実装を検証し、問題を修正する</td><td>ゲームへ参加し、プレイヤーとして遊ぶ</td></tr><tr><td>公開profile</td><td>開発者管理のDebug</td><td>hostが固定したPlayer</td></tr><tr><td>観測</td><td>UI、log、screenshot、診断情報</td><td>許可されたUI・World情報。Debug logは非公開</td></tr><tr><td>操作</td><td>テスト・診断に必要なSemantic操作</td><td>許可されたUI操作と、別途許可されたゲーム入力</td></tr><tr><td>接続</td><td>主にネイティブゲーム向け<code>gui-mcp</code></td><td>Player設定の<code>gui-mcp</code>、またはWebゲーム向け<code>gua-webmcp</code></td></tr></tbody></table></div>
   <h2>ゲームエンジンごとの接続方法</h2>
   <div class="table-wrap"><table><thead><tr><th>ゲームエンジン</th><th>収集するランタイムUI</th><th>Guaの起動方法</th></tr></thead><tbody><tr><td>Godot 4.7</td><td>標準<code>Control</code>ツリー</td><td>GDScriptアドオンが自動収集アダプターを接続し、ブリッジを開始します。</td></tr><tr><td>Unity 6</td><td>UI Toolkit、uGUI、TextMeshPro</td><td>UPMパッケージがscene読込前に自動起動し、frame後にUIを収集します。</td></tr><tr><td>共通</td><td>Semantic UI Tree v2</td><td><code>gui-mcp</code>から同じlocator、action、待機、log、Screenshot、Visual、Recordingを利用できます。</td></tr></tbody></table></div>
   <h2>WebのPlaywrightとの対応</h2>
@@ -14,9 +22,9 @@ import DocPage from '../../../components/DocPage.astro';
   <h2>よくある質問</h2>
   <h3>GuaはGodotのUIテストに使えますか？</h3><p>はい。推奨Godot 4.7 GDScriptアドオンが標準Controlを収集し、Semantic locator、操作、待機、アサーション、Screenshot、Visual比較を利用できます。</p>
   <h3>GuaはUnityのUIテストに使えますか？</h3><p>はい。Unity 6のUPMパッケージが、対応するWindows x64 Mono環境でUI Toolkit、uGUI、TextMeshProのランタイムUIを自動収集します。AIはGodot版と同じSemantic MCP toolで操作できます。</p>
-  <h3>AIにゲームを操作させられますか？</h3><p>はい。MCP対応AIクライアントから<code>gui-mcp</code>を使い、実行中ゲームのUI Tree取得、操作、待機、ログ・Screenshot取得、テスト実行を行えます。</p>
+  <h3>リリース版をAIに遊ばせられますか？</h3><p>はい。ネイティブゲームではPlayer設定の<code>gui-mcp</code>、Webゲームでは<code>gua-webmcp</code>を使い、許可されたUI・World情報を観測し、許可されたUI操作とゲーム入力でプレイできます。開発用Debug情報とPlayer向け権限は分離されます。</p>
   <h3>GuaはGodot EditorやUnity Editorを操作するMCPですか？</h3><p>役割が異なります。Editor用ツールがゲーム制作環境を操作するのに対し、Guaは起動済みGodot・UnityゲームのランタイムUIを観測・操作・検証します。併用できます。</p>
   <h3>画像認識でボタンを探しますか？</h3><p>いいえ。主要な対象指定にはゲームが公開するID、role、text、状態を使います。Screenshotは描画確認やVisual比較の証拠として利用できます。</p>
-  <h3>GuaはゲームエンジンやAIを置き換えますか？</h3><p>いいえ。Guaはゲームランタイムとテスト、Inspector、AIコーディングエージェントをつなぐ自動化レイヤーです。</p>
-  <div class="grid-2"><a class="mini-card" href="/ja/godot/"><strong>Godot UI Testing →</strong><p>Godot 4.7の推奨統合とテスト機能を確認する。</p></a><a class="mini-card" href="/ja/unity/"><strong>Unity UI Testing →</strong><p>Unity 6のランタイム統合と外部テストを確認する。</p></a><a class="mini-card" href="/ja/mcp/"><strong>MCP Server →</strong><p><code>gui-mcp</code>の設定とtool一覧を確認する。</p></a></div>
+  <h3>GuaはゲームエンジンやAIを置き換えますか？</h3><p>いいえ。Guaはゲームランタイムとテスト、Inspector、開発AI、AIエージェントプレイヤーをつなぐ自動化レイヤーです。</p>
+  <div class="grid-2"><a class="mini-card" href="/ja/godot/"><strong>Godot UI Testing →</strong><p>Godot 4.7の推奨統合とテスト機能を確認する。</p></a><a class="mini-card" href="/ja/unity/"><strong>Unity UI Testing →</strong><p>Unity 6のランタイム統合と外部テストを確認する。</p></a><a class="mini-card" href="/ja/mcp/"><strong>MCP Server →</strong><p>ネイティブゲームへAIを接続する。</p></a><a class="mini-card" href="/ja/webmcp/"><strong>ブラウザWebMCP →</strong><p>リリースされたWebゲームへAIプレイヤーを接続する。</p></a><a class="mini-card" href="/ja/agent-policy/"><strong>AIエージェント公開ポリシー →</strong><p>Playerへ見せる情報とUI操作を制限する。</p></a><a class="mini-card" href="/ja/game-input/"><strong>ゲーム入力 →</strong><p>AIプレイヤーへ許可する操作を設定する。</p></a></div>
 </DocPage>
