@@ -1,27 +1,31 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
-<BaseLayout title="Playwright-like UI testing and automation for Godot and Unity" description="Gua is a UI testing and automation library for Godot 4.7 and Unity 6, built around a Playwright-like approach. Use semantic UI to inspect, operate, and verify running games.">
+<BaseLayout title="Playwright-like UI testing and automation for Godot and Unity" description="Gua is a game testing and automation protocol for Godot 4.7 and Unity 6. It supports both AI-assisted game development and AI agent players operating approved UI, world information, and gameplay input in release builds.">
   <section class="hero-home"><div class="inner">
     <span class="kicker">PLAYWRIGHT-STYLE UI AUTOMATION FOR GAMES</span>
     <h1>Drive game UI by <em>meaning</em>.</h1>
-    <p><strong>Gua is a UI testing and automation library for Godot and Unity, built around a Playwright-like approach.</strong> It exposes a running game's UI as a Semantic UI Tree. With Godot 4.7 and Unity 6, tests and MCP-enabled AI coding agents can find, operate, and verify a “Start Game” button by identity and role—without brittle coordinates or image recognition.</p>
-    <div class="hero-actions"><a class="button" href="/godot/">Start testing Godot UI →</a><a class="button secondary" href="/ai-coding/">Explore AI playtesting</a></div>
+    <p><strong>Gua is a game testing and automation protocol for Godot and Unity, built around Playwright-like design principles.</strong> Semantic UI Tree automation remains its core, with the World Object Tree, gameplay input, MCP and WebMCP, AI agent exposure policy, virtual time, Recording, and visual comparison. AI can develop and verify a game, then use approved information and operations to play its release build as a player.</p>
+    <div class="hero-actions"><a class="button" href="/godot/">Start testing Godot UI →</a><a class="button secondary" href="/ai-coding/">Explore AI development and players</a></div>
     <figure class="hero-demo">
       <img src="/gua-hero-demo.webp" alt="An AI agent uses the Gua MCP server to inspect the semantic UI tree and remotely activate the Start Game button in a Godot game" width="1280" height="720" decoding="async" />
       <figcaption><span>DEMO</span> An AI agent operates game UI through MCP</figcaption>
     </figure>
   </div></section>
   <section class="home-content">
-    <span class="kicker">AI-ASSISTED GAME DEVELOPMENT</span><h2>Let the AI verify the game it builds</h2>
-    <p>An AI coding agent changes the code, launches the game, and uses Gua MCP to inspect and operate the live UI. It verifies the expected state, investigates logs or screenshots on failure, fixes the implementation, and tests again—all through semantic UI evidence.</p>
-    <div class="hero-actions"><a class="button secondary" href="/ai-coding/">AI Coding &amp; AI Playtesting guide →</a></div>
+    <span class="kicker">TWO AI USE CASES</span><h2>AI builds the game. AI plays the release.</h2>
+    <p class="section-lead">Gua supports both an AI that assists the developer and an AI that participates in the game. They do not receive the same information or permissions.</p>
+    <div class="grid-2">
+      <div class="mini-card"><strong>AI-assisted development and verification</strong><p>An AI coding agent changes code and uses the Debug profile to inspect UI, logs, and screenshots, verify the result, and fix failures.</p></div>
+      <div class="mini-card"><strong>AI player in a release build</strong><p>An AI agent player uses the Player profile to read approved UI and World information and advances the game with only authorized UI operations and gameplay input.</p></div>
+    </div>
+    <div class="hero-actions"><a class="button secondary" href="/ai-coding/">Compare the two workflows and permission models →</a></div>
     <span class="kicker">GET THE LATEST</span><h2>Start with the latest release</h2>
     <p>Download the Godot add-on and Windows Inspector from <a href="https://github.com/link1345/gua/releases/latest" style="color:var(--mint);text-decoration:underline">GitHub Releases / Latest</a>. Building Gua from source is intended for contributors working on Gua itself.</p>
     <span class="kicker">HOW IT WORKS</span><h2>Observe the real input path</h2>
     <div class="pipeline"><div><strong>01 / DRAW</strong>The game engine renders UI normally</div><div><strong>02 / REFLECT</strong>The adapter collects semantic state</div><div><strong>03 / CONNECT</strong>The bridge publishes it over WebSocket</div><div><strong>04 / ACT</strong>Tests, Inspector, and MCP operate it</div></div>
     <span class="kicker">WHAT YOU CAN DO</span><h2>Observe, operate, verify, and reproduce through one protocol</h2>
-    <p class="section-lead">Gua goes beyond taking screenshots or running UI tests. It publishes a running game's UI as semantic information, then shares that same model with tests, visual comparison, operation recording, Inspector, and AI agents.</p>
+    <p class="section-lead">Gua goes beyond UI testing. It exposes UI, explicitly selected game-world information, and authorized gameplay input through one semantic protocol used consistently by tests, Inspector, MCP, WebMCP, Recording, and visual comparison.</p>
     <div class="capability-grid">
       <article class="capability-card"><span>OBSERVE / 01</span><h3>Observe UI as a meaningful tree</h3><p>Read id, role, text, hierarchy, and bounds together with visible, enabled, value, focus, checked, selected, caret, scroll, and range state, all tied to a frame and revision.</p><small>Semantic UI Tree · Node state · Logs · Runtime capabilities</small></article>
       <article class="capability-card"><span>LOCATE / 02</span><h3>Find controls by role and state</h3><p>Match id, role, text, and value exactly, by substring, or by regular expression. Combine parent scope, direct children, visibility, enabled, selection, and count conditions.</p><small>GetById · GetByRole · GetByText · Within · QueryAll</small></article>
@@ -32,7 +36,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <article class="capability-card"><span>RECORD / 07</span><h3>Record and replay semantic actions</h3><p><code>Gua.Testing.Recording</code> stores actions, timing, revisions, and wait conditions, then replays with host completion checks. Sensitive values are represented only by secret keys.</p><small>GuaRecorder · GuaReplayer · recording.schema.json</small></article>
       <article class="capability-card"><span>DIAGNOSE / 08</span><h3>Keep evidence from the failing moment</h3><p>Collect the UI tree and diff, pending requests, event history, logs, runtime version, environment, screenshot, and game-process output into one failure artifact.</p><small>Failure diagnostics · stdout/stderr · Strict isolation</small></article>
       <article class="capability-card"><span>INSPECT / 09</span><h3>Investigate and operate through Inspector</h3><p>The browser and Windows desktop Inspector show the tree, node state, logs, and screenshot. Invoke every semantic action, Recording, Replay, and Visual comparison from the UI.</p><small>Tree inspector · Node bounds · Automation panel</small></article>
-      <article class="capability-card"><span>AGENT / 10</span><h3>Expose the same abilities over MCP</h3><p><code>gui-mcp</code> connects to the same WebSocket bridge and exposes tree reads, waits, all actions, logs, PNG capture, Recording, Replay, and Visual comparison as AI tools.</p><small>get_ui_tree · wait_for_node · run_test · visual artifacts</small></article>
+      <article class="capability-card"><span>AGENT / 10</span><h3>Connect development AI and AI players</h3><p>During development, <code>gui-mcp</code> exposes Debug capabilities. For a native release build, the host must configure <code>gui-mcp</code> with the Player profile; browser WebMCP is always fixed to Player. Both paths then expose only Player-scoped observation and operations.</p><small>Debug development · Player gameplay · MCP · WebMCP</small></article>
       <article class="capability-card"><span>WORLD / 11</span><h3>Observe opted-in world objects</h3><p>Publish stable doors, objectives, enemies, and checkpoints as a separate read-only tree with semantic state and player visibility.</p><small>World Object Tree · Selectors · Waits · Inspector</small></article>
       <article class="capability-card"><span>INPUT / 12</span><h3>Drive bounded gameplay input</h3><p>Expose a Semantic Game Action map or capability-gated raw input with owner isolation, bounded leases, confirmation, and neutral cleanup.</p><small>Action Map · Keyboard · Pointer · Gamepad · Text</small></article>
       <article class="capability-card"><span>POLICY / 13</span><h3>Show an AI player only safe information</h3><p>Keep developer Debug data complete while the game restricts the UI and World information and UI operations exposed to an AI player.</p><small>Debug / Player · Field rules · Action allowlist</small></article>
@@ -57,11 +61,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     <section class="guide-category">
       <h3>1. Integrate an engine and get started</h3>
-      <p>Begin with your game engine or the AI Coding use case.</p>
+      <p>Begin with your game engine, AI-assisted development, or AI player support.</p>
       <div class="card-grid">
         <a class="chapter-card" href="/godot/"><span>GET STARTED</span><h4>Godot guide</h4><p>Attach the GDScript adapter, collect the Control tree, and test live scenes externally.</p></a>
         <a class="chapter-card" href="/unity/"><span>GET STARTED</span><h4>Unity guide</h4><p>Reflect Unity 6 UI Toolkit, uGUI, and TextMeshPro and test Editor or Player processes externally.</p></a>
-        <a class="chapter-card" href="/ai-coding/"><span>GET STARTED</span><h4>AI Coding &amp; AI Playtesting</h4><p>Let an MCP-enabled AI coding agent inspect, operate, and verify a running game.</p></a>
+        <a class="chapter-card" href="/ai-coding/"><span>GET STARTED</span><h4>AI development &amp; AI players</h4><p>Understand AI-assisted implementation and verification, AI players in release builds, and their different permissions.</p></a>
       </div>
     </section>
 

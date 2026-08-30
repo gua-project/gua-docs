@@ -2,7 +2,7 @@ export const sectionGroups = [
   {
     label: '始める',
     items: [
-      { label: 'AI Coding・Playtesting', href: '/ja/ai-coding/', accent: 'blue', children: [] },
+      { label: 'AI開発・AIプレイヤー', href: '/ja/ai-coding/', accent: 'blue', children: [] },
       {
         label: 'Godot編', href: '/ja/godot/', accent: 'mint',
         children: [
@@ -65,7 +65,7 @@ export const sectionGroupsEn = [
   {
     label: 'GET STARTED',
     items: [
-      { label: 'AI Coding & Playtesting', href: '/ai-coding/', accent: 'blue', children: [] },
+      { label: 'AI development & players', href: '/ai-coding/', accent: 'blue', children: [] },
       {
         label: 'Godot', href: '/godot/', accent: 'mint',
         children: [

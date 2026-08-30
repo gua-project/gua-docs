@@ -2,6 +2,7 @@
 import DocPage from '../../../components/DocPage.astro'; import Callout from '../../../components/Callout.astro';
 ---
 <DocPage eyebrow="DOCS / REFERENCE" title="Docs" lead="Guideが『どう導入するか』を扱うのに対し、Docsはソースに登場するクラス、変数、関数、責務を名前から引けるリファレンスです。" description="Guaのクラス、変数、サンプルコードの日本語リファレンス。" section="docs">
+  <Callout kind="tip" title="Guaが扱う範囲"><p>Guaは、Playwrightライクな設計思想をもとにしたSemantic UI自動化を核に、World Object Tree、ゲーム入力、MCP・WebMCP、AIエージェント公開ポリシー、仮想時計、Recording・Visual比較など、ゲーム開発に最適化された機能群を同じプロトコル上で提供します。</p></Callout>
   <Callout title="参照している公式ソース"><p>内容はGuaの<code>main</code>にある実装を基準にしている。各ページからGitHub上の原文へ移動できる。</p></Callout>
   <div class="card-grid">
     <a class="chapter-card" href="/ja/docs/dotnet-packages/"><span>PACKAGES / .NET</span><h3>.NETパッケージ</h3><p>Core、Testing、Godot、Visual、Recordingの責務と.NET Standard 2.1対応。</p></a>
