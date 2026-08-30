@@ -1,0 +1,18 @@
+---
+import DocPage from '../../components/DocPage.astro'; import CodeBlock from '../../components/CodeBlock.astro'; import Callout from '../../components/Callout.astro';
+---
+<DocPage eyebrow="GUIDE / WORLD OBJECT TREE" title="Publish the game world as semantic information" lead="World Object Tree turns non-UI game state—doors, enemies, objectives, items, and checkpoints—into named, typed objects that tests and AI agents can understand." description="World Object Tree concepts, Godot and Unity setup, selectors, MCP, Inspector, and visibility rules." section="world-object-tree">
+  <h2>What is World Object Tree?</h2><p>Semantic UI Tree describes interface elements such as buttons, labels, and input fields. World Object Tree describes the game world outside that UI: for example, “the reactor door is locked,” “enemy A is active,” or “checkpoint B is available.” It gives each published object a stable identity and semantic state without exposing the engine's complete scene graph.</p>
+  <Callout title="Why objects are selected explicitly and kept observation-only"><p>A scene contains far more than meaningful gameplay targets: decorative grass, particles, lights, helper nodes, pooled objects, and internal state. Publishing all of it would make every blade of grass look like an item, create noisy and unstable data, and risk exposing implementation details. Explicit opt-in keeps only concepts the game intentionally defines. The tree is read-only so an agent cannot mutate arbitrary scene objects; bounded operations belong in Semantic UI actions or an explicit Semantic Game Action map.</p></Callout>
+  <h2>What an object contains</h2><p>World Object Tree v1 stores a stable <code>id</code>, semantic <code>kind</code>, optional label and parent, 2D or 3D position, active and player-visible state, tags, and flat primitive state. State values are strings, finite numbers, booleans, or null.</p>
+  <CodeBlock title="Godot: publish an opted-in Node2D" lang="gdscript" code={`$Door.add_to_group(&"gua_world_object")
+$Door.set_meta(&"gua_world_id", "door-a")
+$Door.set_meta(&"gua_world_kind", "door")
+$Door.set_meta(&"gua_world_label", "Reactor door")
+$Door.set_meta(&"gua_world_visible_to_player", true)
+$Door.set_meta(&"gua_world_state", {"locked": true})`} />
+  <h2>Godot and Unity</h2><div class="grid-2"><div class="mini-card"><strong>Godot</strong><p>Add a <code>Node2D</code> or <code>Node3D</code> to the <code>gua_world_object</code> group and supply <code>gua_world_*</code> metadata. IDs must be unique and parent references must resolve inside the same published frame.</p></div><div class="mini-card"><strong>Unity</strong><p>Add <code>GuaWorldObject</code> to an active GameObject and configure its ID, kind, visibility, tags, and state. The adapter publishes only registered components.</p></div></div>
+  <h2>Query and wait</h2><p>MCP exposes <code>get_world_object_tree</code>, <code>find_world_objects</code>, and <code>wait_for_world_object</code>. Selectors can match ID, kind, label, tags, state, ancestor, activity, and visibility. Inspector renders the result in its separate World Object Tree panel.</p>
+  <Callout kind="warn" title="Observation, not world mutation"><p>World v1 has no world-action tools. Operate UI semantically or publish a bounded Semantic Game Action instead of exposing arbitrary scene mutation.</p></Callout>
+  <h2>Player-safe projection</h2><p>The bridge defaults to Debug. Set <code>GUA_OBSERVATION_PROFILE=player</code> in a player-facing host so UI and World data are projected before any transport receives them. A client cannot request an upgrade to Debug. Continue with the <a href="/agent-policy/">Agent exposure policy guide</a>.</p>
+</DocPage>

@@ -1,12 +1,12 @@
 ---
-import { sections, docs, sectionsEn, docsEn } from '../data/nav';
+import { sectionGroups, docs, sectionGroupsEn, docsEn } from '../data/nav';
 import '../styles/global.css';
 
 interface Props { title: string; description: string; section?: string; }
 const { title, description, section } = Astro.props;
 const path = Astro.url.pathname;
 const isEnglish = path !== '/ja/' && !path.startsWith('/ja/');
-const activeSections = isEnglish ? sectionsEn : sections;
+const activeSectionGroups = isEnglish ? sectionGroupsEn : sectionGroups;
 const activeDocs = isEnglish ? docsEn : docs;
 const englishPath = isEnglish ? path : (path.replace(/^\/ja/, '') || '/');
 const japanesePath = isEnglish ? `/ja${path}` : path;
@@ -100,15 +100,19 @@ const webMcpDocumentPaths = Object.keys(import.meta.glob('../pages/**/*.astro'))
       <button class="menu-backdrop" type="button" aria-label={isEnglish ? 'Close navigation menu' : 'ナビゲーションメニューを閉じる'} tabindex="-1"></button>
       <aside class="sidebar" id="site-sidebar">
         <a class:list={["side-home", path === (isEnglish ? '/' : '/ja/') && 'active']} href={isEnglish ? '/' : '/ja/'}>{isEnglish ? 'Introduction' : 'はじめに'}</a>
-        <div class="side-label">GUIDE</div>
-        {activeSections.map((item) => (
-          <div class="side-group">
-            <a class:list={["side-parent", path.startsWith(item.href) && 'active']} href={item.href}>
-              <i class={`dot ${item.accent}`}></i>{item.label}
-            </a>
-            {item.children.length > 0 && <div class="side-children">
-              {item.children.map((child) => <a class:list={[path === child.href && 'active']} href={child.href}>{child.label}</a>)}
-            </div>}
+        {activeSectionGroups.map((group) => (
+          <div class="side-category">
+            <div class="side-label">{group.label}</div>
+            {group.items.map((item) => (
+              <div class="side-group">
+                <a class:list={["side-parent", path.startsWith(item.href) && 'active']} href={item.href}>
+                  <i class={`dot ${item.accent}`}></i>{item.label}
+                </a>
+                {item.children.length > 0 && <div class="side-children">
+                  {item.children.map((child) => <a class:list={[path === child.href && 'active']} href={child.href}>{child.label}</a>)}
+                </div>}
+              </div>
+            ))}
           </div>
         ))}
         <div class="side-label docs-label">DOCS / REFERENCE</div>

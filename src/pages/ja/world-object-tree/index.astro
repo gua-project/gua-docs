@@ -1,0 +1,18 @@
+---
+import DocPage from '../../../components/DocPage.astro'; import CodeBlock from '../../../components/CodeBlock.astro'; import Callout from '../../../components/Callout.astro';
+---
+<DocPage eyebrow="GUIDE / WORLD OBJECT TREE" title="ゲーム世界を意味情報として公開する" lead="World Object Treeは、扉、敵、目的地、アイテム、チェックポイントなど、UIではないゲーム世界の状態を、テストやAIが理解できる名前・種類・状態として公開する仕組みです。" description="World Object Treeの概念、Godot・Unity設定、selector、MCP、Inspector、公開範囲。" section="world-object-tree">
+  <h2>World Object Treeとは？</h2><p>Semantic UI Treeがbutton、label、input fieldなどのUI情報を表すのに対し、World Object TreeはUIの外側にあるゲーム世界を表します。たとえば「原子炉の扉は施錠中」「敵Aは活動中」「チェックポイントBは利用可能」といった状態を、安定したIDと意味情報で観測できるようにします。engine内部のscene treeをそのまま公開する仕組みではありません。</p>
+  <Callout title="なぜ公開対象を選び、観測専用にするのか"><p>sceneには、ゲーム上の意味を持つ対象だけでなく、背景の雑草、particle、light、補助node、object pool、内部状態も大量に含まれます。すべてを公開すると、そこら辺に生えている雑草までitemや操作対象のように見え、情報が不安定で騒がしくなり、実装詳細を漏らす危険もあります。そこで、ゲーム側が意味を定義したobjectだけを明示的に登録します。また、AIが任意のscene objectを直接書き換えないようTree自体は観測専用とし、操作はSemantic UI Actionまたは用途を限定したSemantic Game Actionとして別に公開します。</p></Callout>
+  <h2>Objectが持つ情報</h2><p>World Object Tree v1は安定した<code>id</code>、意味上の<code>kind</code>、任意のlabel・parent、2D/3D position、active・player visibility、tag、flatなprimitive stateを持ちます。state値はstring、有限number、boolean、nullに限定されます。</p>
+  <CodeBlock title="Godot: Node2Dを明示公開" lang="gdscript" code={`$Door.add_to_group(&"gua_world_object")
+$Door.set_meta(&"gua_world_id", "door-a")
+$Door.set_meta(&"gua_world_kind", "door")
+$Door.set_meta(&"gua_world_label", "Reactor door")
+$Door.set_meta(&"gua_world_visible_to_player", true)
+$Door.set_meta(&"gua_world_state", {"locked": true})`} />
+  <h2>GodotとUnity</h2><div class="grid-2"><div class="mini-card"><strong>Godot</strong><p><code>Node2D</code>または<code>Node3D</code>を<code>gua_world_object</code> groupへ追加し、<code>gua_world_*</code> metadataを設定します。IDは一意で、parentは同じ公開frame内に存在する必要があります。</p></div><div class="mini-card"><strong>Unity</strong><p>activeなGameObjectへ<code>GuaWorldObject</code>を追加し、ID、kind、visibility、tag、stateを設定します。adapterは登録componentだけを公開します。</p></div></div>
+  <h2>検索と待機</h2><p>MCPは<code>get_world_object_tree</code>、<code>find_world_objects</code>、<code>wait_for_world_object</code>を提供します。ID、kind、label、tag、state、ancestor、active、visibilityで検索でき、Inspectorは独立したWorld Object Tree panelへ表示します。</p>
+  <Callout kind="warn" title="観測であり、world mutationではない"><p>World v1にworld action toolはありません。操作はSemantic UIを使うか、用途を限定したSemantic Game Actionを公開してください。</p></Callout>
+  <h2>Player向けの安全な投影</h2><p>bridgeの既定はDebugです。Player向けhostでは<code>GUA_OBSERVATION_PROFILE=player</code>を設定し、transportへ渡す前にUIとWorldを投影します。clientからDebugへ昇格できません。続いて<a href="/ja/agent-policy/">エージェント公開ポリシー編</a>を参照してください。</p>
+</DocPage>

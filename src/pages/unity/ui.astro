@@ -70,6 +70,41 @@ screenRoot.AddComponent<GuaScreen>().Value = "title";`} />
   ]} />
   <Callout kind="tip" title="ID contract"><p>Slashes are escaped as <code>~1</code>. IDs over 127 UTF-8 bytes are shortened with a hash suffix. For duplicates in one frame, the first node wins and later nodes are reported in runtime logs.</p></Callout>
   <Callout kind="warn" title="Use one GuaScreen"><p>If multiple <code>GuaScreen</code> components exist, the first one found wins, but discovery order is not a public contract. Keep one per logical screen.</p></Callout>
-  <h2>6. Connect external tools</h2><p>The bridge listens on <code>8765</code> by default. Set <code>GUA_BRIDGE_PORT</code> before process startup to override it. Inspector and <code>gui-mcp</code> use the same bridge as other Gua adapters.</p>
+  <h2>6. Publish a World Object Tree</h2><p>To expose a door, enemy, objective, or other non-UI object, add <code>GuaWorldObject</code> to its GameObject. The UPM runtime collects it every frame, so a scene-specific registration loop is unnecessary.</p><CodeBlock title="Publish a door as a game-world object" lang="csharp" code={`using Gua.Core;
+using Gua.Unity;
+using UnityEngine;
+
+public sealed class ReactorDoor : MonoBehaviour
+{
+    private GuaWorldObject worldObject;
+    private bool locked = true;
+
+    private void Awake()
+    {
+        worldObject = GetComponent<GuaWorldObject>()
+            ?? gameObject.AddComponent<GuaWorldObject>();
+        worldObject.Id = "reactor-door";
+        worldObject.Kind = "door";
+        worldObject.Label = "Reactor door";
+        worldObject.Space = GuaWorldSpace.World3D;
+        worldObject.VisibleToPlayer = true;
+        worldObject.Tags = new[] { "reactor", "mission-critical" };
+        PublishState();
+    }
+
+    public void SetLocked(bool value)
+    {
+        locked = value;
+        PublishState();
+    }
+
+    private void PublishState()
+    {
+        worldObject.SetState("locked", locked);
+        worldObject.SetState("power", "online");
+    }
+}`} /><p><code>Id</code> is required and unique within the frame. Position comes from <code>transform.position</code>, and the nearest published parent GameObject becomes the parent object. Serialized fields such as ID, kind, visibility, and tags can also be configured on the <code>GuaWorldObject</code> component in the Inspector. Update dynamic state from code through <code>SetState()</code>, passing only strings, numbers, booleans, or null. See <a href="/world-object-tree/">World Object Tree</a> for the conceptual model and query tools.</p>
+  <h2>7. Connect external tools</h2><p>The bridge listens on <code>8765</code> by default. Set <code>GUA_BRIDGE_PORT</code> before process startup to override it. Inspector and <code>gui-mcp</code> use the same bridge as other Gua adapters.</p>
+  <h2>Export to WebGL (experimental)</h2><p>The released UPM archive includes the WebGL native libraries and <code>GuaWebMcp.jslib</code>. Wait until the WebGL build installs the tab-local <code>__guaUnityWebPort</code>, then call the no-argument <code>createUnityWebGlBridge()</code> from <code>gua-webmcp</code> in the same page. The helper resolves that default global name. This path always uses Player projection and does not expose private Debug data.</p><Callout kind="warn" title="Current WebGL limit"><p>The experimental Unity WebGL bridge exposes Semantic UI, opted-in World Object Tree data, and initialized game-input capabilities. It does not currently advertise screenshot support. See the <a href="/webmcp/">browser-native WebMCP guide</a> for registration and security boundaries.</p></Callout>
   <h2>Observation rules</h2><ul><li>Hidden controls remain observable with <code>visible: false</code>; disabled state is reflected separately.</li><li>Bounds use physical screenshot pixels, top-left origin, X rightward, Y downward.</li><li>Actions are applied to Unity controls and completed with a request-correlated result.</li><li>Rendered Player and Play Mode support PNG capture. Batchmode or <code>-nographics</code> reports <code>headless</code>.</li></ul>
 </DocPage>

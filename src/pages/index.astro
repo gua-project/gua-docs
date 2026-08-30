@@ -33,6 +33,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <article class="capability-card"><span>DIAGNOSE / 08</span><h3>Keep evidence from the failing moment</h3><p>Collect the UI tree and diff, pending requests, event history, logs, runtime version, environment, screenshot, and game-process output into one failure artifact.</p><small>Failure diagnostics · stdout/stderr · Strict isolation</small></article>
       <article class="capability-card"><span>INSPECT / 09</span><h3>Investigate and operate through Inspector</h3><p>The browser and Windows desktop Inspector show the tree, node state, logs, and screenshot. Invoke every semantic action, Recording, Replay, and Visual comparison from the UI.</p><small>Tree inspector · Node bounds · Automation panel</small></article>
       <article class="capability-card"><span>AGENT / 10</span><h3>Expose the same abilities over MCP</h3><p><code>gui-mcp</code> connects to the same WebSocket bridge and exposes tree reads, waits, all actions, logs, PNG capture, Recording, Replay, and Visual comparison as AI tools.</p><small>get_ui_tree · wait_for_node · run_test · visual artifacts</small></article>
+      <article class="capability-card"><span>WORLD / 11</span><h3>Observe opted-in world objects</h3><p>Publish stable doors, objectives, enemies, and checkpoints as a separate read-only tree with semantic state and player visibility.</p><small>World Object Tree · Selectors · Waits · Inspector</small></article>
+      <article class="capability-card"><span>INPUT / 12</span><h3>Drive bounded gameplay input</h3><p>Expose a Semantic Game Action map or capability-gated raw input with owner isolation, bounded leases, confirmation, and neutral cleanup.</p><small>Action Map · Keyboard · Pointer · Gamepad · Text</small></article>
+      <article class="capability-card"><span>POLICY / 13</span><h3>Show an AI player only safe information</h3><p>Keep developer Debug data complete while the game restricts the UI and World information and UI operations exposed to an AI player.</p><small>Debug / Player · Field rules · Action allowlist</small></article>
+      <article class="capability-card"><span>WEBMCP / 14</span><h3>Expose Web exports inside the browser tab</h3><p>Register Godot Web or Unity WebGL semantic tools through the page's experimental WebMCP API without a separate MCP server or WebSocket.</p><small>gua-webmcp · Godot Web · Unity WebGL · Player profile</small></article>
     </div>
     <span class="kicker">ENGINE SUPPORT</span><h2>Automatically reflect real Godot and Unity UI</h2>
     <div class="grid-2">
@@ -48,15 +52,64 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <div class="mini-card"><strong>Secret handling</strong><p>Redact sensitive values from snapshots, logs, diagnostics, and recordings, resolving them in memory only during replay.</p></div>
       <div class="mini-card"><strong>CI reproduction</strong><p>Run ordinary <code>dotnet test</code> with the public Godot Action and retain diagnostic and Visual artifacts on failure.</p></div>
     </div>
-    <span class="kicker">GUIDES &amp; REFERENCES</span><h2>Start with your engine or tool</h2>
-    <div class="card-grid">
-      <a class="chapter-card" href="/godot/"><span>USE CASE / 01</span><h3>Godot UI Testing</h3><p>Attach the GDScript adapter, collect the Control tree, and test live scenes with semantic locators.</p></a>
-      <a class="chapter-card" href="/ai-coding/"><span>USE CASE / 02</span><h3>AI Coding &amp; AI Playtesting</h3><p>Let an MCP-enabled AI coding agent inspect, operate, and verify a running game.</p></a>
-      <a class="chapter-card" href="/unity/"><span>ENGINE / 03</span><h3>Unity guide</h3><p>Reflect Unity 6 UI Toolkit, uGUI, and TextMeshPro and test Editor or Player processes externally.</p></a>
-      <a class="chapter-card" href="/inspector/"><span>TOOL / 02</span><h3>Inspector</h3><p>Diagnose the tree, invoke semantic actions, record/replay, and compare PNGs.</p></a>
-      <a class="chapter-card" href="/mcp/"><span>TOOL / 03</span><h3>MCP server</h3><p>Expose all semantic actions, Recording, Replay, and visual comparison to AI agents.</p></a>
-      <a class="chapter-card" href="/docs/"><span>REFERENCE / 04</span><h3>API docs</h3><p>Understand the recommended Godot path, .NET Standard 2.1 support, and separate Visual/Recording packages.</p></a>
-    </div>
+    <span class="kicker">GUIDES &amp; REFERENCES</span><h2>Choose by how the parts relate</h2>
+    <p class="section-lead">The guides are grouped into getting started, exposing the game, operating it with AI, testing and inspection, and cross-cutting safety and reproducibility.</p>
+
+    <section class="guide-category">
+      <h3>1. Integrate an engine and get started</h3>
+      <p>Begin with your game engine or the AI Coding use case.</p>
+      <div class="card-grid">
+        <a class="chapter-card" href="/godot/"><span>GET STARTED</span><h4>Godot guide</h4><p>Attach the GDScript adapter, collect the Control tree, and test live scenes externally.</p></a>
+        <a class="chapter-card" href="/unity/"><span>GET STARTED</span><h4>Unity guide</h4><p>Reflect Unity 6 UI Toolkit, uGUI, and TextMeshPro and test Editor or Player processes externally.</p></a>
+        <a class="chapter-card" href="/ai-coding/"><span>GET STARTED</span><h4>AI Coding &amp; AI Playtesting</h4><p>Let an MCP-enabled AI coding agent inspect, operate, and verify a running game.</p></a>
+      </div>
+    </section>
+
+    <section class="guide-category">
+      <h3>2. Expose game information and input</h3>
+      <p>Define which UI, world, and input semantics the game provides.</p>
+      <div class="card-grid">
+        <a class="chapter-card" href="/semantic-ui-tree/"><span>EXPOSE / UI</span><h4>Semantic UI Tree</h4><p>Understand the meaning, state, selectors, and UI operations exposed by game UI.</p></a>
+        <a class="chapter-card" href="/world-object-tree/"><span>EXPOSE / WORLD</span><h4>World Object Tree</h4><p>Expose selected doors, objectives, enemies, and other game-world information.</p></a>
+        <a class="chapter-card" href="/game-input/"><span>EXPOSE / INPUT</span><h4>Game input</h4><p>Make semantic actions such as jump and move, plus necessary keyboard or pointer input, operable.</p></a>
+      </div>
+    </section>
+
+    <section class="guide-category">
+      <h3>3. Connect and operate with an AI agent</h3>
+      <p>Use the published UI, world, and gameplay input through the connection that fits the runtime.</p>
+      <div class="card-grid">
+        <a class="chapter-card" href="/mcp/"><span>CONNECT / NATIVE</span><h4>MCP server</h4><p>Connect to a running Godot or Unity game over WebSocket and expose Gua features as AI tools.</p></a>
+        <a class="chapter-card" href="/webmcp/"><span>CONNECT / BROWSER</span><h4>Browser-native WebMCP</h4><p>Connect a Godot Web Export or Unity WebGL build directly to AI tools inside its browser tab.</p></a>
+      </div>
+    </section>
+
+    <section class="guide-category">
+      <h3>4. Test and investigate failures</h3>
+      <p>Inspect live state, compare rendered output, and record reproducible operations.</p>
+      <div class="card-grid">
+        <a class="chapter-card" href="/inspector/"><span>INSPECT</span><h4>Inspector</h4><p>View the UI Tree and state, invoke semantic operations, and investigate diagnostics.</p></a>
+        <a class="chapter-card" href="/visual-testing/"><span>VERIFY</span><h4>Visual testing</h4><p>Compare rendered PNG output with a baseline and detect visual regressions.</p></a>
+        <a class="chapter-card" href="/recording/"><span>REPRODUCE</span><h4>Recording</h4><p>Record semantic operations and wait conditions, then replay them with host completion checks.</p></a>
+      </div>
+    </section>
+
+    <section class="guide-category">
+      <h3>5. Improve safety and reproducibility</h3>
+      <p>Apply these cross-cutting controls across tests and AI play rather than through one connection method.</p>
+      <div class="card-grid">
+        <a class="chapter-card" href="/virtual-clock/"><span>REPRODUCIBILITY</span><h4>Virtual clock</h4><p>Control game time to verify time-dependent behavior quickly and deterministically.</p></a>
+        <a class="chapter-card" href="/agent-policy/"><span>SAFETY</span><h4>AI agent exposure policy</h4><p>Restrict the UI and World information and UI operations exposed to an AI player.</p></a>
+      </div>
+    </section>
+
+    <section class="guide-category">
+      <h3>Docs and API reference</h3>
+      <p>Consult protocol, package, API, and CI details while implementing an integration.</p>
+      <div class="card-grid">
+        <a class="chapter-card" href="/docs/"><span>REFERENCE</span><h4>Look up technical specifications</h4><p>Explore protocol, packages, Godot and Unity APIs, and CI configuration.</p></a>
+      </div>
+    </section>
     <aside class="advertisement" aria-label="Advertisement">
       <p>Advertisement</p>
       <script is:inline async src="https://ar-cdn.net/widget/v1.js" data-site-id="714545fe-7b3b-4521-95ce-93eda23f5876" data-variant="card"></script>

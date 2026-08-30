@@ -94,8 +94,43 @@ screenRoot.AddComponent<GuaScreen>().Value = "title";`} />
   ]} />
   <Callout kind="tip" title="IDの契約"><p><code>/</code>は<code>~1</code>へescapeされ、UTF-8で127 byteを超えるIDはhash suffix付きで短縮されます。同一frameの重複IDは最初のnodeだけが採用され、残りはruntime logへ記録されます。</p></Callout>
   <Callout kind="warn" title="GuaScreenは一つにする"><p>複数の<code>GuaScreen</code>がある場合は最初に見つかったものが使われますが、探索順は公開契約ではありません。一つの論理画面につき一つだけ配置します。</p></Callout>
-  <h2>6. 外部接続を許可する</h2>
+  <h2>6. World Object Treeを公開する</h2><p>UIではないdoor、enemy、objectiveなどを公開する場合は、対象のGameObjectへ<code>GuaWorldObject</code> componentを追加します。UPM runtimeが毎frame自動収集するため、sceneごとの登録loopは不要です。</p><CodeBlock title="Doorをゲーム世界のobjectとして公開" lang="csharp" code={`using Gua.Core;
+using Gua.Unity;
+using UnityEngine;
+
+public sealed class ReactorDoor : MonoBehaviour
+{
+    private GuaWorldObject worldObject;
+    private bool locked = true;
+
+    private void Awake()
+    {
+        worldObject = GetComponent<GuaWorldObject>()
+            ?? gameObject.AddComponent<GuaWorldObject>();
+        worldObject.Id = "reactor-door";
+        worldObject.Kind = "door";
+        worldObject.Label = "Reactor door";
+        worldObject.Space = GuaWorldSpace.World3D;
+        worldObject.VisibleToPlayer = true;
+        worldObject.Tags = new[] { "reactor", "mission-critical" };
+        PublishState();
+    }
+
+    public void SetLocked(bool value)
+    {
+        locked = value;
+        PublishState();
+    }
+
+    private void PublishState()
+    {
+        worldObject.SetState("locked", locked);
+        worldObject.SetState("power", "online");
+    }
+}`} /><p><code>Id</code>は必須かつ同じframe内で一意です。位置はGameObjectの<code>transform.position</code>から取得され、公開済みの親GameObjectがあれば最も近いobjectがparentになります。ID、kind、visibility、tagsなどのserialized fieldはInspector上の<code>GuaWorldObject</code> componentからも設定できます。動的なstateはコードから<code>SetState()</code>を呼び、string、number、boolean、nullだけを渡します。概念と検索方法は<a href="/ja/world-object-tree/">World Object Tree編</a>を参照してください。</p>
+  <h2>7. 外部接続を許可する</h2>
   <p>既定のWebSocketポートは<code>8765</code>です。プロセス起動前に<code>GUA_BRIDGE_PORT</code>を設定すると変更できます。Inspectorと<code>gui-mcp</code>はGodot版と同じブリッジへ接続します。</p>
+  <h2>WebGLへExportする（実験的）</h2><p>ReleaseのUPM archiveには、WebGL native libraryと<code>GuaWebMcp.jslib</code>が含まれます。WebGL buildがtab-localな<code>__guaUnityWebPort</code>を導入するまで待ち、同じpageで<code>gua-webmcp</code>の引数なしの<code>createUnityWebGlBridge()</code>を呼びます。helperが既定のglobal名を解決します。この経路は常にPlayer投影を使い、privateなDebug dataを公開しません。</p><Callout kind="warn" title="現在のWebGL制限"><p>実験的なUnity WebGL bridgeはSemantic UI、opt-inしたWorld Object Tree、初期化済みgame-input capabilityを公開します。現在screenshot capabilityは公開しません。tool登録とsecurity境界は<a href="/ja/webmcp/">ブラウザWebMCP編</a>を参照してください。</p></Callout>
   <h2>観測と操作の原則</h2>
   <ul>
     <li>非表示nodeは消去せず、<code>visible: false</code>として観測します。無効状態も<code>enabled</code>へ反映します。</li>
