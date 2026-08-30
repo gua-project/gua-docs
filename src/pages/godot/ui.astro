@@ -17,7 +17,7 @@ func _process(_delta: float) -> void:
   ui.update("title")`;
 ---
 <DocPage eyebrow="GODOT / UI" title="Install and implement UI" lead="Install the released addon, then connect UI built from standard Controls to the automatic collector." description="Install the Gua Godot addon and enable automatic UI collection." section="godot">
-  <Callout kind="tip" title="Install from the latest release"><p>Open the <a href="https://github.com/link1345/gua/releases/latest">latest Gua release</a> and download <code>gua-godot-plugin-windows-debug-v*.zip</code>. Extract it and copy <code>addons/gua</code> into your Godot project's <code>addons/</code> directory. This packaged add-on is the normal installation path.</p></Callout>
+  <Callout kind="tip" title="Install from the latest release"><p>Open the <a href="https://github.com/link1345/gua/releases/latest">latest Gua release</a> and download <code>gua-godot-addon-v*.zip</code>. Extract it and copy <code>addons/gua</code> into your Godot project's <code>addons/</code> directory. This single add-on contains the Windows GDExtension and both Debug and Release Web GDExtensions.</p></Callout>
   <h2>Install the packaged add-on</h2><ol class="steps"><li><strong>Open the latest release</strong><p>Download the Godot ZIP from the release assets and extract it.</p></li><li><strong>Copy addons/gua</strong><CodeBlock title="Expected layout" lang="text" code={`your-game/\n├─ project.godot\n└─ addons/\n   └─ gua/\n      ├─ gua.gdextension\n      ├─ gua_auto_adapter.gd\n      ├─ plugin.cfg\n      └─ bin/`} /><CodeNotes title="What each file does" items={[
     { code: 'project.godot', explanation: 'The main Godot project configuration.' },
     { code: 'addons/gua/gua.gdextension', explanation: 'Tells Godot how to load the native Gua extension.' },
@@ -41,6 +41,24 @@ func _process(_delta: float) -> void:
     { code: 'password_input.set_meta("gua_sensitive", true)', explanation: 'Prevents plaintext from entering the semantic tree, retained history, or diagnostics. Mask rendered screenshots separately.' },
   ]} /></li></ol>
   <Callout title="No duplicate registration"><p>The adapter recursively collects standard Controls from the root. It observes button signals and routes external click requests back through normal Godot signals.</p></Callout>
+  <h2>Publish a World Object Tree</h2><p>For a door, enemy, objective, or other non-UI object, add its <code>Node2D</code> or <code>Node3D</code> to the <code>gua_world_object</code> group and attach semantic metadata. The adapter collects position and state on each <code>ui.update()</code>, so game code does not call the native registration API directly.</p><CodeBlock title="Publish a door as a game-world object" lang="gdscript" code={`@onready var reactor_door: Node2D = $World/ReactorDoor
+var reactor_door_locked := true
+
+func expose_reactor_door() -> void:
+  reactor_door.add_to_group(&"gua_world_object")
+  reactor_door.set_meta(&"gua_world_id", "reactor-door")
+  reactor_door.set_meta(&"gua_world_kind", "door")
+  reactor_door.set_meta(&"gua_world_label", "Reactor door")
+  reactor_door.set_meta(&"gua_world_visible_to_player", true)
+  reactor_door.set_meta(&"gua_world_tags", ["reactor", "mission-critical"])
+  update_reactor_door_state()
+
+func update_reactor_door_state() -> void:
+  reactor_door.set_meta(&"gua_world_state", {
+    "locked": reactor_door_locked,
+    "power": "online"
+  })`} /><p>Call <code>expose_reactor_door()</code> once from <code>_ready()</code>, then call <code>update_reactor_door_state()</code> whenever the door changes. <code>gua_world_id</code> is required and unique within the frame. Position comes from <code>global_position</code>, and the nearest published ancestor becomes the parent. Keep state flat and limited to strings, finite numbers, booleans, or null. See <a href="/world-object-tree/">World Object Tree</a> for the conceptual model and query tools.</p>
+  <h2>Export to Web</h2><p>The same released add-on supports Godot Web Debug and Release exports. In the Web export preset, enable <strong>Extension Support</strong> and use the single-threaded variant. Godot reads <code>gua.gdextension</code> and selects the matching <code>web.wasm32.single.debug</code> or <code>web.wasm32.single.release</code> WASM automatically.</p><Callout kind="tip" title="Browser-native AI tools"><p>A Web export installs <code>window.__guaGodotWebPort</code> in its page. Use the <a href="/webmcp/">browser-native WebMCP guide</a> to register Gua tools in the same tab. Serve the export over HTTP(S); do not open the generated HTML directly from disk.</p></Callout>
   <h2>Commonly observed Controls</h2><div class="grid-2"><div class="mini-card"><strong>Inputs</strong><p>LineEdit, TextEdit, CheckBox, OptionButton, and ItemList</p></div><div class="mini-card"><strong>State</strong><p>Focus, selection, value, scrolling, ranges, visibility, and enabled state</p></div></div>
   <Callout kind="warn" title="Port conflicts"><p>The bridge cannot start if another process already owns port <code>8765</code>. Look for <code>Failed to start Gua Inspector bridge</code> in the Godot output.</p></Callout>
 </DocPage>

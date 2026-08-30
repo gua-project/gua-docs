@@ -1,0 +1,11 @@
+---
+import DocPage from '../../../components/DocPage.astro'; import CodeBlock from '../../../components/CodeBlock.astro'; import Callout from '../../../components/Callout.astro';
+---
+<DocPage eyebrow="DOCS / CONTRIBUTING" title="再現可能な証拠でリポジトリ変更を監査する" lead="Guaにはread-onlyのbug-hunting skill、変更後の自動gate、累積PR監査harnessがあります。" description="Gua contributor向けのgua-bug-hunt、gua_auditor、local PR audit手順。" section="docs">
+  <Callout title="監査はread-onlyです"><p>auditorは再現可能なbehavior defectをfile参照と検証証拠付きで報告します。main agentが各findingを独立検証し、修正を担当します。</p></Callout>
+  <h2>変更後の自動gate</h2><p>repository instructionでは、file変更後にfocused validationを行い、続けて<code>gua_auditor</code>を正確に1回実行します。対象はbranchの累積diffと関連untracked fileです。audit起点の修正後に限りfinal passを1回追加できます。</p>
+  <h2>PR全体を意図的に監査する</h2><CodeBlock title="mainからの累積diffを監査" lang="powershell" code={`git fetch origin main
+./scripts/run-local-pr-audit.ps1 -Base origin/main`} /><p><code>-Fix</code>を付けるとparentが支持できるfindingを検証し、scope内を修正してfocused checkを行い、最大4 passまで繰り返します。並列review laneを維持できないhostでは<code>-Sequential</code>を使います。</p>
+  <Callout kind="warn" title="公開操作は行いません"><p>harnessはcommit、push、GitHub review comment投稿を行いません。有用なreview境界は近似できますが、非公開のGitHub Connector prompt・runtimeを完全再現するものではありません。</p></Callout>
+  <p>限定scopeの委譲例と正確な挙動は<a href="https://github.com/link1345/gua/blob/main/docs/bug-hunting-subagent.md">repositoryの監査ガイド</a>を参照してください。</p>
+</DocPage>

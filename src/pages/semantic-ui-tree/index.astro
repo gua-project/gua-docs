@@ -1,0 +1,33 @@
+---
+import DocPage from '../../components/DocPage.astro'; import CodeBlock from '../../components/CodeBlock.astro'; import Callout from '../../components/Callout.astro';
+const snapshot = `{
+  "schemaVersion": 2,
+  "screen": "title",
+  "frameSequence": 42,
+  "revision": 7,
+  "nodes": [
+    {
+      "id": "title/start",
+      "role": "button",
+      "label": "Start Game",
+      "text": "Start Game",
+      "visible": true,
+      "enabled": true,
+      "bounds": { "x": 520, "y": 430, "w": 240, "h": 64 },
+      "actions": ["click", "focus"]
+    }
+  ]
+}`;
+---
+<DocPage eyebrow="GUIDE / SEMANTIC UI TREE" title="Publish game UI as semantic information" lead="A Semantic UI Tree exposes buttons, text, and input fields from a running game as information about what each control means and its current state, rather than as pixels or coordinates. A test or AI agent can find the Start Game button by name and role, operate it, and verify what changes next." description="The Semantic UI Tree snapshot, node information, selectors, actions, waits, and its relationship to the World Object Tree." section="semantic-ui-tree">
+  <h2>What is a Semantic UI Tree?</h2><p>Instead of analyzing a rendered image, Gua represents the UI structure and meaning as one frame-consistent snapshot. A consumer can tell that a node is a visible, enabled Start Game button that supports click. This is not a dump of engine scene nodes or GameObjects; adapters translate user-facing controls into one shared protocol.</p>
+  <div class="flow"><span>Game UI</span><b>→</b><span>Engine adapter collects</span><b>→</b><span>Semantic UI Tree</span><b>→</b><span>Tests, Inspector, and AI</span></div>
+  <Callout kind="tip" title="Do not depend on coordinates or image recognition"><p>If a button moves or its appearance changes, a stable <code>id</code>, <code>role</code>, and <code>label</code> still identify it. Bounds remain observable, but semantic information is the primary way to locate a target.</p></Callout>
+  <h2>Information on the complete tree</h2><div class="table-wrap"><table><thead><tr><th>Field</th><th>Meaning</th></tr></thead><tbody><tr><td><code>screen</code></td><td>The current logical screen, such as <code>title</code> or <code>settings</code>.</td></tr><tr><td><code>nodes</code></td><td>The currently published UI nodes. <code>parentId</code> expresses hierarchy.</td></tr><tr><td><code>frameSequence</code></td><td>Increments for every frame published by the adapter.</td></tr><tr><td><code>revision</code></td><td>Increments only when the screen, nodes, state, bounds, or supported actions change.</td></tr><tr><td><code>sessionEpoch</code></td><td>Identifies the current test-isolation session so stale snapshots are not reused after reset.</td></tr></tbody></table></div>
+  <CodeBlock title="Example Semantic UI Tree snapshot" lang="json" code={snapshot} />
+  <h2>Information on each UI node</h2><div class="grid-2"><div class="mini-card"><strong>Identity and structure</strong><p><code>id</code>, <code>parentId</code>, and <code>role</code> describe which control this is, what it does, and where it belongs.</p></div><div class="mini-card"><strong>Human-readable content</strong><p><code>label</code>, <code>text</code>, and <code>value</code> describe its name, displayed text, entered value, or slider value.</p></div><div class="mini-card"><strong>Current state</strong><p><code>visible</code>, <code>enabled</code>, focus, hover, pressed, checked, selected, caret, selection, scroll, and range fields describe its current behavior.</p></div><div class="mini-card"><strong>Position and supported actions</strong><p><code>bounds</code> uses physical viewport pixels. <code>actions</code> lists the operations structurally supported by that kind of node.</p></div></div>
+  <h2>What can you do with it?</h2><div class="grid-2"><div class="mini-card"><strong>Observe</strong><p>Read the current screen, visible controls, text, values, selection, focus, and scroll state.</p></div><div class="mini-card"><strong>Locate by meaning</strong><p>Combine <code>id</code>, <code>role</code>, name, text, parent scope, visibility, and enabled state to find a control.</p></div><div class="mini-card"><strong>Operate</strong><p>Send <code>click</code>, <code>focus</code>, <code>set_value</code>, <code>set_checked</code>, <code>select</code>, <code>scroll</code>, or <code>press_key</code> to a matching node.</p></div><div class="mini-card"><strong>Wait and verify</strong><p>Wait until Loading appears, a button becomes enabled, or a checkbox becomes checked instead of relying on a fixed sleep.</p></div></div>
+  <Callout title="Use only actions supported by the node"><p>Not every control supports every operation. A button may publish click while a textbox publishes set_value. At execution time, Gua also revalidates <code>visible</code>, <code>enabled</code>, and Player policy. Each request is correlated with engine completion instead of reporting queue acceptance as success.</p></Callout>
+  <h2>How it differs from World and game input</h2><div class="grid-2"><div class="mini-card"><strong>Semantic UI Tree</strong><p>Observe and operate on-screen buttons, labels, dialogs, and input fields.</p></div><div class="mini-card"><strong>World Object Tree</strong><p>Observe opted-in doors, enemies, objectives, and checkpoints outside the UI. World v1 is read-only.</p></div><div class="mini-card"><strong>Semantic Game Action</strong><p>Drive gameplay intent such as <code>jump</code> or <code>move</code>.</p></div><div class="mini-card"><strong>Raw Input</strong><p>Operate keyboard, pointer, and gamepad controls close to the physical device model.</p></div></div>
+  <Callout kind="warn" title="Treat secrets and screenshots separately"><p>Mark passwords and similar values sensitive in the engine so plaintext is not retained in the tree or diagnostics. Semantic redaction does not remove rendered pixels, so the game must mask secrets in screenshots separately.</p></Callout>
+</DocPage>

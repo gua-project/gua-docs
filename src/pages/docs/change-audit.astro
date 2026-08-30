@@ -1,0 +1,11 @@
+---
+import DocPage from '../../components/DocPage.astro'; import CodeBlock from '../../components/CodeBlock.astro'; import Callout from '../../components/Callout.astro';
+---
+<DocPage eyebrow="DOCS / CONTRIBUTING" title="Audit repository changes with reproducible evidence" lead="Gua includes a read-only bug-hunting skill, an automatic post-change gate, and a cumulative pull-request audit harness." description="Contributor reference for Gua change auditing, gua-bug-hunt, gua_auditor, and the local PR audit harness." section="docs">
+  <Callout title="Audit is read-only"><p>The auditor reports reproducible behavior defects with file references and verification evidence. The main agent independently validates findings and owns every fix.</p></Callout>
+  <h2>Automatic gate after edits</h2><p>Repository instructions require one focused validation pass followed by exactly one <code>gua_auditor</code> pass after files change. Its scope includes the cumulative branch diff and relevant untracked files. A final pass is allowed only after audit-led fixes.</p>
+  <h2>Deliberate pull-request-wide audit</h2><CodeBlock title="Review the cumulative diff from main" lang="powershell" code={`git fetch origin main
+./scripts/run-local-pr-audit.ps1 -Base origin/main`} /><p>Add <code>-Fix</code> to let the parent validate supported findings, apply in-scope fixes, run focused checks, and repeat for at most four passes. Use <code>-Sequential</code> on a host that cannot sustain the concurrent review lanes.</p>
+  <Callout kind="warn" title="No publication side effects"><p>The harness does not commit, push, or post GitHub review comments. It approximates the useful review boundaries but cannot reproduce the private GitHub Connector prompt or runtime exactly.</p></Callout>
+  <p>See <a href="https://github.com/link1345/gua/blob/main/docs/bug-hunting-subagent.md">the repository audit guide</a> for bounded delegation examples and exact behavior.</p>
+</DocPage>

@@ -17,7 +17,7 @@ func _process(_delta: float) -> void:
   ui.update("title")`;
 ---
 <DocPage eyebrow="GODOT / UI" title="導入とUI実装" lead="配布済みアドオンを導入し、標準Controlで作ったUIを自動収集アダプターへ接続します。" description="Gua Godotアドオンの導入とUI自動収集。" section="godot">
-  <Callout kind="tip" title="Latest Releaseから導入"><p><a href="https://github.com/link1345/gua/releases/latest">Guaの最新Release</a>を開き、<code>gua-godot-plugin-windows-debug-v*.zip</code>を取得します。展開した<code>addons/gua</code>をGodotプロジェクト直下の<code>addons/</code>へコピーしてください。通常利用では、この配布物を使用します。</p></Callout>
+  <Callout kind="tip" title="Latest Releaseから導入"><p><a href="https://github.com/link1345/gua/releases/latest">Guaの最新Release</a>を開き、<code>gua-godot-addon-v*.zip</code>を取得します。展開した<code>addons/gua</code>をGodotプロジェクト直下の<code>addons/</code>へコピーしてください。この単一addonにWindows GDExtensionとDebug／Release両方のWeb GDExtensionが含まれます。</p></Callout>
   <h2>配布済みアドオンを入れる</h2><ol class="steps"><li><strong>Latest Releaseを開く</strong><p>AssetsからGodot用ZIPをダウンロードして展開します。</p></li><li><strong>addons/guaをコピー</strong><CodeBlock title="配置後の構成" lang="text" code={`your-game/\n├─ project.godot\n└─ addons/\n   └─ gua/\n      ├─ gua.gdextension\n      ├─ gua_auto_adapter.gd\n      ├─ plugin.cfg\n      └─ bin/`} /><CodeNotes title="各ファイルの役割" codeLabel="ファイル" explanationLabel="役割" items={[
     { code: 'project.godot', explanation: 'Godotプロジェクト本体の設定ファイルです。' },
     { code: 'addons/gua/gua.gdextension', explanation: 'GodotからGuaのnative runtimeを読み込むためのGDExtension定義です。' },
@@ -41,6 +41,24 @@ func _process(_delta: float) -> void:
     { code: 'password_input.set_meta("gua_sensitive", true)', explanation: '入力値を機密扱いにし、Semantic UI Tree、履歴、diagnosticsへ平文を残さないようにします。スクリーンショット上の表示は別途マスクが必要です。' },
   ]} /></li></ol>
   <Callout title="二重登録は不要"><p>アダプターはルートControlから標準コントロールを再帰収集します。ボタンの<code>pressed</code>も監視し、外部クリック要求を通常のGodotシグナルへ流します。</p></Callout>
+  <h2>World Object Treeを公開する</h2><p>UIではないdoor、enemy、objectiveなどは、対象の<code>Node2D</code>または<code>Node3D</code>を<code>gua_world_object</code> groupへ追加し、意味情報をmetadataで設定します。adapterが<code>ui.update()</code>のたびに位置とstateを収集するため、native APIを直接呼ぶ必要はありません。</p><CodeBlock title="Doorをゲーム世界のobjectとして公開" lang="gdscript" code={`@onready var reactor_door: Node2D = $World/ReactorDoor
+var reactor_door_locked := true
+
+func expose_reactor_door() -> void:
+  reactor_door.add_to_group(&"gua_world_object")
+  reactor_door.set_meta(&"gua_world_id", "reactor-door")
+  reactor_door.set_meta(&"gua_world_kind", "door")
+  reactor_door.set_meta(&"gua_world_label", "Reactor door")
+  reactor_door.set_meta(&"gua_world_visible_to_player", true)
+  reactor_door.set_meta(&"gua_world_tags", ["reactor", "mission-critical"])
+  update_reactor_door_state()
+
+func update_reactor_door_state() -> void:
+  reactor_door.set_meta(&"gua_world_state", {
+    "locked": reactor_door_locked,
+    "power": "online"
+  })`} /><p><code>expose_reactor_door()</code>を<code>_ready()</code>から一度呼び、doorの状態が変わったら<code>update_reactor_door_state()</code>を呼びます。<code>gua_world_id</code>は必須かつ同じframe内で一意です。位置はnodeの<code>global_position</code>から取得され、公開済みancestorがあれば最も近いobjectをparentとして扱います。stateは入れ子にせず、string、有限number、boolean、nullだけを使います。概念と検索方法は<a href="/ja/world-object-tree/">World Object Tree編</a>を参照してください。</p>
+  <h2>WebへExportする</h2><p>同じRelease addonでGodot WebのDebug／Release exportを利用できます。Web export presetで<strong>Extension Support</strong>を有効にし、single-thread variantを使います。Godotは<code>gua.gdextension</code>を読み、対応する<code>web.wasm32.single.debug</code>または<code>web.wasm32.single.release</code> WASMを自動選択します。</p><Callout kind="tip" title="Browser-native AI tool"><p>Web exportはpage内へ<code>window.__guaGodotWebPort</code>を導入します。同じtabへGua toolを登録する方法は<a href="/ja/webmcp/">ブラウザWebMCP編</a>を参照してください。生成HTMLはfileとして直接開かず、HTTP(S) serverから配信します。</p></Callout>
   <h2>収集される主なControl</h2><div class="grid-2"><div class="mini-card"><strong>入力</strong><p>LineEdit、TextEdit、CheckBox、OptionButton、ItemList</p></div><div class="mini-card"><strong>状態</strong><p>フォーカス、選択、値、スクロール、範囲、表示・有効状態</p></div></div>
   <Callout kind="warn" title="ポート競合"><p><code>8765</code>を別プロセスが使用中の場合、ブリッジは開始できません。Godot出力の <code>Failed to start Gua Inspector bridge</code> を確認してください。</p></Callout>
 </DocPage>

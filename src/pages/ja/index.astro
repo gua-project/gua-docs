@@ -33,6 +33,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <article class="capability-card"><span>DIAGNOSE / 08</span><h3>失敗した瞬間の証拠を残す</h3><p>UI Tree、前後差分、pending request、event履歴、ログ、runtime version、環境情報、スクリーンショット、ゲームプロセス出力を一つのartifactへ集約します。</p><small>Failure diagnostics · stdout/stderr · Strict isolation</small></article>
       <article class="capability-card"><span>INSPECT / 09</span><h3>Inspectorから人間が調査・操作</h3><p>ブラウザー版とWindowsデスクトップ版で、UI Tree、ノード状態、ログ、スクリーンショットを確認。全Semantic action、Recording、Replay、Visual比較を画面から実行できます。</p><small>Tree inspector · Node bounds · Automation panel</small></article>
       <article class="capability-card"><span>AGENT / 10</span><h3>MCPからAIエージェントへ公開</h3><p><code>gui-mcp</code>が同じWebSocketブリッジへ接続し、UI取得、待機、全操作、ログ・PNG取得、Recording、Replay、Visual比較をAIのtoolとして公開します。</p><small>get_ui_tree · wait_for_node · run_test · visual artifacts</small></article>
+      <article class="capability-card"><span>WORLD / 11</span><h3>明示したworld objectだけを観測</h3><p>door、objective、enemy、checkpointなどを、意味状態とplayer visibilityを持つ独立したread-only treeとして公開します。</p><small>World Object Tree · Selector · Wait · Inspector</small></article>
+      <article class="capability-card"><span>INPUT / 12</span><h3>範囲を限定したゲーム入力を操作</h3><p>Semantic Game Action Mapまたはcapability制御のRaw Inputを、owner分離、lease、confirmation、neutral cleanup付きで公開します。</p><small>Action Map · Keyboard · Pointer · Gamepad · Text</small></article>
+      <article class="capability-card"><span>POLICY / 13</span><h3>AIエージェントへ安全な情報だけを見せる</h3><p>開発者用Debug dataを完全に保ちつつ、AIエージェントプレイヤーへ公開するUI・World情報とUI操作をゲーム側で制限します。</p><small>Debug / Player · Field rule · Action allowlist</small></article>
+      <article class="capability-card"><span>WEBMCP / 14</span><h3>Web Exportをbrowser tab内で公開</h3><p>別MCP serverやWebSocketを使わず、Godot Web／Unity WebGLのSemantic toolをpageの実験的WebMCP APIへ登録します。</p><small>gua-webmcp · Godot Web · Unity WebGL · Player profile</small></article>
     </div>
     <span class="kicker">ENGINE SUPPORT</span><h2>GodotとUnityの実UIを自動収集</h2>
     <div class="grid-2">
@@ -48,15 +52,64 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <div class="mini-card"><strong>機密情報の保護</strong><p>sensitiveな入力値をsnapshot、log、diagnostics、Recordingからredactし、Replay時だけmemory上で解決します。</p></div>
       <div class="mini-card"><strong>CIで再現</strong><p>Godot用公開Actionと通常の<code>dotnet test</code>を使い、失敗時の診断・Visual artifactをCIへ残せます。</p></div>
     </div>
-    <span class="kicker">GUIDES &amp; REFERENCES</span><h2>導入するエンジンと道具から読む</h2>
-    <div class="card-grid">
-      <a class="chapter-card" href="/ja/godot/"><span>USE CASE / 01</span><h3>Godot UI Testing</h3><p>GDScriptアダプターを取り付け、Controlツリーを自動収集します。Semantic locatorで実シーンを外部テストします。</p></a>
-      <a class="chapter-card" href="/ja/ai-coding/"><span>USE CASE / 02</span><h3>AI Coding &amp; AI Playtesting</h3><p>MCP対応AIコーディングエージェントから実行中ゲームを観測・操作・検証します。</p></a>
-      <a class="chapter-card" href="/ja/unity/"><span>ENGINE / 03</span><h3>Unity編</h3><p>Unity 6のUI Toolkit、uGUI、TextMeshProを自動収集し、Editor/Playerを外部テストします。</p></a>
-      <a class="chapter-card" href="/ja/inspector/"><span>TOOL / 03</span><h3>インスペクタ編</h3><p>UI Treeを診断し、Semantic操作、Recording/Replay、PNG差分比較を画面から実行する。</p></a>
-      <a class="chapter-card" href="/ja/mcp/"><span>TOOL / 04</span><h3>MCPサーバー操作編</h3><p>AIから全Semantic action、Recording、Replay、Visual比較を操作する。</p></a>
-      <a class="chapter-card" href="/ja/docs/"><span>REFERENCE / 05</span><h3>Docs</h3><p>Godot推奨構成、.NET Standard 2.1対応、独立したVisual/Recordingパッケージを調べる。</p></a>
-    </div>
+    <span class="kicker">GUIDES &amp; REFERENCES</span><h2>やりたいことの関係から読む</h2>
+    <p class="section-lead">各章を、導入、ゲーム側からの公開、AIからの操作、テストと調査、安全性と再現性にまとめました。</p>
+
+    <section class="guide-category">
+      <h3>1. エンジンへ導入して使い始める</h3>
+      <p>利用するゲームエンジン、またはAI Codingの目的から始めます。</p>
+      <div class="card-grid">
+        <a class="chapter-card" href="/ja/godot/"><span>GET STARTED</span><h4>Godot編</h4><p>GDScriptアダプターを取り付け、Controlツリーを自動収集して実シーンを外部テストします。</p></a>
+        <a class="chapter-card" href="/ja/unity/"><span>GET STARTED</span><h4>Unity編</h4><p>Unity 6のUI Toolkit、uGUI、TextMeshProを自動収集し、Editor/Playerを外部テストします。</p></a>
+        <a class="chapter-card" href="/ja/ai-coding/"><span>GET STARTED</span><h4>AI Coding &amp; AI Playtesting</h4><p>MCP対応AIコーディングエージェントから実行中ゲームを観測・操作・検証します。</p></a>
+      </div>
+    </section>
+
+    <section class="guide-category">
+      <h3>2. ゲームの情報と入力を公開する</h3>
+      <p>ゲーム側がUI、ゲーム世界、操作方法をどんな意味情報として提供するかを決めます。</p>
+      <div class="card-grid">
+        <a class="chapter-card" href="/ja/semantic-ui-tree/"><span>EXPOSE / UI</span><h4>Semantic UI Tree編</h4><p>ボタンやテキストなど、ゲームUIの意味、状態、検索、UI操作の構造を理解します。</p></a>
+        <a class="chapter-card" href="/ja/world-object-tree/"><span>EXPOSE / WORLD</span><h4>World Object Tree編</h4><p>door、objective、enemyなど、明示したゲーム世界の情報だけを公開します。</p></a>
+        <a class="chapter-card" href="/ja/game-input/"><span>EXPOSE / INPUT</span><h4>ゲーム入力編</h4><p>jumpやmoveなどのSemantic Actionと、必要なキーボード・マウス入力を操作可能にします。</p></a>
+      </div>
+    </section>
+
+    <section class="guide-category">
+      <h3>3. AIエージェントから接続して操作する</h3>
+      <p>公開したUI、World、ゲーム入力を、実行環境に合うAI接続方法から利用します。</p>
+      <div class="card-grid">
+        <a class="chapter-card" href="/ja/mcp/"><span>CONNECT / NATIVE</span><h4>MCPサーバー編</h4><p>Godot・Unityの実行中ゲームへWebSocket経由で接続し、Guaの機能をAI toolとして操作します。</p></a>
+        <a class="chapter-card" href="/ja/webmcp/"><span>CONNECT / BROWSER</span><h4>ブラウザWebMCP編</h4><p>Godot Web ExportまたはUnity WebGLを、ブラウザタブ内のAI toolへ直接接続します。</p></a>
+      </div>
+    </section>
+
+    <section class="guide-category">
+      <h3>4. テストして、失敗を調査する</h3>
+      <p>人間による実行中状態の確認、画像差分、操作の記録と再生を扱います。</p>
+      <div class="card-grid">
+        <a class="chapter-card" href="/ja/inspector/"><span>INSPECT</span><h4>インスペクタ編</h4><p>UI Treeや状態を画面で確認し、Semantic操作や診断を実行します。</p></a>
+        <a class="chapter-card" href="/ja/visual-testing/"><span>VERIFY</span><h4>Visualテスト編</h4><p>ゲーム画面のPNGをベースラインと比較し、描画上の差分を検出します。</p></a>
+        <a class="chapter-card" href="/ja/recording/"><span>REPRODUCE</span><h4>Recording編</h4><p>Semantic操作と待機条件を記録し、同じ手順をホスト完了確認付きで再生します。</p></a>
+      </div>
+    </section>
+
+    <section class="guide-category">
+      <h3>5. 自動化の安全性と再現性を高める</h3>
+      <p>特定の操作方法に属さず、テストやAIプレイ全体へ適用する横断機能です。</p>
+      <div class="card-grid">
+        <a class="chapter-card" href="/ja/virtual-clock/"><span>REPRODUCIBILITY</span><h4>仮想時計編</h4><p>ゲーム内時間を制御し、待ち時間や時間依存の挙動を高速かつ決定的に検証します。</p></a>
+        <a class="chapter-card" href="/ja/agent-policy/"><span>SAFETY</span><h4>AIエージェント公開ポリシー編</h4><p>AIエージェントプレイヤーへ見せるUI・World情報と許可するUI操作を制限します。</p></a>
+      </div>
+    </section>
+
+    <section class="guide-category">
+      <h3>Docs・APIリファレンス</h3>
+      <p>実装時に必要なプロトコル、パッケージ、API、CI設定を参照します。</p>
+      <div class="card-grid">
+        <a class="chapter-card" href="/ja/docs/"><span>REFERENCE</span><h4>技術仕様を調べる</h4><p>プロトコル、パッケージ、Godot・Unity API、CI設定の詳細を調べます。</p></a>
+      </div>
+    </section>
     <aside class="advertisement" aria-label="広告">
       <p>広告</p>
       <script is:inline async src="https://ar-cdn.net/widget/v1.js" data-site-id="714545fe-7b3b-4521-95ce-93eda23f5876" data-variant="card"></script>

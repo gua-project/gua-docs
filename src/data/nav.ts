@@ -1,24 +1,54 @@
-export const sections = [
-  { label: 'AI Coding・Playtesting', href: '/ja/ai-coding/', accent: 'blue', children: [] },
+export const sectionGroups = [
   {
-    label: 'Godot編', href: '/ja/godot/', accent: 'mint',
-    children: [
-      { label: '導入とUI実装', href: '/ja/godot/ui/' },
-      { label: 'テストの仕方', href: '/ja/godot/testing/' },
+    label: '始める',
+    items: [
+      { label: 'AI Coding・Playtesting', href: '/ja/ai-coding/', accent: 'blue', children: [] },
+      {
+        label: 'Godot編', href: '/ja/godot/', accent: 'mint',
+        children: [
+          { label: '導入とUI実装', href: '/ja/godot/ui/' },
+          { label: 'テストの仕方', href: '/ja/godot/testing/' },
+        ],
+      },
+      {
+        label: 'Unity編', href: '/ja/unity/', accent: 'amber',
+        children: [
+          { label: '導入とUI実装', href: '/ja/unity/ui/' },
+          { label: 'テストの仕方', href: '/ja/unity/testing/' },
+        ],
+      },
     ],
   },
   {
-    label: 'Unity編', href: '/ja/unity/', accent: 'amber',
-    children: [
-      { label: '導入とUI実装', href: '/ja/unity/ui/' },
-      { label: 'テストの仕方', href: '/ja/unity/testing/' },
+    label: 'ゲームを公開する',
+    items: [
+      { label: 'Semantic UI Tree編', href: '/ja/semantic-ui-tree/', accent: 'mint', children: [] },
+      { label: 'World Object Tree編', href: '/ja/world-object-tree/', accent: 'amber', children: [] },
+      { label: 'ゲーム入力編', href: '/ja/game-input/', accent: 'violet', children: [] },
     ],
   },
-  { label: 'Visualテスト編', href: '/ja/visual-testing/', accent: 'violet', children: [] },
-  { label: 'Recording編', href: '/ja/recording/', accent: 'blue', children: [] },
-  { label: '仮想時計編', href: '/ja/virtual-clock/', accent: 'mint', children: [] },
-  { label: 'インスペクタ編', href: '/ja/inspector/', accent: 'violet', children: [] },
-  { label: 'MCPサーバー操作編', href: '/ja/mcp/', accent: 'blue', children: [] },
+  {
+    label: 'AIから操作する',
+    items: [
+      { label: 'MCPサーバー編', href: '/ja/mcp/', accent: 'blue', children: [] },
+      { label: 'ブラウザWebMCP編', href: '/ja/webmcp/', accent: 'blue', children: [] },
+    ],
+  },
+  {
+    label: 'テスト・調査する',
+    items: [
+      { label: 'インスペクタ編', href: '/ja/inspector/', accent: 'violet', children: [] },
+      { label: 'Visualテスト編', href: '/ja/visual-testing/', accent: 'violet', children: [] },
+      { label: 'Recording編', href: '/ja/recording/', accent: 'blue', children: [] },
+    ],
+  },
+  {
+    label: '安全性・再現性を高める',
+    items: [
+      { label: '仮想時計編', href: '/ja/virtual-clock/', accent: 'mint', children: [] },
+      { label: 'AIエージェント公開ポリシー編', href: '/ja/agent-policy/', accent: 'blue', children: [] },
+    ],
+  },
 ] as const;
 
 export const docs = [
@@ -28,29 +58,60 @@ export const docs = [
   { label: 'Godot API・仕様', href: '/ja/docs/runtime-adapters/' },
   { label: 'Unity API・仕様', href: '/ja/docs/unity-reference/' },
   { label: 'GitHub Actions', href: '/ja/docs/github-actions/' },
+  { label: '変更監査', href: '/ja/docs/change-audit/' },
 ] as const;
 
-export const sectionsEn = [
-  { label: 'AI Coding & Playtesting', href: '/ai-coding/', accent: 'blue', children: [] },
+export const sectionGroupsEn = [
   {
-    label: 'Godot', href: '/godot/', accent: 'mint',
-    children: [
-      { label: 'Install and implement UI', href: '/godot/ui/' },
-      { label: 'Testing UI', href: '/godot/testing/' },
+    label: 'GET STARTED',
+    items: [
+      { label: 'AI Coding & Playtesting', href: '/ai-coding/', accent: 'blue', children: [] },
+      {
+        label: 'Godot', href: '/godot/', accent: 'mint',
+        children: [
+          { label: 'Install and implement UI', href: '/godot/ui/' },
+          { label: 'Testing UI', href: '/godot/testing/' },
+        ],
+      },
+      {
+        label: 'Unity', href: '/unity/', accent: 'amber',
+        children: [
+          { label: 'Install and implement UI', href: '/unity/ui/' },
+          { label: 'Testing UI', href: '/unity/testing/' },
+        ],
+      },
     ],
   },
   {
-    label: 'Unity', href: '/unity/', accent: 'amber',
-    children: [
-      { label: 'Install and implement UI', href: '/unity/ui/' },
-      { label: 'Testing UI', href: '/unity/testing/' },
+    label: 'EXPOSE THE GAME',
+    items: [
+      { label: 'Semantic UI Tree', href: '/semantic-ui-tree/', accent: 'mint', children: [] },
+      { label: 'World Object Tree', href: '/world-object-tree/', accent: 'amber', children: [] },
+      { label: 'Game input', href: '/game-input/', accent: 'violet', children: [] },
     ],
   },
-  { label: 'Visual testing', href: '/visual-testing/', accent: 'violet', children: [] },
-  { label: 'Recording', href: '/recording/', accent: 'blue', children: [] },
-  { label: 'Virtual clock', href: '/virtual-clock/', accent: 'mint', children: [] },
-  { label: 'Inspector', href: '/inspector/', accent: 'violet', children: [] },
-  { label: 'MCP Server', href: '/mcp/', accent: 'blue', children: [] },
+  {
+    label: 'OPERATE WITH AI',
+    items: [
+      { label: 'MCP server', href: '/mcp/', accent: 'blue', children: [] },
+      { label: 'Browser-native WebMCP', href: '/webmcp/', accent: 'blue', children: [] },
+    ],
+  },
+  {
+    label: 'TEST & INSPECT',
+    items: [
+      { label: 'Inspector', href: '/inspector/', accent: 'violet', children: [] },
+      { label: 'Visual testing', href: '/visual-testing/', accent: 'violet', children: [] },
+      { label: 'Recording', href: '/recording/', accent: 'blue', children: [] },
+    ],
+  },
+  {
+    label: 'SAFETY & REPRODUCIBILITY',
+    items: [
+      { label: 'Virtual clock', href: '/virtual-clock/', accent: 'mint', children: [] },
+      { label: 'AI agent exposure policy', href: '/agent-policy/', accent: 'blue', children: [] },
+    ],
+  },
 ] as const;
 
 export const docsEn = [
@@ -60,4 +121,5 @@ export const docsEn = [
   { label: 'Godot API and specification', href: '/docs/runtime-adapters/' },
   { label: 'Unity API and specification', href: '/docs/unity-reference/' },
   { label: 'GitHub Actions', href: '/docs/github-actions/' },
+  { label: 'Change audit', href: '/docs/change-audit/' },
 ] as const;
