@@ -4,16 +4,16 @@ import CodeBlock from '../../components/CodeBlock.astro';
 import Callout from '../../components/Callout.astro';
 ---
 <DocPage eyebrow="DOCS / CI" title="GitHub Actions" lead="link1345/gua-tester provides versioned CI workflows for Gua UI tests in Godot 4.7 and Unity 6 projects." description="Godot and Unity inputs, credentials, artifacts, and visual reports provided by Gua Tester Actions." section="docs">
-  <Callout title="Gua Tester Actions v2.2"><p>See <a href="https://github.com/link1345/gua-tester">link1345/gua-tester</a> for the implementation and releases. v2 moves the Godot all-in-one action from the repository root to <code>/godot</code> and adds the Unity reusable workflow.</p></Callout>
+  <Callout title="Gua Tester Actions v3"><p>See <a href="https://github.com/link1345/gua-tester">link1345/gua-tester</a> for the implementation and releases. v3 runs Godot and Unity tests across the supported desktop platforms.</p></Callout>
 
   <h2>Godot 4.7</h2>
-  <p>The Godot composite action downloads the selected Windows Godot build, links the released Gua addon, exports <code>GODOT_EXECUTABLE</code>, prepares project imports, and runs the external <code>Gua.Testing.Godot</code> test project.</p>
+  <p>The Godot composite action downloads the official Godot build matching its runner, links the released Gua addon, exports <code>GODOT_EXECUTABLE</code>, prepares project imports, and runs the external <code>Gua.Testing.Godot</code> test project.</p>
   <CodeBlock title=".github/workflows/godot.yml" lang="yaml" code={`jobs:
   godot:
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
-      - uses: link1345/gua-tester/godot@v2.2
+      - uses: link1345/gua-tester/godot@v3
         with:
           project-path: game
           test-project: tests/GuaTester.Tests.csproj
@@ -21,19 +21,20 @@ import Callout from '../../components/Callout.astro';
           godot-status: stable
           gua-plugin-tag: gua-v1.18.0`} />
   <div class="grid-2"><div class="mini-card"><strong>test-project (required)</strong><p>The <code>.csproj</code> that references <code>Gua.Testing.Godot</code>.</p></div><div class="mini-card"><strong>project-path</strong><p>Godot project path; default <code>game</code>.</p></div><div class="mini-card"><strong>godot-version / godot-status</strong><p>Default <code>4.7</code> and <code>stable</code>.</p></div><div class="mini-card"><strong>test-logger</strong><p>Default <code>trx;LogFileName=godot.trx</code>.</p></div></div>
-  <p>The outputs are <code>godot-executable</code> and <code>addon-path</code>. Component actions remain available as <code>link1345/gua-tester/setup-godot@v2.2</code> and <code>link1345/gua-tester/link-gua-gdscript-addon@v2.2</code>.</p>
+  <p>The outputs are <code>godot-executable</code> and <code>addon-path</code>. Component actions remain available as <code>link1345/gua-tester/setup-godot@v3</code> and <code>link1345/gua-tester/link-gua-gdscript-addon@v3</code>.</p>
 
-  <h2>Unity 6 Windows x64</h2>
-  <p>The Unity reusable workflow installs a released Gua UPM package, builds a rendered Windows x64 Mono Player with GameCI on Linux, transfers the Player to a Windows runner, fixes its display at 1920x1080, and runs external NUnit tests with <code>GUA_UNITY_PLAYER</code>.</p>
+  <h2>Unity 6 desktop Mono</h2>
+  <p>The Unity reusable workflow installs a released Gua UPM package, builds the requested Mono Player with GameCI, transfers it to the matching runner, and runs external NUnit tests with <code>GUA_UNITY_PLAYER</code>.</p>
   <CodeBlock title=".github/workflows/unity.yml" lang="yaml" code={`jobs:
   unity:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    uses: link1345/gua-tester/.github/workflows/unity.yml@v2.2
+    uses: link1345/gua-tester/.github/workflows/unity.yml@v3
     with:
       project-path: game
       scene-path: Assets/Scenes/Title.unity
       test-project: tests/GuaTester.Unity.Tests.csproj
       artifact-key: game
+      platform: WindowsX64
       unity-version: auto
       gua-tag: gua-v1.18.0
     secrets:
@@ -42,9 +43,9 @@ import Callout from '../../components/Callout.astro';
       UNITY_LICENSE: \${{ secrets.UNITY_LICENSE }}
       UNITY_SERIAL: \${{ secrets.UNITY_SERIAL }}`} />
   <p>Required inputs are <code>project-path</code>, <code>scene-path</code>, <code>test-project</code>, and a caller-unique <code>artifact-key</code>. Optional inputs include <code>unity-version</code>, <code>gua-repository</code>, <code>gua-tag</code>, <code>dotnet-version</code>, <code>configuration</code>, <code>test-logger</code>, and <code>artifact-path</code>. <code>checkout-repository</code> and <code>checkout-ref</code> support fixtures in another repository. Use a matrix value for <code>artifact-key</code> when invoking the workflow more than once in a run.</p>
-  <div class="grid-2"><div class="mini-card"><strong>Personal license</strong><p>Pass <code>UNITY_EMAIL</code>, <code>UNITY_PASSWORD</code>, and <code>UNITY_LICENSE</code>.</p></div><div class="mini-card"><strong>Professional license</strong><p>Pass <code>UNITY_EMAIL</code>, <code>UNITY_PASSWORD</code>, and <code>UNITY_SERIAL</code>.</p></div><div class="mini-card"><strong>Supported target</strong><p>Unity 6000.5+, Windows x64, Mono, rendered Player.</p></div><div class="mini-card"><strong>Artifacts</strong><p>Unity logs, Player files, TRX, diagnostics, and visual results.</p></div></div>
+  <div class="grid-2"><div class="mini-card"><strong>Personal license</strong><p>Pass <code>UNITY_EMAIL</code>, <code>UNITY_PASSWORD</code>, and <code>UNITY_LICENSE</code>.</p></div><div class="mini-card"><strong>Professional license</strong><p>Pass <code>UNITY_EMAIL</code>, <code>UNITY_PASSWORD</code>, and <code>UNITY_SERIAL</code>.</p></div><div class="mini-card"><strong>Supported target</strong><p>Unity 6000.5+, Mono, and the four desktop RIDs.</p></div><div class="mini-card"><strong>Artifacts</strong><p>Unity logs, Player files, TRX, diagnostics, and visual results.</p></div></div>
   <Callout kind="warn" title="Protect Unity credentials"><p>GitHub does not pass Actions secrets to fork pull requests. Skip this job for untrusted forks and do not use <code>pull_request_target</code> to execute untrusted game code with Unity credentials.</p></Callout>
-  <Callout kind="tip" title="Keep Gua versions aligned"><p>Pin <code>gua-tag</code> and use the matching <code>Gua.Testing.Unity</code> NuGet version. The initial workflow does not support IL2CPP, non-Windows Players, Editor Play Mode CI, IMGUI, or EditorWindow automation.</p></Callout>
+  <Callout kind="tip" title="Keep Gua versions aligned"><p>Pin <code>gua-tag</code> and use the matching <code>Gua.Testing.Unity</code> NuGet version. The pinned legacy examples above run on Windows; select Linux or macOS only with a release that contains the corresponding cross-platform Godot addon or UPM native assets. The workflow does not support IL2CPP, Editor Play Mode CI, IMGUI, or EditorWindow automation.</p></Callout>
 
   <h2 id="visual-report">Visual difference reports</h2>
   <p><code>link1345/gua-tester/visual-report@v2.2</code> converts <code>Gua.Testing.Visual</code> manifests and PNGs into a static report for a workflow artifact or GitHub Pages. It is engine-neutral.</p>

@@ -4,7 +4,7 @@ import Callout from '../../../components/Callout.astro';
 import CodeBlock from '../../../components/CodeBlock.astro';
 import CodeNotes from '../../../components/CodeNotes.astro';
 ---
-<DocPage eyebrow="UNITY / TESTING" title="テストの仕方" lead="Gua.Testing.UnityはUnity Editor Play ModeまたはWindows Mono Playerを起動し、共通のIGuaContextへ接続します。" description="Gua.Testing.UnityによるUnity UI外部テスト。" section="unity">
+<DocPage eyebrow="UNITY / TESTING" title="テストの仕方" lead="Gua.Testing.UnityはUnity Editor Play Modeまたはdesktop Mono Playerを起動し、共通のIGuaContextへ接続します。" description="Gua.Testing.UnityによるUnity UI外部テスト。" section="unity">
   <h2>1. テストパッケージを追加する</h2>
   <p><code>Gua.Testing.Unity</code>はNuGetで公開されています。次のコマンドは最新の安定版を解決します。projectへ書き込まれたversionをcommitし、3つのGuaパッケージを同じversion系列へ揃えてください。</p>
   <CodeBlock title="Unity test hostを追加" lang="powershell" code={`dotnet add package Gua.Core\ndotnet add package Gua.Testing\ndotnet add package Gua.Testing.Unity`} />
@@ -40,7 +40,7 @@ var screenshot = host.CaptureScreenshot();`} />
     { code: 'using Gua.Core;', explanation: 'reset policyなど共通runtime型を読み込みます。' },
     { code: 'using Gua.Testing;', explanation: 'Semantic locator、action、待機、assertionを読み込みます。' },
     { code: 'using Gua.Testing.Unity;', explanation: 'Unity Player builderとscene test hostを読み込みます。' },
-    { code: 'UnityPlayerBuilder.Build("...Title.unity")', explanation: 'Unity Editorをbatchmodeで起動し、指定sceneを含むWindows x64 Mono Playerを一時directoryへbuildします。' },
+    { code: 'UnityPlayerBuilder.Build("...Title.unity")', explanation: 'Unity Editorをbatchmodeで起動し、Autoまたは指定platformのMono Playerを一時directoryへbuildします。' },
     { code: 'LoadRenderedPlayer(player, StrictIsolation)', explanation: '描画付きPlayerを起動してbridgeへ接続し、開始・終了時の状態漏れを厳格に検査します。' },
     { code: 'GetByRole(..., "button", "Start Game")', explanation: 'UI Toolkit/uGUI/TMPの違いを意識せず、roleと名前でButtonを検索します。' },
     { code: '.ToBeVisible()', explanation: '現在のSemantic snapshotでButtonが表示されていることを確認します。' },
@@ -53,7 +53,7 @@ var screenshot = host.CaptureScreenshot();`} />
     <tr><td><code>LoadPlayer</code></td><td><code>-batchmode -nographics</code>の既存Player。高速なsemanticテスト向け</td></tr>
     <tr><td><code>LoadRenderedPlayer</code></td><td>描画付き既存Player。screenshot/Visual比較向け</td></tr>
     <tr><td><code>LoadEditor</code></td><td>指定sceneをEditor Play Modeで起動</td></tr>
-    <tr><td><code>BuildAndLoadPlayer</code></td><td>sceneからWindows x64 Mono Playerをビルドして起動</td></tr>
+    <tr><td><code>BuildAndLoadPlayer</code></td><td>sceneから指定desktop Mono Playerをビルドして起動</td></tr>
   </tbody></table></div>
   <h2>3. Godot版と同じSemantic APIで操作する</h2>
   <p><code>host.Context</code>はengine共通の<code>IGuaContext</code>です。Unity固有APIでButtonを探すのではなく、Godot版と同じlocatorと状態待機を利用します。</p>

@@ -17,7 +17,7 @@ func _process(_delta: float) -> void:
   ui.update("title")`;
 ---
 <DocPage eyebrow="GODOT / UI" title="導入とUI実装" lead="配布済みアドオンを導入し、標準Controlで作ったUIを自動収集アダプターへ接続します。" description="Gua Godotアドオンの導入とUI自動収集。" section="godot">
-  <Callout kind="tip" title="Latest Releaseから導入"><p><a href="https://github.com/link1345/gua/releases/latest">Guaの最新Release</a>を開き、<code>gua-godot-addon-v*.zip</code>を取得します。展開した<code>addons/gua</code>をGodotプロジェクト直下の<code>addons/</code>へコピーしてください。この単一addonにWindows GDExtensionとDebug／Release両方のWeb GDExtensionが含まれます。</p></Callout>
+  <Callout kind="tip" title="Latest Releaseから導入"><p><a href="https://github.com/link1345/gua/releases/latest">Guaの最新Release</a>を開き、<code>gua-godot-addon-v*.zip</code>を取得します。展開した<code>addons/gua</code>をGodotプロジェクト直下の<code>addons/</code>へコピーしてください。この単一addonに4 RIDとGodot Web向けのDebug／Release GDExtensionが含まれます。</p></Callout>
   <h2>配布済みアドオンを入れる</h2><ol class="steps"><li><strong>Latest Releaseを開く</strong><p>AssetsからGodot用ZIPをダウンロードして展開します。</p></li><li><strong>addons/guaをコピー</strong><CodeBlock title="配置後の構成" lang="text" code={`your-game/\n├─ project.godot\n└─ addons/\n   └─ gua/\n      ├─ gua.gdextension\n      ├─ gua_auto_adapter.gd\n      ├─ plugin.cfg\n      └─ bin/`} /><CodeNotes title="各ファイルの役割" codeLabel="ファイル" explanationLabel="役割" items={[
     { code: 'project.godot', explanation: 'Godotプロジェクト本体の設定ファイルです。' },
     { code: 'addons/gua/gua.gdextension', explanation: 'GodotからGuaのnative runtimeを読み込むためのGDExtension定義です。' },

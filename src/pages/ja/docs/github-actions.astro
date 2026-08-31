@@ -4,16 +4,16 @@ import CodeBlock from '../../../components/CodeBlock.astro';
 import Callout from '../../../components/Callout.astro';
 ---
 <DocPage eyebrow="DOCS / CI" title="GitHub Actions" lead="link1345/gua-testerは、Godot 4.7とUnity 6のGua UIテストを実行するバージョン付きCI workflowを提供します。" description="Gua Tester Actionsが提供するGodot／Unityの入力、credentials、artifact、Visual report。" section="docs">
-  <Callout title="Gua Tester Actions v2.2"><p>実装とReleaseは<a href="https://github.com/link1345/gua-tester">link1345/gua-tester</a>を参照してください。v2ではGodotのall-in-one Actionをrepo rootから<code>/godot</code>へ移し、Unity reusable workflowを追加します。</p></Callout>
+  <Callout title="Gua Tester Actions v3"><p>実装とReleaseは<a href="https://github.com/link1345/gua-tester">link1345/gua-tester</a>を参照してください。v3はGodot／Unityテストを対応desktop platformへ拡張します。</p></Callout>
 
   <h2>Godot 4.7</h2>
-  <p>Godot composite ActionはWindows版Godotを取得し、配布済みGua addonを配置して<code>GODOT_EXECUTABLE</code>を設定します。project import後、外部<code>Gua.Testing.Godot</code>テストを実行します。</p>
+  <p>Godot composite Actionはrunnerに合うGodot公式版を取得し、配布済みGua addonを配置して<code>GODOT_EXECUTABLE</code>を設定します。project import後、外部<code>Gua.Testing.Godot</code>テストを実行します。</p>
   <CodeBlock title=".github/workflows/godot.yml" lang="yaml" code={`jobs:
   godot:
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
-      - uses: link1345/gua-tester/godot@v2.2
+      - uses: link1345/gua-tester/godot@v3
         with:
           project-path: game
           test-project: tests/GuaTester.Tests.csproj
@@ -21,19 +21,20 @@ import Callout from '../../../components/Callout.astro';
           godot-status: stable
           gua-plugin-tag: gua-v1.18.0`} />
   <div class="grid-2"><div class="mini-card"><strong>test-project（必須）</strong><p><code>Gua.Testing.Godot</code>を参照する<code>.csproj</code>です。</p></div><div class="mini-card"><strong>project-path</strong><p>Godot projectのパス。既定値は<code>game</code>です。</p></div><div class="mini-card"><strong>godot-version / godot-status</strong><p>既定値は<code>4.7</code>と<code>stable</code>です。</p></div><div class="mini-card"><strong>test-logger</strong><p>既定値は<code>trx;LogFileName=godot.trx</code>です。</p></div></div>
-  <p>出力は<code>godot-executable</code>と<code>addon-path</code>です。構成Actionの<code>link1345/gua-tester/setup-godot@v2.2</code>と<code>link1345/gua-tester/link-gua-gdscript-addon@v2.2</code>も個別に利用できます。</p>
+  <p>出力は<code>godot-executable</code>と<code>addon-path</code>です。構成Actionの<code>link1345/gua-tester/setup-godot@v3</code>と<code>link1345/gua-tester/link-gua-gdscript-addon@v3</code>も個別に利用できます。</p>
 
-  <h2>Unity 6 Windows x64</h2>
-  <p>Unity reusable workflowは配布済みGua UPM packageを配置し、GameCIを使ってLinuxでrendered Windows x64 Mono Playerをビルドします。PlayerをWindows runnerへ渡し、画面解像度を1920x1080へ固定してから、<code>GUA_UNITY_PLAYER</code>を設定して外部NUnitテストを実行します。</p>
+  <h2>Unity 6 desktop Mono</h2>
+  <p>Unity reusable workflowは配布済みGua UPM packageを配置し、指定したMono PlayerをGameCIでビルドして対象runnerへ渡し、<code>GUA_UNITY_PLAYER</code>を設定して外部NUnitテストを実行します。</p>
   <CodeBlock title=".github/workflows/unity.yml" lang="yaml" code={`jobs:
   unity:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    uses: link1345/gua-tester/.github/workflows/unity.yml@v2.2
+    uses: link1345/gua-tester/.github/workflows/unity.yml@v3
     with:
       project-path: game
       scene-path: Assets/Scenes/Title.unity
       test-project: tests/GuaTester.Unity.Tests.csproj
       artifact-key: game
+      platform: WindowsX64
       unity-version: auto
       gua-tag: gua-v1.18.0
     secrets:
@@ -42,9 +43,9 @@ import Callout from '../../../components/Callout.astro';
       UNITY_LICENSE: \${{ secrets.UNITY_LICENSE }}
       UNITY_SERIAL: \${{ secrets.UNITY_SERIAL }}`} />
   <p>必須inputは<code>project-path</code>、<code>scene-path</code>、<code>test-project</code>と、呼び出し元で一意な<code>artifact-key</code>です。任意inputは<code>unity-version</code>、<code>gua-repository</code>、<code>gua-tag</code>、<code>dotnet-version</code>、<code>configuration</code>、<code>test-logger</code>、<code>artifact-path</code>です。<code>checkout-repository</code>と<code>checkout-ref</code>を使うと、別repoのfixtureを検証できます。同じrunから複数回呼び出す場合は<code>artifact-key</code>へmatrix値を指定します。</p>
-  <div class="grid-2"><div class="mini-card"><strong>Personalライセンス</strong><p><code>UNITY_EMAIL</code>、<code>UNITY_PASSWORD</code>、<code>UNITY_LICENSE</code>を渡します。</p></div><div class="mini-card"><strong>Professionalライセンス</strong><p><code>UNITY_EMAIL</code>、<code>UNITY_PASSWORD</code>、<code>UNITY_SERIAL</code>を渡します。</p></div><div class="mini-card"><strong>対応target</strong><p>Unity 6000.5以降、Windows x64、Mono、rendered Playerです。</p></div><div class="mini-card"><strong>artifact</strong><p>Unity log、Player、TRX、diagnostics、Visual結果を保存します。</p></div></div>
+  <div class="grid-2"><div class="mini-card"><strong>Personalライセンス</strong><p><code>UNITY_EMAIL</code>、<code>UNITY_PASSWORD</code>、<code>UNITY_LICENSE</code>を渡します。</p></div><div class="mini-card"><strong>Professionalライセンス</strong><p><code>UNITY_EMAIL</code>、<code>UNITY_PASSWORD</code>、<code>UNITY_SERIAL</code>を渡します。</p></div><div class="mini-card"><strong>対応target</strong><p>Unity 6000.5以降、Mono、4 RIDです。</p></div><div class="mini-card"><strong>artifact</strong><p>Unity log、Player、TRX、diagnostics、Visual結果を保存します。</p></div></div>
   <Callout kind="warn" title="Unity credentialsを保護する"><p>fork PRにはGitHub Actions secretsが渡りません。未信頼forkではUnity jobをskipし、<code>pull_request_target</code>で未信頼のgame codeへcredentialsを渡さないでください。</p></Callout>
-  <Callout kind="tip" title="Guaバージョンを揃える"><p><code>gua-tag</code>を固定し、対応する<code>Gua.Testing.Unity</code> NuGetバージョンを使用します。初期workflowはIL2CPP、Windows以外のPlayer、Editor Play Mode CI、IMGUI、EditorWindow自動化には対応しません。</p></Callout>
+  <Callout kind="tip" title="Guaバージョンを揃える"><p><code>gua-tag</code>を固定し、対応する<code>Gua.Testing.Unity</code> NuGetバージョンを使用します。上の旧tag固定例はWindowsで実行できます。Linux／macOSは、対応するcross-platform Godot addonまたはUPM native assetを含むreleaseで選択してください。workflowはIL2CPP、Editor Play Mode CI、IMGUI、EditorWindow自動化には対応しません。</p></Callout>
 
   <h2 id="visual-report">Visual差分レポート</h2>
   <p><code>link1345/gua-tester/visual-report@v2.2</code>は、<code>Gua.Testing.Visual</code>のmanifestとPNGをworkflow artifactまたはGitHub Pages向けの静的レポートへ変換します。Godot／Unity共通です。</p>
