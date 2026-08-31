@@ -4,7 +4,7 @@ import Callout from '../../components/Callout.astro';
 import CodeBlock from '../../components/CodeBlock.astro';
 import CodeNotes from '../../components/CodeNotes.astro';
 ---
-<DocPage eyebrow="UNITY / TESTING" title="Testing UI" lead="Gua.Testing.Unity starts Unity Editor Play Mode or a Windows Mono Player and connects the shared IGuaContext to its bridge." description="External Unity UI testing with Gua.Testing.Unity." section="unity">
+<DocPage eyebrow="UNITY / TESTING" title="Testing UI" lead="Gua.Testing.Unity starts Unity Editor Play Mode or a desktop Mono Player and connects the shared IGuaContext to its bridge." description="External Unity UI testing with Gua.Testing.Unity." section="unity">
   <h2>1. Add test packages</h2><p><code>Gua.Testing.Unity</code> is published on NuGet. These commands resolve the latest stable releases; commit the versions written to the project and keep the three Gua packages on the same version line.</p><CodeBlock title="Add the Unity test host" lang="powershell" code={`dotnet add package Gua.Core\ndotnet add package Gua.Testing\ndotnet add package Gua.Testing.Unity`} /><CodeNotes title="What each package adds" items={[
     { code: 'dotnet add package Gua.Core', explanation: 'Adds shared Gua types and the native runtime boundary.' },
     { code: 'dotnet add package Gua.Testing', explanation: 'Adds the same semantic locators, actions, waits, assertions, and diagnostics used with Godot.' },
@@ -34,7 +34,7 @@ var screenshot = host.CaptureScreenshot();`} />
     { code: 'using Gua.Core;', explanation: 'Imports shared runtime types such as reset policies.' },
     { code: 'using Gua.Testing;', explanation: 'Imports semantic locators, actions, waits, and assertions.' },
     { code: 'using Gua.Testing.Unity;', explanation: 'Imports the Unity Player builder and scene host.' },
-    { code: 'UnityPlayerBuilder.Build("...Title.unity")', explanation: 'Runs Unity Editor in batch mode and builds a temporary Windows x64 Mono Player.' },
+    { code: 'UnityPlayerBuilder.Build("...Title.unity")', explanation: 'Runs Unity Editor in batch mode and builds a temporary Mono Player for Auto or the selected platform.' },
     { code: 'LoadRenderedPlayer(player, StrictIsolation)', explanation: 'Starts a rendered Player, connects to its bridge, and checks isolation at startup and teardown.' },
     { code: 'GetByRole(..., "button", "Start Game")', explanation: 'Finds the button semantically across UI Toolkit, uGUI, or TMP.' },
     { code: '.ToBeVisible()', explanation: 'Asserts visibility in the current semantic snapshot.' },
@@ -43,7 +43,7 @@ var screenshot = host.CaptureScreenshot();`} />
     { code: 'host.CaptureScreenshot()', explanation: 'Requests a PNG after a later rendered frame.' },
     { code: 'using var host', explanation: 'Closes the bridge and child process when the scope ends.' },
   ]} />
-  <div class="table-wrap"><table><thead><tr><th>Entry point</th><th>Use</th></tr></thead><tbody><tr><td><code>LoadPlayer</code></td><td>Existing <code>-batchmode -nographics</code> Player for fast semantic tests</td></tr><tr><td><code>LoadRenderedPlayer</code></td><td>Rendered existing Player for screenshots and visual tests</td></tr><tr><td><code>LoadEditor</code></td><td>Open a scene in Editor Play Mode</td></tr><tr><td><code>BuildAndLoadPlayer</code></td><td>Build and start a Windows x64 Mono Player</td></tr></tbody></table></div>
+  <div class="table-wrap"><table><thead><tr><th>Entry point</th><th>Use</th></tr></thead><tbody><tr><td><code>LoadPlayer</code></td><td>Existing <code>-batchmode -nographics</code> Player for fast semantic tests</td></tr><tr><td><code>LoadRenderedPlayer</code></td><td>Rendered existing Player for screenshots and visual tests</td></tr><tr><td><code>LoadEditor</code></td><td>Open a scene in Editor Play Mode</td></tr><tr><td><code>BuildAndLoadPlayer</code></td><td>Build and start the selected desktop Mono Player</td></tr></tbody></table></div>
   <h2>3. Use the same semantic API as Godot</h2><p><code>host.Context</code> is the engine-neutral <code>IGuaContext</code>. Tests use the same locators and waits instead of branching on Unity UI technology.</p><CodeBlock title="Input, focus, and observed state" lang="csharp" code={`var name = GuaAssertions.Query(host.Context)
     .ByRole("textbox").Within("LoginForm").Get();
 

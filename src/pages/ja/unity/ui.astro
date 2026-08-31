@@ -8,7 +8,7 @@ import CodeNotes from '../../../components/CodeNotes.astro';
   <h2>1. UPMパッケージを追加する</h2>
   <Callout kind="tip" title="Latest Releaseから導入"><p><a href="https://github.com/link1345/gua/releases/latest">Guaの最新Release</a>を開き、<code>com.link1345.gua-&lt;version&gt;.tgz</code>を取得します。UnityのPackage Managerで<strong>Add package from tarball</strong>を選び、このファイルを指定してください。通常利用では配布済みUPMパッケージを使用します。</p></Callout>
   <ol class="steps"><li><strong>Latest Releaseを開く</strong><p>AssetsからUnity用<code>.tgz</code>をダウンロードします。</p></li><li><strong>Package Managerへ追加</strong><p><strong>＋ → Add package from tarball</strong>を選択して、ダウンロードしたファイルを指定します。</p></li><li><strong>サンプルを取り込む</strong><p>Package ManagerのGua詳細画面で<strong>Samples</strong>を開き、<strong>Runtime UI Fixture</strong>をImportすると、対応UIをまとめたシーンを確認できます。</p></li></ol>
-  <Callout kind="warn" title="Player設定"><p>Windows x86_64、Mono、.NET Standard 2.1 API Compatibility Levelを使用します。TextMeshProを使う場合は<strong>Import TMP Essential Resources</strong>を先に実行します。</p></Callout>
+  <Callout kind="warn" title="Player設定"><p>Windows x86_64、Linux x86_64、またはmacOS x64／arm64でMonoと.NET Standard 2.1 API Compatibility Levelを使用します。TextMeshProを使う場合は<strong>Import TMP Essential Resources</strong>を先に実行します。</p></Callout>
   <h2>2. 自動起動の仕組みを理解する</h2>
   <p>Godot版ではゲーム側が<code>attach()</code>と<code>update()</code>を呼びますが、Unity版ではUPMパッケージが同じ責務を自動で引き受けます。sceneごとにGua初期化scriptを追加する必要はありません。</p>
   <div class="flow"><span>BeforeSceneLoad</span><b>→</b><span>Runtime / Driverを生成</span><b>→</b><span>LateUpdate</span><b>→</b><span>UI収集・action配送</span></div>
