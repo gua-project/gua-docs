@@ -2,15 +2,18 @@ import {
   registerDocsWebMcp,
   type DocsDocument,
   type DocsHeading,
+  type DocsPage,
   type DocsProvider,
   type DocsSearchResult,
 } from 'webmcp-docs';
 import { renderDocumentation } from './docs-markdown';
 
 const pathsElement = document.querySelector<HTMLScriptElement>('#webmcp-document-paths');
+const pagesElement = document.querySelector<HTMLScriptElement>('#webmcp-navigation-pages');
 
 if (pathsElement?.textContent) {
   const documentPaths = parseDocumentPaths(pathsElement.textContent);
+  const navigationPages = parseNavigationPages(pagesElement?.textContent ?? '[]');
   const documentPathSet = new Set(documentPaths);
   const documentCache = new Map<string, Promise<DocsDocument | null>>();
 
@@ -43,11 +46,31 @@ if (pathsElement?.textContent) {
     },
   };
 
-  void registerDocsWebMcp({ provider }).then((registration) => {
+  void registerDocsWebMcp({ provider, pages: navigationPages }).then((registration) => {
     if (registration.status === 'failed') {
       console.warn(`[Gua Docs WebMCP] ${registration.error.message}`);
     }
   });
+}
+
+function parseNavigationPages(value: string): DocsPage[] {
+  try {
+    const parsed: unknown = JSON.parse(value);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.filter((item): item is DocsPage => {
+      if (typeof item !== 'object' || item === null) return false;
+      const page = item as Record<string, unknown>;
+      return typeof page.id === 'string'
+        && page.id.startsWith('/')
+        && typeof page.title === 'string'
+        && page.title.length > 0
+        && (page.url === undefined || (typeof page.url === 'string' && page.url.length > 0))
+        && (page.section === undefined || (typeof page.section === 'string' && page.section.length > 0));
+    });
+  } catch {
+    return [];
+  }
 }
 
 interface RankedSearchResult extends DocsSearchResult {
