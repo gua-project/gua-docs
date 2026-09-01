@@ -4,6 +4,7 @@ import DocPage from '../../../components/DocPage.astro'; import CodeBlock from '
 <DocPage eyebrow="GUIDE / BROWSER-NATIVE WEBMCP" title="WebゲームをブラウザのAIツールへ直接公開する" lead="gua-webmcpは、Godot Web ExportまたはUnity WebGLのSemantic toolを同じbrowser tabへ登録します。gui-mcpもWebSocket接続も不要です。" description="Godot Web・Unity WebGL向けbrowser-native Gua WebMCPの導入、capability、Player投影、制限事項。" section="webmcp">
   <Callout kind="warn" title="実験的なbrowser APIです"><p>この統合には、実験的な<code>document.modelContext</code> WebMCP APIを実装したbrowserが必要です。未対応browserでもゲームは通常どおり動作し、tool登録だけを行いません。</p></Callout>
   <h2>gui-mcpとの違い</h2><div class="grid-2"><div class="mini-card"><strong>gua-webmcp</strong><p>export済みゲームのpage内で動き、同じtabのengine-owned JavaScript portへ接続します。Godot Web／Unity WebGLをbrowser-nativeにAI playtestするときに使います。</p></div><div class="mini-card"><strong>gui-mcp</strong><p>別processのstdio MCP serverとして動き、native gameへWebSocket接続します。desktop版GodotやUnity Player／Editorの自動化に使います。</p></div></div>
+  <Callout kind="tip" title="接続方法は違っても、状態モデルは共通"><p>WebMCPとMCPに共通するRuntimeの動作と、各接続が所有するlifetimeは<a href="/ja/state-and-wait/">状態・操作・待機の仕組み</a>を参照してください。</p></Callout>
   <h2>Installとtool登録</h2><CodeBlock title="browser packageを導入" lang="powershell" code={`npm install gua-webmcp`} /><CodeBlock title="Godot Web Exportのpage" lang="ts" code={`import { createGodotWebBridge, registerGuaWebMcp } from "gua-webmcp";
 
 const registration = await registerGuaWebMcp(createGodotWebBridge());

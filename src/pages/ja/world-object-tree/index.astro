@@ -13,6 +13,7 @@ $Door.set_meta(&"gua_world_visible_to_player", true)
 $Door.set_meta(&"gua_world_state", {"locked": true})`} />
   <h2>GodotとUnity</h2><div class="grid-2"><div class="mini-card"><strong>Godot</strong><p><code>Node2D</code>または<code>Node3D</code>を<code>gua_world_object</code> groupへ追加し、<code>gua_world_*</code> metadataを設定します。IDは一意で、parentは同じ公開frame内に存在する必要があります。</p></div><div class="mini-card"><strong>Unity</strong><p>activeなGameObjectへ<code>GuaWorldObject</code>を追加し、ID、kind、visibility、tag、stateを設定します。adapterは登録componentだけを公開します。</p></div></div>
   <h2>検索と待機</h2><p>MCPは<code>get_world_object_tree</code>、<code>find_world_objects</code>、<code>wait_for_world_object</code>を提供します。ID、kind、label、tag、state、ancestor、active、visibilityで検索でき、Inspectorは独立したWorld Object Tree panelへ表示します。</p>
+  <Callout kind="tip" title="world snapshotと待機をどこが持つのか"><p>ゲーム側を本当の状態の所有者としたまま、Gua Runtimeが現在の公開情報を持ち、条件待機が新しいsnapshotを確認する流れは<a href="/ja/state-and-wait/">状態・操作・待機の仕組み</a>を参照してください。</p></Callout>
   <Callout kind="warn" title="観測であり、world mutationではない"><p>World v1にworld action toolはありません。操作はSemantic UIを使うか、用途を限定したSemantic Game Actionを公開してください。</p></Callout>
   <h2>Player向けの安全な投影</h2><p>bridgeの既定はDebugです。Player向けhostでは<code>GUA_OBSERVATION_PROFILE=player</code>を設定し、transportへ渡す前にUIとWorldを投影します。clientからDebugへ昇格できません。続いて<a href="/ja/agent-policy/">エージェント公開ポリシー編</a>を参照してください。</p>
 </DocPage>
