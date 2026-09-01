@@ -11,7 +11,7 @@
         "turndown": "^7.2.4",
         "turndown-plugin-gfm": "^1.0.2",
         "typescript": "5.9.3",
-        "webmcp-docs": "^0.2.0",
+        "webmcp-docs": "^0.3.0",
       },
       "devDependencies": {
         "@types/bun": "^1.4.0",
@@ -746,7 +746,7 @@
 
     "vscode-uri": ["vscode-uri@3.1.0", "", {}, "sha512-/BpdSx+yCQGnCvecbyXdxHDkuk55/G3xwnC0GqY4gmQ3j+A+g8kzzgB4Nk/SINjqn6+waqw3EgbVF2QKExkRxQ=="],
 
-    "webmcp-docs": ["webmcp-docs@0.2.0", "", { "dependencies": { "@mcp-b/global": "^5.0.1", "@mcp-b/webmcp-types": "^5.0.1" } }, "sha512-JenhqNEj5gWhPDACmUF+N1/sI3/Hs9um6m4H2aVx0S8A5Wo1MBt5ctjTcha/KyxMwRvImp4zYqi9bzX2Nwgk+w=="],
+    "webmcp-docs": ["webmcp-docs@0.3.0", "", { "dependencies": { "@mcp-b/global": "^5.0.1", "@mcp-b/webmcp-types": "^5.0.1" } }, "sha512-hXxmai0R6lF4GS52HuiCvDZVk+4FCINDTUBn5+0ktSIsXfE+fbHieHWSQftj2NYAEqBsR2wNzWg8qY4VwdaClQ=="],
 
     "wrap-ansi": ["wrap-ansi@7.0.0", "", { "dependencies": { "ansi-styles": "^4.0.0", "string-width": "^4.1.0", "strip-ansi": "^6.0.0" } }, "sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q=="],
 

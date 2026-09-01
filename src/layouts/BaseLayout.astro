@@ -1,5 +1,6 @@
 ---
 import { sectionGroups, docs, sectionGroupsEn, docsEn } from '../data/nav';
+import { createWebMcpNavigationPages } from '../data/webmcp-pages';
 import '../styles/global.css';
 
 interface Props { title: string; description: string; section?: string; }
@@ -49,6 +50,7 @@ const webMcpDocumentPaths = Object.keys(import.meta.glob('../pages/**/*.astro'))
     return pagePath.endsWith('/') ? pagePath : `${pagePath}/`;
   })
   .sort();
+const webMcpNavigationPages = createWebMcpNavigationPages(siteBase);
 ---
 <!doctype html>
 <html lang={isEnglish ? 'en' : 'ja'}>
@@ -83,6 +85,7 @@ const webMcpDocumentPaths = Object.keys(import.meta.glob('../pages/**/*.astro'))
     <meta name="twitter:image:alt" content="Gua — Runtime UI Automation for Games" />
     <script type="application/ld+json" set:html={JSON.stringify(structuredData)} is:inline />
     <script id="webmcp-document-paths" type="application/json" set:html={JSON.stringify(webMcpDocumentPaths)} is:inline />
+    <script id="webmcp-navigation-pages" type="application/json" set:html={JSON.stringify(webMcpNavigationPages)} is:inline />
     <title>{fullTitle}</title>
   </head>
   <body>

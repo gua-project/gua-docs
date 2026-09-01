@@ -24,7 +24,7 @@ bun run build
 
 ## WebMCP
 
-[`webmcp-docs`](https://www.npmjs.com/package/webmcp-docs) を使い、WebMCP 対応ブラウザーに `search_docs` と `get_doc` を公開します。`search_docs` は英語版と日本語版を横断検索し、`get_doc` は検索結果の ID または URL から文書本文を取得します。HTML からエージェント向け本文への変換には Turndown と GFM プラグインを使い、リンク、表、リスト、言語付きコードブロック、Callout の意味を Markdown に保持します。
+[`webmcp-docs`](https://www.npmjs.com/package/webmcp-docs) v0.3.0 を使い、WebMCP 対応ブラウザーに `list_docs`、`search_docs`、`get_doc` を公開します。`list_docs` は英語版と日本語版のナビゲーションページを一覧し、セクション名で絞り込めます。`search_docs` は両言語を横断検索し、`get_doc` は一覧・検索結果の ID または URL から文書本文を取得します。HTML からエージェント向け本文への変換には Turndown と GFM プラグインを使い、リンク、表、リスト、言語付きコードブロック、Callout の意味を Markdown に保持します。
 
 WebMCP 未対応ブラウザーではツール登録を行わず、通常のドキュメントサイトとしてそのまま動作します。
 
