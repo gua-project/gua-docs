@@ -29,7 +29,8 @@ import DocPage from '../../../components/DocPage.astro'; import Callout from '..
   <Callout kind="tip" title="完了通知は「処理したか」の証拠"><p>animation、scene遷移、network応答などは操作完了より後になることがあります。「その結果、何が見えるようになったか」はUIやWorldの状態で別に確認します。</p></Callout>
 
   <h2>条件待機は新しい状態を確認し続ける</h2>
-  <p>状態待機は、対応している条件が成立するか、時間切れになるまで新しいsnapshotを取得します。呼び出し元の取消を伝播するtransportでは、それより早く終了できます。<code>wait_for_node</code>が待つのは指定IDの存在、<code>wait_for_world_object</code>が待つのはWorld selectorへの一致です。テストclientは<code>WaitForStateAsync</code>などで、より詳しい条件を新しいsnapshotへ適用できます。PCの速さではなく、期待する条件そのものを成功基準にできます。</p>
+  <p>状態待機は、対応している条件が成立するか、時間切れになるまで新しいsnapshotを取得します。呼び出し元の取消を伝播するtransportでは、それより早く終了できます。<code>wait_for_node</code>が待つのは指定IDの存在、<code>wait_for_world_object</code>が待つのはWorld selectorへの一致です。Worldの近傍selectorでは、pollのたびに1つの新しい投影済みsnapshot内で基準と候補を解決し直し、過去frameの位置やmatchを現在のobjectと組み合わせません。テストclientは<code>WaitForStateAsync</code>などで、より詳しい条件を新しいsnapshotへ適用できます。PCの速さではなく、期待する条件そのものを成功基準にできます。</p>
+  <p>成功したWorld queryは、そのWorld snapshotの<code>sessionEpoch</code>、<code>frameSequence</code>、<code>revision</code>を返します。検証結果を記録するときはmatchと一緒に保持すると、どの投影済みsnapshotを評価した結果かを識別できます。</p>
   <div class="grid-2"><div class="mini-card"><strong>状態を待つ</strong><p>「Loading nodeが出現するまで待つ」。対応する条件が成立した時点ですぐ終わります。表示状態も必要なら、IDの存在だけで表示中と決めず、新しいsnapshot上の状態を確認します。</p></div><div class="mini-card"><strong>固定時間を待つ</strong><p>「2秒待つ」。clientのsleepやRecordingのdelayは時間を進めるだけで、期待する状態の成立は証明しません。</p></div></div>
   <p>経過時間そのものを試す場合だけ固定時間を使います。通常の同期では、適切なtimeoutを付けた状態待機を優先します。</p>
 

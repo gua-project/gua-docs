@@ -19,7 +19,7 @@ import Callout from '../../components/Callout.astro';
           test-project: tests/GuaTester.Tests.csproj
           godot-version: "4.7"
           godot-status: stable
-          gua-plugin-tag: gua-v1.0.4`} />
+          gua-plugin-tag: gua-v1.0.7`} />
   <div class="grid-2"><div class="mini-card"><strong>test-project (required)</strong><p>The <code>.csproj</code> that references <code>Gua.Testing.Godot</code>.</p></div><div class="mini-card"><strong>project-path</strong><p>Godot project path; default <code>game</code>.</p></div><div class="mini-card"><strong>godot-version / godot-status</strong><p>Default <code>4.7</code> and <code>stable</code>.</p></div><div class="mini-card"><strong>test-logger</strong><p>Default <code>trx;LogFileName=godot.trx</code>.</p></div></div>
   <p>The outputs are <code>godot-executable</code> and <code>addon-path</code>. Component actions remain available as <code>link1345/gua-tester/setup-godot@v3.1</code> and <code>link1345/gua-tester/link-gua-gdscript-addon@v3.1</code>.</p>
 
@@ -36,7 +36,7 @@ import Callout from '../../components/Callout.astro';
       artifact-key: game
       platform: LinuxX64
       unity-version: auto
-      gua-tag: gua-v1.0.4
+      gua-tag: gua-v1.0.7
     secrets:
       UNITY_EMAIL: \${{ secrets.UNITY_EMAIL }}
       UNITY_PASSWORD: \${{ secrets.UNITY_PASSWORD }}

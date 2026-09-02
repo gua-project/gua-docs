@@ -19,7 +19,7 @@ import Callout from '../../../components/Callout.astro';
           test-project: tests/GuaTester.Tests.csproj
           godot-version: "4.7"
           godot-status: stable
-          gua-plugin-tag: gua-v1.0.4`} />
+          gua-plugin-tag: gua-v1.0.7`} />
   <div class="grid-2"><div class="mini-card"><strong>test-project（必須）</strong><p><code>Gua.Testing.Godot</code>を参照する<code>.csproj</code>です。</p></div><div class="mini-card"><strong>project-path</strong><p>Godot projectのパス。既定値は<code>game</code>です。</p></div><div class="mini-card"><strong>godot-version / godot-status</strong><p>既定値は<code>4.7</code>と<code>stable</code>です。</p></div><div class="mini-card"><strong>test-logger</strong><p>既定値は<code>trx;LogFileName=godot.trx</code>です。</p></div></div>
   <p>出力は<code>godot-executable</code>と<code>addon-path</code>です。構成Actionの<code>link1345/gua-tester/setup-godot@v3.1</code>と<code>link1345/gua-tester/link-gua-gdscript-addon@v3.1</code>も個別に利用できます。</p>
 
@@ -36,7 +36,7 @@ import Callout from '../../../components/Callout.astro';
       artifact-key: game
       platform: LinuxX64
       unity-version: auto
-      gua-tag: gua-v1.0.4
+      gua-tag: gua-v1.0.7
     secrets:
       UNITY_EMAIL: \${{ secrets.UNITY_EMAIL }}
       UNITY_PASSWORD: \${{ secrets.UNITY_PASSWORD }}
