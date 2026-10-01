@@ -96,8 +96,11 @@ const webMcpNavigationPages = createWebMcpNavigationPages(siteBase);
       <a class="brand" href={isEnglish ? '/' : '/ja/'} aria-label={isEnglish ? 'Gua Reference home' : 'Gua 日本語リファレンス ホーム'}>
         <span class="brand-mark">G</span><span>Gua <b>{isEnglish ? 'REFERENCE' : '日本語リファレンス'}</b></span>
       </a>
-      <a class="lang-link" href={isEnglish ? japanesePath : englishPath}>{isEnglish ? '日本語' : 'English'}</a>
-      <a class="github-link" href="https://github.com/link1345/gua" target="_blank" rel="noreferrer">GitHub ↗</a>
+      <nav class="topbar-actions" aria-label={isEnglish ? 'Language and community links' : '言語選択とコミュニティリンク'}>
+        <a class="lang-link" href={isEnglish ? japanesePath : englishPath}>{isEnglish ? '日本語' : 'English'}</a>
+        <a class="github-link" href="https://discord.gg/B495mwsTKK" target="_blank" rel="noreferrer" title={isEnglish ? 'Support Discord server' : 'サポートDiscordサーバー'}>Discord ↗</a>
+        <a class="github-link" href="https://github.com/link1345/gua" target="_blank" rel="noreferrer">GitHub ↗</a>
+      </nav>
     </header>
     <div class="shell">
       <button class="menu-backdrop" type="button" aria-label={isEnglish ? 'Close navigation menu' : 'ナビゲーションメニューを閉じる'} tabindex="-1"></button>
