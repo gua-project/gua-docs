@@ -6,7 +6,7 @@ import Callout from '../../components/Callout.astro';
 <DocPage eyebrow="DOCS / CI" title="GitHub Actions" lead="gua-project/gua-tester provides versioned CI workflows for Gua UI tests in Godot 4.7 and Unity 6 projects." description="Godot and Unity inputs, credentials, artifacts, and visual reports provided by Gua Tester Actions." section="docs">
   <Callout title="Gua Tester Actions v3.2"><p>Use the <a href="https://github.com/gua-project/gua-tester/releases/tag/v3.2">published v3.2 actions</a>. The action version (<code>@v3.2</code>), Gua version (for example <code>gua-v1.1.0</code>), and Godot/Unity version are independent selections.</p></Callout>
 
-  <Callout kind="warn" title="Godot and Unity files downloaded by CI"><p>The Godot action downloads <code>gua-godot-addon-*.zip</code>; the Unity workflow downloads <code>com.link1345.gua-*.tgz</code> from the selected Gua release. The <a href="https://github.com/gua-project/gua/releases/tag/gua-v1.1.0">1.1.0 release</a> currently contains neither. Selecting 1.1.0 therefore fails during file download before tests start.</p><p>This is a missing distribution file, not a gua-tester version ceiling. The <a href="https://github.com/gua-project/gua-tester/blob/v3.2/godot/action.yml">Godot action</a> and <a href="https://github.com/gua-project/gua-tester/blob/v3.2/.github/workflows/unity.yml">Unity workflow</a> validate release files and their contents without imposing a maximum Gua version. With no tag selected, they choose the latest stable release containing the required file, which may be older than the latest Gua.</p><p>The download examples below select the file-bearing <code>gua-v1.0.7</code>; pin their test project's Gua NuGet packages to <code>1.0.7</code> too. For 1.1.0, prepare the game integration using the <a href="/godot/ui/">Godot</a> or <a href="/unity/ui/">Unity</a> installation guide. For Godot, use <a href="https://github.com/gua-project/gua-tester/blob/v3.2/setup-godot/action.yml">setup-godot</a> to install only the engine and run <code>dotnet test</code> against your prepared project. For Unity, build and test a project containing the prepared package. The automatic-download workflow needs the 1.1.0 release files before it can be used for that version.</p></Callout>
+  <Callout kind="tip" title="Install game packages in CI"><p>The Godot action downloads <code>gua-godot-addon-*.zip</code> and the Unity workflow downloads <code>com.link1345.gua-*.tgz</code> from the selected Gua release. The examples below pin <code>gua-v1.1.0</code>; use <code>1.1.0</code> NuGet packages in the test project too. See <a href="/godot/ui/">Godot</a> or <a href="/unity/ui/">Unity</a> for game installation. Omitting the tag selects the latest stable release containing the required package. Pin the tag for reproducible CI.</p></Callout>
   <h2>Godot 4.7</h2>
   <p>The Godot composite action downloads the official Godot build matching its runner, links the released Gua addon, exports <code>GODOT_EXECUTABLE</code>, prepares project imports, and runs the external <code>Gua.Testing.Godot</code> test project.</p>
   <CodeBlock title=".github/workflows/godot.yml" lang="yaml" code={`jobs:
@@ -20,12 +20,9 @@ import Callout from '../../components/Callout.astro';
           test-project: tests/GuaTester.Tests.csproj
           godot-version: "4.7"
           godot-status: stable
-          gua-plugin-tag: gua-v1.0.7`} />
+          gua-plugin-tag: gua-v1.1.0`} />
   <div class="grid-2"><div class="mini-card"><strong>test-project (required)</strong><p>The <code>.csproj</code> that references <code>Gua.Testing.Godot</code>.</p></div><div class="mini-card"><strong>project-path</strong><p>Godot project path; default <code>game</code>.</p></div><div class="mini-card"><strong>godot-version / godot-status</strong><p>Default <code>4.7</code> and <code>stable</code>.</p></div><div class="mini-card"><strong>test-logger</strong><p>Default <code>trx;LogFileName=godot.trx</code>.</p></div></div>
   <p>The outputs are <code>godot-executable</code> and <code>addon-path</code>. Component actions remain available as <code>gua-project/gua-tester/setup-godot@v3.2</code> and <code>gua-project/gua-tester/link-gua-gdscript-addon@v3.2</code>.</p>
-
-  <h2 id="prepared-godot">Test a prepared Godot project at 1.1.0</h2><p>This example requires the 1.1.0 add-on for the runner to be present in <code>game/addons/gua</code> and the test project to use Gua 1.1.0 NuGet packages. <code>setup-godot</code> installs only Godot and does not download Gua release files.</p>
-  <CodeBlock title="Test without downloading Gua" lang="yaml" code={"jobs:\n  prepared-godot:\n    runs-on: ubuntu-22.04\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-dotnet@v4\n        with:\n          dotnet-version: \"10.0.x\"\n      - uses: gua-project/gua-tester/setup-godot@v3.2\n        with:\n          godot-version: \"4.7\"\n      - name: Import and test the prepared game\n        shell: pwsh\n        run: |\n          & \"$env:GODOT_EXECUTABLE\" --headless --editor --path game --import\n          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }\n          dotnet test tests/GuaTester.Tests.csproj --configuration Release"} />
 
   <h2>Unity 6 desktop Mono</h2>
   <p>The Unity reusable workflow installs a released Gua UPM package, builds the requested Mono Player with GameCI, transfers it to the matching runner, and runs external NUnit tests with <code>GUA_UNITY_PLAYER</code>.</p>
@@ -40,7 +37,7 @@ import Callout from '../../components/Callout.astro';
       artifact-key: game
       platform: LinuxX64
       unity-version: auto
-      gua-tag: gua-v1.0.7
+      gua-tag: gua-v1.1.0
     secrets:
       UNITY_EMAIL: \${{ secrets.UNITY_EMAIL }}
       UNITY_PASSWORD: \${{ secrets.UNITY_PASSWORD }}

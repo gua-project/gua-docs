@@ -6,7 +6,7 @@ import Callout from '../../../components/Callout.astro';
 <DocPage eyebrow="DOCS / CI" title="GitHub Actions" lead="gua-project/gua-testerは、Godot 4.7とUnity 6のGua UIテストを実行するバージョン付きCI workflowを提供します。" description="Gua Tester Actionsが提供するGodot／Unityの入力、credentials、artifact、Visual report。" section="docs">
   <Callout title="Gua Tester Actions v3.2"><p><a href="https://github.com/gua-project/gua-tester/releases/tag/v3.2">公開済みv3.2</a>を使います。Actionのバージョン（<code>@v3.2</code>）、Guaのバージョン（例：<code>gua-v1.1.0</code>）、Godot／Unityのバージョンは別々に指定します。</p></Callout>
 
-  <Callout kind="warn" title="CIが取得するGodot／Unity用ファイル"><p>Godot Actionは<code>gua-godot-addon-*.zip</code>、Unity workflowは<code>com.link1345.gua-*.tgz</code>を選択したGua Releaseから取得します。<a href="https://github.com/gua-project/gua/releases/tag/gua-v1.1.0">1.1.0のRelease</a>には現在どちらもありません。そのため1.1.0を指定した自動導入は、テスト開始前のファイル取得で失敗します。</p><p>これはgua-testerの1.1.0対応を否定するバージョン制限ではありません。<a href="https://github.com/gua-project/gua-tester/blob/v3.2/godot/action.yml">Godot Action</a>と<a href="https://github.com/gua-project/gua-tester/blob/v3.2/.github/workflows/unity.yml">Unity workflow</a>は配布ファイルとその内容を確認しますが、Guaの最大バージョンは設定していません。タグを省略すると、必要なファイルを持つ最新の安定版を選ぶので、必ずしも最新のGuaにはなりません。</p><p>以下のダウンロード例はファイルがある<code>gua-v1.0.7</code>を指定しています。この例を使うテストプロジェクトのGua NuGetも<code>1.0.7</code>に固定します。1.1.0を使う場合は<a href="/ja/godot/ui/">Godot</a>／<a href="/ja/unity/ui/">Unity</a>の導入手順からゲーム側パッケージを用意し、Godotは<a href="https://github.com/gua-project/gua-tester/blob/v3.2/setup-godot/action.yml">setup-godot</a>でエンジンだけを導入して<code>dotnet test</code>を実行します。Unityは用意済みパッケージを含むプロジェクトをビルドしてテストします。自動ダウンロード付きのworkflowは、1.1.0のファイルが提供されるまで使えません。</p></Callout>
+  <Callout kind="tip" title="CIでゲーム側パッケージを導入する"><p>Godot Actionは選択したGua Releaseの<code>gua-godot-addon-*.zip</code>を、Unity workflowは<code>com.link1345.gua-*.tgz</code>を取得します。以下の例は<code>gua-v1.1.0</code>を指定し、テストプロジェクトのNuGetも<code>1.1.0</code>に揃えます。ゲームへの導入手順は<a href="/ja/godot/ui/">Godot</a>／<a href="/ja/unity/ui/">Unity</a>を参照してください。タグを省略すると、必要なパッケージを含む最新のstable Releaseが選択されます。再現性のあるCIではタグを明示します。</p></Callout>
   <h2>Godot 4.7</h2>
   <p>Godot composite Actionはrunnerに合うGodot公式版を取得し、配布済みGua addonを配置して<code>GODOT_EXECUTABLE</code>を設定します。project import後、外部<code>Gua.Testing.Godot</code>テストを実行します。</p>
   <CodeBlock title=".github/workflows/godot.yml" lang="yaml" code={`jobs:
@@ -20,12 +20,9 @@ import Callout from '../../../components/Callout.astro';
           test-project: tests/GuaTester.Tests.csproj
           godot-version: "4.7"
           godot-status: stable
-          gua-plugin-tag: gua-v1.0.7`} />
+          gua-plugin-tag: gua-v1.1.0`} />
   <div class="grid-2"><div class="mini-card"><strong>test-project（必須）</strong><p><code>Gua.Testing.Godot</code>を参照する<code>.csproj</code>です。</p></div><div class="mini-card"><strong>project-path</strong><p>Godot projectのパス。既定値は<code>game</code>です。</p></div><div class="mini-card"><strong>godot-version / godot-status</strong><p>既定値は<code>4.7</code>と<code>stable</code>です。</p></div><div class="mini-card"><strong>test-logger</strong><p>既定値は<code>trx;LogFileName=godot.trx</code>です。</p></div></div>
   <p>出力は<code>godot-executable</code>と<code>addon-path</code>です。構成Actionの<code>gua-project/gua-tester/setup-godot@v3.2</code>と<code>gua-project/gua-tester/link-gua-gdscript-addon@v3.2</code>も個別に利用できます。</p>
-
-  <h2 id="prepared-godot">用意済み1.1.0のGodotプロジェクトをテストする</h2><p>この例では、対象runner用の1.1.0アドオンが<code>game/addons/gua</code>へ配置済みで、テストプロジェクトのGua NuGetが1.1.0であることを前提にします。<code>setup-godot</code>はGodotだけを導入し、GuaのReleaseファイルを取得しません。</p>
-  <CodeBlock title="Guaをダウンロードせずにテストする" lang="yaml" code={"jobs:\n  prepared-godot:\n    runs-on: ubuntu-22.04\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-dotnet@v4\n        with:\n          dotnet-version: \"10.0.x\"\n      - uses: gua-project/gua-tester/setup-godot@v3.2\n        with:\n          godot-version: \"4.7\"\n      - name: Import and test the prepared game\n        shell: pwsh\n        run: |\n          & \"$env:GODOT_EXECUTABLE\" --headless --editor --path game --import\n          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }\n          dotnet test tests/GuaTester.Tests.csproj --configuration Release"} />
 
   <h2>Unity 6 desktop Mono</h2>
   <p>Unity reusable workflowは配布済みGua UPM packageを配置し、指定したMono PlayerをGameCIでビルドして対象runnerへ渡し、<code>GUA_UNITY_PLAYER</code>を設定して外部NUnitテストを実行します。</p>
@@ -40,7 +37,7 @@ import Callout from '../../../components/Callout.astro';
       artifact-key: game
       platform: LinuxX64
       unity-version: auto
-      gua-tag: gua-v1.0.7
+      gua-tag: gua-v1.1.0
     secrets:
       UNITY_EMAIL: \${{ secrets.UNITY_EMAIL }}
       UNITY_PASSWORD: \${{ secrets.UNITY_PASSWORD }}

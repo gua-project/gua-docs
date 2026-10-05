@@ -136,7 +136,7 @@ GuaAssertions.GetByRole(
     { code: 'DiagnosticsSession = diagnostics', explanation: 'assertion失敗時にUI Tree、履歴、log、process情報を保存する対象を指定します。' },
     { code: '.ToBeVisible()', explanation: '失敗した場合も元のassertion例外を主原因として保ち、診断取得失敗は副次情報にします。' },
   ]} /><p>GitHub Actionsを使う場合は、テスト後に<code>artifacts/gua/**</code>を<code>actions/upload-artifact</code>へ渡すと、失敗した実行から診断ファイルを取得できます。</p>
-  <h2>GitHub Actionsで実行する</h2><p>以下のダウンロード例はGua 1.0.7を指定します。このCIプロジェクトのNuGetも1.0.7に合わせます。1.1.0を使う場合はアドオンを別途用意し、<a href="/ja/docs/github-actions/">CIの導入方法とバージョン指定</a>を参照してください。</p><p>公開Actionの<a href="https://github.com/gua-project/gua-tester"><code>gua-project/gua-tester/godot@v3.2</code></a>を使うと、runnerに合うGodot公式版の導入、選択したReleaseのGuaアドオンの配置、<code>GODOT_EXECUTABLE</code>の設定、<code>dotnet test</code>の実行をまとめて行えます。</p><CodeBlock title=".github/workflows/godot.yml" lang="yaml" code={`name: Godot Gua UI tests
+  <h2>GitHub Actionsで実行する</h2><p>以下の例は<code>gua-v1.1.0</code>のアドオンを導入します。テストプロジェクトのNuGetも<code>1.1.0</code>に揃えます。<a href="/ja/docs/github-actions/">CIの導入方法とバージョン指定</a>を参照してください。</p><p>公開Actionの<a href="https://github.com/gua-project/gua-tester"><code>gua-project/gua-tester/godot@v3.2</code></a>を使うと、runnerに合うGodot公式版の導入、選択したReleaseのGuaアドオンの配置、<code>GODOT_EXECUTABLE</code>の設定、<code>dotnet test</code>の実行をまとめて行えます。</p><CodeBlock title=".github/workflows/godot.yml" lang="yaml" code={`name: Godot Gua UI tests
 
 on:
   pull_request:
@@ -154,7 +154,7 @@ jobs:
           project-path: game
           test-project: tests/GuaTester.Tests.csproj
           godot-version: "4.7"
-          gua-plugin-tag: gua-v1.0.7
+          gua-plugin-tag: gua-v1.1.0
           godot-status: stable`} /><CodeNotes title="workflowの各部" codeLabel="記述" explanationLabel="意味" items={[
     { code: 'on: pull_request / push', explanation: 'pull requestとmainへのpushをtestの起動条件にします。' },
     { code: 'runs-on: windows-latest', explanation: 'ここではWindowsを例示します。ubuntu-22.04／macOS runnerでは対応するGodot公式archiveを自動選択します。' },
