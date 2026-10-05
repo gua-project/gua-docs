@@ -54,6 +54,8 @@ export const sectionGroups = [
 
 export const docs = [
   { label: 'Docs概要', href: '/ja/docs/' },
+  { label: '1.1.0機能リファレンス', href: '/ja/docs/release-1-1-0/' },
+  { label: 'Value v1 / npm', href: '/ja/docs/value/' },
   { label: '.NETパッケージ', href: '/ja/docs/dotnet-packages/' },
   { label: 'Gua.Runtime実装ガイド', href: '/ja/docs/gua-runtime/' },
   { label: 'Godot API・仕様', href: '/ja/docs/runtime-adapters/' },
@@ -118,6 +120,8 @@ export const sectionGroupsEn = [
 
 export const docsEn = [
   { label: 'Docs overview', href: '/docs/' },
+  { label: '1.1.0 feature reference', href: '/docs/release-1-1-0/' },
+  { label: 'Value v1 / npm', href: '/docs/value/' },
   { label: '.NET packages', href: '/docs/dotnet-packages/' },
   { label: 'Gua.Runtime guide', href: '/docs/gua-runtime/' },
   { label: 'Godot API and specification', href: '/docs/runtime-adapters/' },

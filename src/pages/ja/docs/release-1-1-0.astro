@@ -1,0 +1,46 @@
+---
+import DocPage from '../../../components/DocPage.astro';
+import CodeBlock from '../../../components/CodeBlock.astro';
+import Callout from '../../../components/Callout.astro';
+const source = 'https://github.com/gua-project/gua/blob/gua-v1.1.0/';
+---
+<DocPage eyebrow="DOCS / GUA 1.1.0" title="Gua 1.1.0機能リファレンス" lead="型付き追加観測、Trace、Semantic regression、空間照会、有限入力の再生が既存runtime protocolを拡張します。" description="Gua 1.1.0の検証済み追加機能、package API、配布状況、互換性と実測した対応範囲。" section="docs">
+  <Callout title="版と対象範囲"><p>このリファレンスは<a href="https://github.com/gua-project/gua/releases/tag/gua-v1.1.0">gua-v1.1.0</a>、source commit <code>968259fbe675bca03cf8c8ef5a3179c7741215a0</code>に含まれる機能を扱います。2026-10-05時点のGua mainは同じcommitで、tag後のmerged変更はありません。サイトの旧1.0.7リファレンスで不足していた説明を補完し、未mergeのPRをリリース済み機能として扱いません。</p></Callout>
+  <h2 id="packages">新しいpackage entry point</h2>
+  <div class="table-wrap"><table><thead><tr><th>Package</th><th>用途</th><th>参照</th></tr></thead><tbody>
+    <tr><td><code>gua-value-tools@1.1.0</code></td><td>共通Valueの型、検証、enum catalog、JSON入出力、等価比較。</td><td><a href="/ja/docs/value/">Value v1 / npm</a></td></tr>
+    <tr><td><code>Gua.Testing.Snapshots</code> 1.1.0</td><td>UIと任意のWorldのJSON baseline、型付き意味差分、明示更新、mask/ignore。net10.0とnetstandard2.1に対応。</td><td><a href="/ja/docs/dotnet-packages/">.NETパッケージ</a></td></tr>
+  </tbody></table></div>
+  <h2 id="observe">ObserveとWorld Property</h2>
+  <p>公開済みUI/ObjectのOwnerへ追加の型付き値を明示登録し、その寿命中は登録tokenを保持します。Ownerの破棄やtreeからの削除で登録は無効になります。host threadでのsampleと明示通知が変更を公開し、標準のWorld位置はWorld treeを使います。Player公開はhostが許可した値に限定し、clientはDebugへの昇格を要求できません。</p>
+  <p>consumerは<code>observe_v1</code>を確認し、<code>get_observe_snapshot</code>、<code>subscribe_observations</code>、<code>poll_observations</code>、<code>unsubscribe_observations</code>を使います。subscribeは初期snapshotとcursorを原子的に返します。購読は一つの接続・page portに属し、再接続では新規購読します。gapやstale sessionは証拠の欠損であり、空の正常観測には変換しません。transport結果はObserve documentを変更せず、値に必要なenum catalogを併せて運びます。</p>
+  <p>native、managed、Godot、Unity、Inspector、MCP、same-page WebMCPの入口は<a href={source + 'protocol/specs/observe-v1.md'}>登録・寿命契約</a>と<a href={source + 'protocol/specs/observe-transport-v1.md'}>transport契約・engine例</a>を参照してください。Web export fixtureは実engineのデータと試験用登録hostを使っており、ブラウザーのnative modelContextやCodex routing共存の証明ではありません。</p>
+  <h2 id="trace">Traceとoffline Viewer</h2>
+  <p>Trace v1はstep、観測したrequest phase、UI/World/Observeのsnapshotとchange、assertion、添付をmanifest、JSONL event、内容hash付きblobへ保存します。source ID、session epoch、request IDの組が要求の相関キーです。enqueue受付、host完了、状態観測、caller outcome、入力解除を別の事実として扱います。欠損区間、切れたfile、保持上限、capture失敗を明示し、Traceが主結果を変更したりscenarioを再生したりすることはありません。</p>
+  <p><code>Gua.Testing</code>は版固定したReact Viewer、schema bundle、Observe意味検証を内包します。Inspectorの<strong>Open Gua Trace (offline)</strong>も同じViewerです。package consumerはNode、Bun、checkout、networkなしで自己完結reportを生成できます。</p>
+  <CodeBlock title="offline reportの生成" lang="csharp" code={`var report = GuaTraceReport.WriteHtml(trace.ArtifactPath, "artifacts/report.html");
+if (!report.Succeeded) Console.WriteLine(report.Error);`} />
+  <p>出力先は新規fileとし、既存artifactは上書きしません。Screenshot overlayには明示captureと独自の証拠が必要です。capture前に機密値の扱いを設定してください。Semantic snapshotのmaskは独立したTrace観測やPNGを伏せません。<a href={source + 'protocol/specs/trace-v1.md'}>Trace記録API</a>、<a href={source + 'protocol/specs/trace-viewer.md'}>Viewer/report契約</a>、<a href={source + 'protocol/specs/trace-integrated-acceptance.md'}>統合証拠と制限</a>を参照してください。</p>
+  <h2 id="locators">Locator auto-wait</h2>
+  <p><code>GuaAssertions.Query(context)</code>のlocatorは操作時に最新のstrict single matchを解決します。<code>ResolveAsync</code>は出現を待ち、<code>WaitForActionableAsync</code>は表示・有効状態・action公開も待ちます。locator操作は解決、actionability、enqueue、相関host完了で一つのtimeoutを共有します。複数一致は直ちに失敗し、enqueue拒否やhost失敗を自動再試行しません。送信後のcancelはrollbackを保証しません。既存<code>Get()</code>とnode expectationの即時解決は維持します。</p>
+  <CodeBlock title="操作時に解決し、結果状態を別に待つ" lang="csharp" code={`var play = GuaAssertions.Query(context).ByRole("button", "Play");
+await play.ClickAsync(timeout: TimeSpan.FromSeconds(5));
+await GuaAssertions.Query(context).ById("game-screen").ResolveAsync();`} />
+  <p><a href={source + 'bindings/dotnet/src/Gua.Testing/README.md'}>locator API・失敗契約</a>を参照してください。</p>
+  <h2 id="lint">Semantic lintとInspectorのコード生成</h2>
+  <p><code>GuaSemanticLinter.Analyze</code>と明示的なbridge command <code>semantic_lint</code>はcommit済み・projection済みのUIと任意のWorldを解析します。重複ID、存在しないparent、cycle、WorldからUIへの参照切れ、accessible name欠落、role/action/state矛盾などを報告します。公開時の自動解析・修正・失敗閾値の決定は行いません。保存済みsnapshotを解析する場合、呼び出し側が投影済みtreeと実際のprofileを渡します。</p>
+  <p>Inspectorは選択nodeのC# locator、action、assertionを生成できます。生成sourceはIDの寿命とtest contextを確認して使い、panel自身はテストを実行しません。<a href={source + 'protocol/specs/semantic-lint-v1.md'}>lint rule・公開API</a>と<a href={source + 'packages/inspector/src/codegen.ts'}>code generator</a>を参照してください。</p>
+  <h2 id="spatial">Spatial-r1空間照会</h2>
+  <p>Spatial-r1はhostが明示bind・許可したTesting/Debug providerによる有限のphysics読取です。Debug観測profileだけでは有効になりません。native/managed client、WebSocket、native MCPがprovider情報とbounded query batchを公開し、enqueue受付とterminal完了は別です。reset、provider削除、scene/origin変更、権限失効は旧query ownerと結果を無効化します。clientはphysicsを再実装せず、任意collision layerへの権限も得ません。</p>
+  <p>built-in browser WebMCPのprivileged spatial読取は<strong>Unsupported</strong>です。World radius検索は既存の意味snapshot操作を維持します。GodotPhysics3D/Jolt、Unity desktop Monoの証拠は記録されたengine version、backend、recipe、artifactの範囲に限定します。<a href={source + 'docs/spatial-transport-r1.md'}>操作対応・support table</a>、<a href={source + 'docs/spatial-engine-r1.md'}>engine provider設定</a>、<a href={source + 'docs/spatial-acceptance-followup.md'}>package経路の証拠</a>を参照してください。</p>
+  <h2 id="input">InputAction metadataとTimed Segment</h2>
+  <p><code>semantic_game_input_metadata_v1</code> capabilityで明示的な<code>get_game_input_actions_v2</code>/<code>find_game_input_actions_v2</code>を使い、bounded <code>valueSchema</code>と設計時の<code>examples</code>を取得します。旧v1 commandは新fieldを省略します。exampleは実行・再生の許可ではなく、host policy、Action Map revision、confirmation要件が引き続き適用されます。<a href={source + 'protocol/specs/input-action-metadata-v1.md'}>metadata dialect・fallback契約</a>を参照してください。</p>
+  <p>Timed Segment v1は有限game-input planを区間offsetで送信し、result pollingをdispatchから分離してexecution/cleanup予算を制限します。game-input-only Recording v2の明示importはoffsetを保持し、旧時刻のprovenanceはunknownとします。UI/input混在やcondition waitの変換は拒否します。既存MCP/Inspector、逐次Recording replayは従来動作を維持します。現在のlocal runtimeはrealtime game-input FIFOに対応し、simulation、厳密適用時刻、same-tick atomic適用には別のhost能力が必要です。受信completionをhost適用時刻へ読み替えません。<a href={source + 'protocol/specs/timed-segment-v1.md'}>file・scheduler・時刻・cleanup契約</a>を参照してください。</p>
+  <h2 id="distribution">配布と互換性</h2>
+  <p>2026-10-05時点でnpm 4 package、NuGet 8 packageの1.1.0が公開済みです。GitHub Releaseには現在<strong>engine archive・Inspector installer assetがありません</strong>。Vite Inspectorの前にValueをbuildしなかったため、asset buildがpackaging前に失敗しました。<a href="https://github.com/gua-project/gua/pull/177">PR #177</a>はworkflow修正を提案するopen PRで、tagに含まれず、asset公開成功の証明ではありません。必要なassetが揃うまでarchive取得例を1.1.0へ置き換えないでください。</p>
+  <p>package-only consumerは<code>GuaDistribution.SchemaNames</code>、<code>ReadSchema</code>、<code>ValidateJson</code>、埋込Viewer metadata/noticesを使えます。同じpackage version、full source commit、artifact hashへ固定します。JSON Schemaは構造を検証し、Trace/Observeの意味や実engine操作は別の検証が必要です。native libraryのloadは起動・接続・機能実行の証明ではありません。<a href={source + 'docs/distribution-contract.md'}>配布API・経路契約</a>を参照してください。</p>
+  <p>既存UI tree v2、selector、managed UI Recording v1逐次再生は維持します。追加契約は独立改版します。厳密な1.0.10 schemaへ固定した外部validatorはbundle更新が必要です。Debug diagnosticsは<code>traceLifecycle</code>、許可されたspatial version応答は<code>spatial</code>を追加し得ます。更新時には不正入力とcancel境界の厳格化も確認してください。<a href={source + 'docs/release-1.1.0.md'}>リリース前の互換性review</a>は歴史的な計画資料で、proposed/unreleased表記はregistry公開前の状態です。</p>
+  <h2 id="support">実測した対応範囲</h2>
+  <Callout kind="warn" title="Intel Unity Editorは未検証"><p>native Intel macOS、Unity 6000.5.3f1、実UPM、Editor Play ModeはIntel Macがなく未実行です。<strong>UNVERIFIED</strong>であり、failedやUnsupportedではありません。native Apple Silicon Editorと4 RID Mono Playerには記録されたfixture/artifactの証拠があり、Intel Editorを証明するものではありません。<a href="https://github.com/gua-project/gua/issues/174">#174</a>と<a href={source + 'docs/remaining-route-acceptance.md'}>現在の受け入れ記録</a>を参照してください。</p></Callout>
+  <p><a href="https://github.com/gua-project/gua/issues/116">#116</a>は実Codexのbrowser/native MCP routing共存についてopenです。desktop spatialの受け入れはWebGL/IL2CPP spatialやすべてのengine/backend組合せを証明しません。network mockと決定的なテスト開始状態はゲーム・test fixture側の責務です。</p>
+</DocPage>

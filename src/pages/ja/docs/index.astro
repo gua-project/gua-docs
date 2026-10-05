@@ -3,9 +3,11 @@ import DocPage from '../../../components/DocPage.astro'; import Callout from '..
 ---
 <DocPage eyebrow="DOCS / REFERENCE" title="Docs" lead="Guideが『どう導入するか』を扱うのに対し、Docsはソースに登場するクラス、変数、関数、責務を名前から引けるリファレンスです。" description="Guaのクラス、変数、サンプルコードの日本語リファレンス。" section="docs">
   <Callout kind="tip" title="Guaが扱う範囲"><p>Guaは、Playwrightライクな設計思想をもとにしたSemantic UI自動化を核に、World Object Tree、ゲーム入力、MCP・WebMCP、AIエージェント公開ポリシー、仮想時計、Recording・Visual比較など、ゲーム開発に最適化された機能群を同じプロトコル上で提供します。</p></Callout>
-  <Callout title="参照している公式ソース"><p>内容はGuaの<code>main</code>にある実装を基準にしている。各ページからGitHub上の原文へ移動できる。</p></Callout>
+  <Callout title="参照している公式ソース"><p>1.1.0機能とValueのリファレンスは<code>gua-v1.1.0</code>に固定したsourceへリンクします。既存API guideには<code>main</code>の実装へのリンクもあります。package、engine、archiveの対応は使うversionに合わせて確認してください。</p></Callout>
   <div class="card-grid">
-    <a class="chapter-card" href="/ja/docs/dotnet-packages/"><span>PACKAGES / .NET</span><h3>.NETパッケージ</h3><p>Core、Testing、Godot、Visual、Recordingの責務と.NET Standard 2.1対応。</p></a>
+    <a class="chapter-card" href="/ja/docs/release-1-1-0/"><span>GUA / 1.1.0</span><h3>1.1.0機能リファレンス</h3><p>Observe, Trace, Lint, Spatial, InputAction metadata, Timed Segment, 配布と対応範囲。</p></a>
+    <a class="chapter-card" href="/ja/docs/value/"><span>VALUE / NPM</span><h3>Value v1 / gua-value-tools</h3><p>共通Valueの型、検証、enum catalog、等価比較。</p></a>
+    <a class="chapter-card" href="/ja/docs/dotnet-packages/"><span>PACKAGES / .NET</span><h3>.NETパッケージ</h3><p>Core、Testing、Godot、Visual、Snapshots、Recordingの責務と.NET Standard 2.1対応。</p></a>
     <a class="chapter-card" href="/ja/docs/gua-runtime/"><span>ADAPTER / RUNTIME</span><h3>Gua.Runtime実装ガイド</h3><p>独自engine adapterでframe、action、screenshot、Inspector bridgeを実装する具体的な流れ。</p></a>
     <a class="chapter-card" href="/ja/docs/runtime-adapters/"><span>ENGINE / GODOT</span><h3>Godot API・仕様</h3><p>GDScriptアドオン、GDExtension、外部テストAPI、Control写像、他エンジンへ拡張できる境界。</p></a>
     <a class="chapter-card" href="/ja/docs/unity-reference/"><span>ENGINE / UNITY</span><h3>Unity API・仕様</h3><p>UPM、公開型、Control写像、action、テストホスト、対応環境、共通仕様。</p></a>
