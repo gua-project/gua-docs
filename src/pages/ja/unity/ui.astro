@@ -4,10 +4,10 @@ import Callout from '../../../components/Callout.astro';
 import CodeBlock from '../../../components/CodeBlock.astro';
 import CodeNotes from '../../../components/CodeNotes.astro';
 ---
-<DocPage eyebrow="UNITY / UI" title="導入とUI実装" lead="最新ReleaseのUPMアーカイブを追加すると、ランタイムが自動起動し、UI Toolkit、uGUI、TextMeshProの実行時UIを収集します。" description="Gua Unityパッケージの導入とUI自動収集。" section="unity">
+<DocPage eyebrow="UNITY / UI" title="導入とUI実装" lead="GuaのUnityパッケージを追加すると、ランタイムが自動起動し、UI Toolkit、uGUI、TextMeshProの実行時UIを収集します。" description="Gua Unityパッケージの導入とUI自動収集。" section="unity">
   <h2>1. UPMパッケージを追加する</h2>
-  <Callout kind="tip" title="Latest Releaseから導入"><p><a href="https://github.com/link1345/gua/releases/latest">Guaの最新Release</a>を開き、<code>com.link1345.gua-&lt;version&gt;.tgz</code>を取得します。UnityのPackage Managerで<strong>Add package from tarball</strong>を選び、このファイルを指定してください。通常利用では配布済みUPMパッケージを使用します。</p></Callout>
-  <ol class="steps"><li><strong>Latest Releaseを開く</strong><p>AssetsからUnity用<code>.tgz</code>をダウンロードします。</p></li><li><strong>Package Managerへ追加</strong><p><strong>＋ → Add package from tarball</strong>を選択して、ダウンロードしたファイルを指定します。</p></li><li><strong>サンプルを取り込む</strong><p>Package ManagerのGua詳細画面で<strong>Samples</strong>を開き、<strong>Runtime UI Fixture</strong>をImportすると、対応UIをまとめたシーンを確認できます。</p></li></ol>
+  <Callout kind="warn" title="Unityパッケージのバージョンを選ぶ"><p>ゲーム側にはUnityパッケージ<code>com.link1345.gua</code>が必要です。<code>Gua.Testing.Unity</code>は外部テストプロジェクト用の別パッケージです。配布用ファイル<code>com.link1345.gua-&lt;version&gt;.tgz</code>はPackage Managerの<strong>Add package from tarball</strong>で追加します。<a href="https://github.com/gua-project/gua/releases/tag/gua-v1.1.0">1.1.0のRelease</a>には現在このファイルがありません。1.1.0を使う場合は<code>gua-v1.1.0</code>の<a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/README.md">Unity導入手順</a>と<a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/scripts/build-unity-package.ps1">Windows用パッケージ作成スクリプト</a>からパッケージを用意し、生成されたWindows x64用パッケージを追加します。このスクリプトではLinux、macOS、WebGL用ライブラリは用意できず、それぞれの対象向けnativeビルドとパッケージ内容が別途必要です。配布済みファイルを使う場合は、そのバージョンにテストプロジェクトも合わせます。</p></Callout>
+  <ol class="steps"><li><strong>パッケージがあるReleaseを選ぶ</strong><p>AssetsからUnity用<code>.tgz</code>をダウンロードします。</p></li><li><strong>Package Managerへ追加</strong><p><strong>＋ → Add package from tarball</strong>を選択して、ダウンロードしたファイルを指定します。</p></li><li><strong>サンプルを取り込む</strong><p>Package ManagerのGua詳細画面で<strong>Samples</strong>を開き、<strong>Runtime UI Fixture</strong>をImportすると、対応UIをまとめたシーンを確認できます。</p></li></ol>
   <Callout kind="warn" title="Player設定"><p>Windows x86_64、Linux x86_64、またはmacOS x64／arm64でMonoと.NET Standard 2.1 API Compatibility Levelを使用します。TextMeshProを使う場合は<strong>Import TMP Essential Resources</strong>を先に実行します。</p></Callout>
   <h2>2. 自動起動の仕組みを理解する</h2>
   <p>Godot版ではゲーム側が<code>attach()</code>と<code>update()</code>を呼びますが、Unity版ではUPMパッケージが同じ責務を自動で引き受けます。sceneごとにGua初期化scriptを追加する必要はありません。</p>
@@ -80,7 +80,7 @@ public sealed class TitleScreen : MonoBehaviour
     { code: 'id.Value = "start"', explanation: 'scene階層変更に影響されない固定node IDを設定します。' },
     { code: 'startButton.onClick.AddListener(...)', explanation: '通常のuGUI listenerを登録します。Gua clickもこのlistenerを発火させます。' },
   ]} />
-  <p>TextMeshProのButton、InputField、Dropdown、Textも同じCanvas階層から収集されます。サンプル全体は<a href="https://github.com/link1345/gua/blob/47515fb/bindings/unity/Samples~/Runtime%20UI%20Fixture/GuaRuntimeUiSample.cs"><code>GuaRuntimeUiSample.cs</code></a>と<a href="https://github.com/link1345/gua/blob/47515fb/examples/unity-smoke/Assets/GuaUnityFixture.cs"><code>GuaUnityFixture.cs</code></a>で確認できます。</p>
+  <p>TextMeshProのButton、InputField、Dropdown、Textも同じCanvas階層から収集されます。サンプル全体は<a href="https://github.com/gua-project/gua/blob/47515fb/bindings/unity/Samples~/Runtime%20UI%20Fixture/GuaRuntimeUiSample.cs"><code>GuaRuntimeUiSample.cs</code></a>と<a href="https://github.com/gua-project/gua/blob/47515fb/examples/unity-smoke/Assets/GuaUnityFixture.cs"><code>GuaUnityFixture.cs</code></a>で確認できます。</p>
   <h2>5. 安定IDと画面名を付ける</h2>
   <p>IDは自動生成されますが、テストから長期間参照する要素には<code>GuaId</code>を付けます。UI Toolkitは<code>viewDataKey</code>、次に<code>name</code>を優先します。uGUI/TMPは<code>GuaId.Value</code>が無ければscene path、Transform名、sibling indexから生成します。</p>
   <CodeBlock title="任意の明示IDと論理画面" lang="csharp" code={`using Gua.Unity;
@@ -130,7 +130,7 @@ public sealed class ReactorDoor : MonoBehaviour
 }`} /><p><code>Id</code>は必須かつ同じframe内で一意です。位置はGameObjectの<code>transform.position</code>から取得され、公開済みの親GameObjectがあれば最も近いobjectがparentになります。ID、kind、visibility、tagsなどのserialized fieldはInspector上の<code>GuaWorldObject</code> componentからも設定できます。動的なstateはコードから<code>SetState()</code>を呼び、string、number、boolean、nullだけを渡します。概念と検索方法は<a href="/ja/world-object-tree/">World Object Tree編</a>を参照してください。</p>
   <h2>7. 外部接続を許可する</h2>
   <p>既定のWebSocketポートは<code>8765</code>です。プロセス起動前に<code>GUA_BRIDGE_PORT</code>を設定すると変更できます。Inspectorと<code>gui-mcp</code>はGodot版と同じブリッジへ接続します。</p>
-  <h2>WebGLへExportする（実験的）</h2><p>ReleaseのUPM archiveには、WebGL native libraryと<code>GuaWebMcp.jslib</code>が含まれます。WebGL buildがtab-localな<code>__guaUnityWebPort</code>を導入するまで待ち、同じpageで<code>gua-webmcp</code>の引数なしの<code>createUnityWebGlBridge()</code>を呼びます。helperが既定のglobal名を解決します。この経路は常にPlayer投影を使い、privateなDebug dataを公開しません。</p><Callout kind="warn" title="現在のWebGL制限"><p>実験的なUnity WebGL bridgeはSemantic UI、opt-inしたWorld Object Tree、初期化済みgame-input capabilityを公開します。現在screenshot capabilityは公開しません。tool登録とsecurity境界は<a href="/ja/webmcp/">ブラウザWebMCP編</a>を参照してください。</p></Callout>
+  <h2>WebGLへExportする（実験的）</h2><p>この対象にはWebGL native libraryと<code>GuaWebMcp.jslib</code>を含むパッケージが必要です。上記のWindows用パッケージだけではWebGL用ライブラリは揃いません。WebGL buildがtab-localな<code>__guaUnityWebPort</code>を導入するまで待ち、同じpageで<code>gua-webmcp</code>の引数なしの<code>createUnityWebGlBridge()</code>を呼びます。helperが既定のglobal名を解決します。この経路は常にPlayer投影を使い、privateなDebug dataを公開しません。</p><Callout kind="warn" title="現在のWebGL制限"><p>実験的なUnity WebGL bridgeはSemantic UI、opt-inしたWorld Object Tree、初期化済みgame-input capabilityを公開します。現在screenshot capabilityは公開しません。tool登録とsecurity境界は<a href="/ja/webmcp/">ブラウザWebMCP編</a>を参照してください。</p></Callout>
   <h2>観測と操作の原則</h2>
   <ul>
     <li>非表示nodeは消去せず、<code>visible: false</code>として観測します。無効状態も<code>enabled</code>へ反映します。</li>
@@ -138,4 +138,5 @@ public sealed class ReactorDoor : MonoBehaviour
     <li>クリック、focus、値変更、選択、scroll、キー入力はUnityのControlへ適用され、request ID付きのaction結果が返ります。</li>
     <li>画面キャプチャはrendered Player/Play Modeで利用できます。batchmodeまたは<code>-nographics</code>では<code>headless</code>を返します。</li>
   </ul>
+  <h2 id="observe">UI／Worldに追加の観測値を公開する</h2><p>標準のtreeにない型付きの値はObserveで明示的に登録します。公開済みUI／World ownerに結び付け、オブジェクトの削除時に登録を解除します。ゲーム側のmanaged runtimeの<code>CreateObserveOwner</code>から登録できます。Playerへの公開は明示的なopt-inです。<a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/protocol/specs/observe-transport-v1.md">エンジンごとの登録例</a>と<a href="/ja/docs/gua-runtime/#observe">Value・登録・外部購読の説明</a>を参照してください。</p>
 </DocPage>

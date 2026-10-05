@@ -9,10 +9,10 @@ import CodeBlock from '../../../components/CodeBlock.astro';
     <tr><td><code>addons/gua</code></td><td>GodotのControlツリーを自動収集し、外部からの操作を実UIへ配送</td><td>Godotプロジェクト</td></tr>
     <tr><td><code>Gua.Testing.Godot</code></td><td>Godotプロセスの起動・接続・終了、標準出力、screenshot、診断</td><td>外部.NETテスト</td></tr>
     <tr><td><code>Gua.Testing</code></td><td>locator、wait、assertion、remote接続のengine共通API</td><td>外部.NETテスト</td></tr>
-    <tr><td><code>Gua.Testing.Visual</code></td><td>PNG baseline比較と差分artifact。Godot・Unity共通</td><td>必要な外部.NETテスト</td></tr>
+    <tr><td><code>Gua.Testing.Snapshots</code></td><td>UI／Worldの意味的JSON baseline比較</td><td>追加の外部.NETテスト</td></tr><tr><td><code>Gua.Testing.Visual</code></td><td>PNG baseline比較と差分artifact。Godot・Unity共通</td><td>必要な外部.NETテスト</td></tr>
     <tr><td><code>Gua.Testing.Recording</code></td><td>Semantic操作の記録とrequest相関付きReplay。Godot・Unity共通</td><td>必要な外部.NETテスト</td></tr>
   </tbody></table></div>
-  <Callout kind="tip" title="Latest Releaseから導入"><p><a href="https://github.com/link1345/gua/releases/latest">Guaの最新Release</a>からGodot用ZIPを取得し、展開した<code>addons/gua</code>をゲームへコピーします。通常利用では、この配布済みアドオンを使用します。</p></Callout>
+  <Callout kind="tip" title="Godotアドオンを導入する"><p>ゲームにはnativeライブラリを含む<code>addons/gua</code>が必要です。ファイルの入手先と1.1.0の導入方法は<a href="/ja/godot/ui/">Godotの導入手順</a>を参照してください。</p></Callout>
 
   <h2>Godot公開型</h2>
   <div class="table-wrap"><table><thead><tr><th>型 / 設定</th><th>公開契約</th></tr></thead><tbody>
@@ -25,8 +25,8 @@ import CodeBlock from '../../../components/CodeBlock.astro';
 
   <h2>Godotランタイム公開面</h2>
   <div class="table-wrap"><table><thead><tr><th>ファイル</th><th>役割</th></tr></thead><tbody>
-    <tr><td><a href="https://github.com/link1345/gua/blob/main/examples/godot-gdscript/addons/gua/gua_auto_adapter.gd"><code>gua_auto_adapter.gd</code></a></td><td>Controlの再帰収集、状態反映、action配送、event、screenshotを担当</td></tr>
-    <tr><td><a href="https://github.com/link1345/gua/blob/main/examples/godot-gdscript/addons/gua/gua.gdextension"><code>gua.gdextension</code></a></td><td>Godotへentry pointとplatform別native libraryを宣言</td></tr>
+    <tr><td><a href="https://github.com/gua-project/gua/blob/main/examples/godot-gdscript/addons/gua/gua_auto_adapter.gd"><code>gua_auto_adapter.gd</code></a></td><td>Controlの再帰収集、状態反映、action配送、event、screenshotを担当</td></tr>
+    <tr><td><a href="https://github.com/gua-project/gua/blob/main/examples/godot-gdscript/addons/gua/gua.gdextension"><code>gua.gdextension</code></a></td><td>Godotへentry pointとplatform別native libraryを宣言</td></tr>
     <tr><td><code>gua_godot.windows.debug.x86_64.dll</code></td><td><code>GuaContext</code>をGodot型として登録するC++ GDExtension</td></tr>
     <tr><td><code>gua_runtime.dll</code></td><td>Gua core、request/event queue、診断、Inspector WebSocket bridgeを所有する共有runtime</td></tr>
     <tr><td><code>plugin.cfg</code> / <code>plugin.gd</code></td><td>Godotアドオンとして読み込むためのEditorPlugin shell</td></tr>
@@ -90,7 +90,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
   ui.update("title")`} />
   <h3><code>main.gd</code>サンプルの要点</h3>
-  <p><a href="https://github.com/link1345/gua/blob/main/examples/godot-gdscript/scripts/main.gd">完全なmain.gdをGitHubで確認できます ↗</a></p>
+  <p><a href="https://github.com/gua-project/gua/blob/main/examples/godot-gdscript/scripts/main.gd">完全なmain.gdをGitHubで確認できます ↗</a></p>
   <div class="table-wrap"><table><thead><tr><th>関数 / 設定</th><th>役割</th></tr></thead><tbody>
     <tr><td><code>start_inspector_bridge_on_ready</code></td><td>Ready時にゲーム内WebSocket bridgeを開始するか指定</td></tr>
     <tr><td><code>inspector_bridge_port</code></td><td>InspectorとMCPの接続port。環境変数で上書き可能</td></tr>
@@ -108,5 +108,6 @@ func _process(_delta: float) -> void:
     <li>複数のGodot processを並列実行する場合は、固定portを共有せずテストごとに空きportを割り当てます。</li>
     <li>native DLLが無い、古い、またはplatform/CPU構成が違う場合、<code>GuaContext</code>を生成できません。</li>
   </ul>
-  <Callout kind="tip" title="現在の対応範囲"><p>配布済みGodotアドオンはGodot 4.7、Windows debug x86_64向けです。他OS、CPU、Release構成では対象向けGDExtensionと共有runtimeを用意してください。</p></Callout>
+  <Callout kind="tip" title="対応構成"><p>Godot 4.7のアドオンはWindows x64、Linux x64、Intel macOS、Apple Silicon macOSのDebug／Releaseと、single-threaded Godot Web用の構成を持ちます。使うOS／CPU／構成に合うライブラリを用意してください。導入方法は<a href="/ja/godot/ui/">Godotの導入</a>を参照します。</p></Callout>
+  <h2 id="observe-spatial">Observeと物理queryのAPI</h2><p>エンジン統合は公開済みUI／World ownerに型付きObserve値を登録できます。外部の<code>Gua.Testing.GuaWebSocketContext</code>は<code>observe_v1</code>がある場合に<code>GetObserveSnapshotJson</code>／<code>SubscribeObservations</code>を使います。<a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/protocol/specs/observe-transport-v1.md">エンジンごとの登録例</a>・<a href="/ja/docs/gua-runtime/#observe">managed／remoteの例</a>を参照してください。</p><p>物理queryにはTesting／Debug用providerの明示的な認可が必要です。Debugの観測だけでは有効になりません。外部テストは<code>GetSpatialInfo</code>／<code>QuerySpatialBatch</code>を使います。<a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/docs/spatial-engine-r1.md">GodotPhysics3D／JoltとUnity PhysXの設定</a>で上限と無効化条件を確認します。組み込みbrowser WebMCPの権限付き物理queryは非対応です。<a href="/ja/world-object-tree/#physics">queryの意味と制限</a>を参照してください。</p>
 </DocPage>

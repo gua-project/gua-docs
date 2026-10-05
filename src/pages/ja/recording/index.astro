@@ -19,7 +19,7 @@ import Callout from '../../../components/Callout.astro';
   </figure>
 
   <h2>導入</h2>
-  <CodeBlock title="最新安定版をscenario test projectへ追加" lang="powershell" code={`dotnet add package Gua.Testing.Recording`} />
+  <CodeBlock title="1.1.0をscenario test projectへ追加" lang="powershell" code={`dotnet add package Gua.Testing.Recording --version 1.1.0`} />
 
   <h2>操作を記録する</h2>
   <CodeBlock title="ログインflowを記録" lang="csharp" code={`using Gua.Testing.Recording;
@@ -95,4 +95,8 @@ if (imported.UnpairedStepCount != 0)
 
 GuaRecordingFile.Save("recordings/imported.json", imported.Recording);`} />
   <Callout kind="warn" title="macro recorderではない"><p>Recordingは画面上のpointer移動や任意座標を忠実に録画する仕組みではありません。Gua protocol上のSemantic actionを、再現可能なテストscenarioとして保存する機能です。</p></Callout>
+  <h2 id="timed-segment">有限のゲーム入力区間を再生する</h2><p>通常の<code>ReplayAsync</code>は各stepのcompletionを待ってから次へ進みます。有限の入力offsetを扱う場合は、<code>Gua.Testing.Recording</code>の<code>GuaReplayer.ReplayTimedSegmentAsync</code>を<code>IGuaTimedSegmentHost</code>と明示的に使います。同じパッケージの<code>GuaRuntimeSegmentHost</code>は、初期化済みの順序付きgame-input pumpを持つlocal <code>Gua.Runtime</code>に接続します。</p>
+  <CodeBlock title="hold、jump、明示releaseを行う" lang="csharp" code={"using Gua.Runtime;\nusing Gua.Testing.Recording;\n\n// runtime is local; its initialized adapter applies game input through a FIFO pump.\nvar segmentHost = new GuaRuntimeSegmentHost(runtime, adapterAppliesInOrder: true);\nvar segment = new GuaTimedSegment(\n    SchemaVersion: 1, DurationMilliseconds: 300, MaxLatenessMilliseconds: 50,\n    ExecutionTimeoutMilliseconds: 1000, CleanupTimeoutMilliseconds: 500,\n    Inputs: [\n        new(0, GuaGameInputKind.Keyboard, GuaGameInputOperation.Down,\n            \"KeyW\", LeaseMilliseconds: 5000),\n        new(100, GuaGameInputKind.Keyboard, GuaGameInputOperation.Press, \"Space\"),\n        new(300, GuaGameInputKind.Keyboard, GuaGameInputOperation.Up, \"KeyW\"),\n    ]);\nvar result = await GuaReplayer.ReplayTimedSegmentAsync(segmentHost, segment);\nif (result.Outcome != GuaSegmentOutcome.Succeeded || !result.NeutralConfirmed)\n    throw new InvalidOperationException(\"Timed input or cleanup failed.\");"} />
+  <p>offsetは区間開始からの時間です。実行／cleanupの期限を指定し、holdを明示releaseで閉じ、結果と中立確認を両方調べます。同梱hostはrealtime FIFOのみで、厳密な適用時刻や同tick適用を証明しません。UI actionと条件waitは区間の外で行います。組み込みMCP／InspectorのReplayは逐次実行で、Timed Segmentの実行は提供しません。<a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/bindings/dotnet/src/Gua.Testing.Recording/README.md">plan保存・読込・変換と時間契約</a>を参照してください。</p>
+  <h2 id="trace">RecordingをTraceへ添付する</h2><p><code>GuaRecordingTrace.Attach</code>は検証したRecordingを<code>Gua.Testing.GuaTraceSession</code>のstepへ明示的に添付します。<code>AttachTimedResult</code>は値を含まない時間結果を添付します。証拠の添付であって再生可能性の保証ではなく、Traceはこれを再生しません。<a href="/ja/godot/testing/#trace">Traceの作成</a>・<a href="/ja/inspector/#trace">保存済み証拠の表示</a>を参照してください。</p>
 </DocPage>

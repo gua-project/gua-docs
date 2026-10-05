@@ -4,7 +4,7 @@ const config = `{
   "mcpServers": {
     "gua": {
       "command": "bunx",
-      "args": ["gui-mcp@latest", "mcp"],
+      "args": ["gui-mcp@1.1.0", "mcp"],
       "env": {
         "GUA_BRIDGE_URL": "ws://127.0.0.1:8765",
         "GUA_ARTIFACT_DIR": ".gua"
@@ -26,4 +26,7 @@ const config = `{
   <h2>Visual比較</h2><div class="grid-2"><div class="mini-card"><strong>compare_screenshot</strong><p>最新PNGを明示的なtest名・OS/renderer variantのbaselineと比較する。baseline更新は明示指定が必要。</p></div><div class="mini-card"><strong>get_visual_artifacts</strong><p><code>actual</code>、<code>expected</code>、<code>diff</code>、comparison manifestのパスを返す。</p></div></div>
   <h2>AIへの頼み方</h2><CodeBlock title="プロンプト例" lang="text" code={`GuaのUIツリーを取得し、「Start Game」ボタンを探してください。\n見つかった安定IDを使ってクリックし、\n「Loading...」が表示されるまで待ってください。\n失敗した場合はログを確認し、UIツリーと原因を報告してください。`} />
   <Callout kind="warn" title="座標クリックを指示しない"><p>Guaの強みは意味による操作です。まず<code>get_ui_tree</code>で対象を確認し、id・role・textを根拠に操作させます。</p></Callout>
+  <h2 id="observe">追加の観測値を読む</h2><p>ゲームが<code>observe_v1</code>を公開すると、<code>gui-mcp</code>は<code>get_observe_snapshot</code>、<code>subscribe_observations</code>、<code>poll_observations</code>、<code>unsubscribe_observations</code>を提供します。値はゲーム側が登録し、clientからgetterをremote登録したりprofileを昇格したりできません。再接続やgapでは新しい購読が必要です。<a href="/ja/docs/gua-runtime/#observe">登録と購読</a>を参照してください。</p>
+  <h2 id="spatial">認可した物理providerをqueryする</h2><p>native hostがTesting／Debug用spatial providerを明示的に有効化した場合に<code>get_spatial_info</code>／<code>query_spatial_batch</code>を使います。上限付きの物理queryで、Worldの半径検索とは別です。resetやscene／provider変更で無効になります。<a href="/ja/world-object-tree/#physics">provider設定とqueryの制限</a>を参照してください。</p>
+  <h2 id="metadata">actionの値metadataを取得する</h2><p><code>semantic_game_input_metadata_v1</code>がある場合に<code>get_game_input_actions_v2</code>／<code>find_game_input_actions_v2</code>を明示的に使います。<code>valueSchema</code>／<code>examples</code>は値の説明で、許可や確認の省略にはなりません。<a href="/ja/game-input/#metadata">入力metadataの説明</a>を参照してください。</p>
 </DocPage>

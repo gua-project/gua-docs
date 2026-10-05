@@ -19,8 +19,8 @@ import Callout from '../../../components/Callout.astro';
   </figure>
 
   <h2>導入とnative library</h2>
-  <CodeBlock title="最新安定版をadapter projectへ追加" lang="powershell" code={`dotnet add package Gua.Runtime`} />
-  <p><code>Gua.Runtime</code>は<code>net10.0</code>と<code>netstandard2.1</code>を対象にします。実行時には対象platform/architectureと一致する<code>gua.dll</code>と<code>gua_runtime.dll</code>も配置します。不一致や欠落はconstructorで明示的なload errorになります。</p>
+  <CodeBlock title="1.1.0をadapter projectへ追加" lang="powershell" code={`dotnet add package Gua.Runtime --version 1.1.0`} />
+  <p><code>Gua.Runtime</code>は<code>net10.0</code>と<code>netstandard2.1</code>を対象にします。実行時には対象OS／CPUと一致するnativeライブラリを使います。Windowsは<code>gua.dll</code>／<code>gua_runtime.dll</code>、Linuxは<code>libgua.so</code>／<code>libgua_runtime.so</code>、macOSは<code>libgua.dylib</code>／<code>libgua_runtime.dylib</code>です。不一致や欠落はconstructorで明示的なload errorになります。</p>
 
   <h2>adapterの1 frame</h2>
   <figure class="doc-figure">
@@ -168,4 +168,9 @@ public sealed class CustomUiGuaAdapter(ICustomUi ui) : IDisposable
     <li>headless・rendering disabled・stale sessionをscreenshot結果として区別する。</li>
     <li>終了時に<code>Dispose()</code>し、bridgeとnative handleを解放する。</li>
   </ul>
+  <h2 id="observe">型付きObserve値を登録する</h2><p>登録は<code>Gua.Runtime</code>、ValueとEnum Catalogは<code>Gua.Core</code>を使います。公開済みUI／Objectのownerに登録し、ゲームオブジェクトとともに登録tokenを保持して削除時にDisposeします。Player公開は明示的なopt-inで、hostのprojectionにも従います。</p>
+  <CodeBlock title="公開済みWorld objectにenumを登録する" lang="csharp" code={"using Gua.Core;\nusing Gua.Runtime;\n\n// Publish the World owner \"enemy-1\" before registering its values.\nusing var catalog = new GuaEnumCatalog();\ncatalog.Register(\"game.Phase\", \"First\", \"Second\");\nusing var owner = runtime.CreateObserveOwner(GuaObserveSource.Object, \"enemy-1\");\nusing var phase = owner.Observe(\"phase\",\n    () => GuaValue.Enum(\"game.Phase\", enemy.Phase, catalog), allowPlayer: true);\n// Keep owner, phase, and catalog alive with the game object.\n// Normal World publication samples the getter; phase.Notify() is explicit notification."} />
+  <CodeBlock title="外部テストから読む" lang="csharp" code={"// remote is a connected Gua.Testing.GuaWebSocketContext.\nvar snapshot = remote.GetObserveSnapshotJson();\nusing var subscription = remote.SubscribeObservations();\nvar initial = subscription.SnapshotJson;\nvar changes = subscription.PollJson();"} />
+  <p>外部APIは<code>Gua.Testing</code>に属し、<code>observe_v1</code>が必要です。使用後は購読をDisposeし、再接続やgapでは新しいsnapshot／購読を取得します。<a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/protocol/specs/observe-transport-v1.md">エンジンごとの例とライフサイクル</a>・<a href="/ja/docs/value/">Value型</a>を参照してください。</p>
+  <h2 id="spatial">認可した物理providerを接続する</h2><p><code>GuaRuntimeSpatialClient</code>は<code>Gua.Runtime</code>のlocal clientです。providerを接続し、Testing／Debugのspatial経路を明示的に認可してからqueryします。Debugにするだけでは有効になりません。外部の<code>Gua.Testing.GuaWebSocketContext</code>は<code>GetSpatialInfo</code>／<code>QuerySpatialBatch</code>を使います。reset、provider／sceneの変更、認可解除でquery状態は無効になります。<a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/docs/spatial-engine-r1.md">provider設定とqueryの制限</a>・<a href="/ja/world-object-tree/#physics">物理queryと意味的な半径検索の違い</a>を参照してください。</p>
 </DocPage>

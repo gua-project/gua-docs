@@ -4,7 +4,7 @@ const config = `{
   "mcpServers": {
     "gua": {
       "command": "bunx",
-      "args": ["gui-mcp@latest", "mcp"],
+      "args": ["gui-mcp@1.1.0", "mcp"],
       "env": {
         "GUA_BRIDGE_URL": "ws://127.0.0.1:8765",
         "GUA_ARTIFACT_DIR": ".gua"
@@ -26,4 +26,7 @@ const config = `{
   <h2>Visual comparison</h2><div class="grid-2"><div class="mini-card"><strong>compare_screenshot</strong><p>Compare the latest PNG against an explicitly named OS/renderer baseline. Baseline updates must be requested explicitly.</p></div><div class="mini-card"><strong>get_visual_artifacts</strong><p>Return paths for actual, expected, diff, and comparison manifest artifacts.</p></div></div>
   <h2>Prompting an agent</h2><CodeBlock title="Example prompt" lang="text" code={`Read the Gua UI tree and find the “Start Game” button.\nClick it by stable ID, then wait until “Loading...” is visible.\nIf the operation fails, inspect the logs and report both\nthe relevant UI tree state and the likely cause.`} />
   <Callout kind="warn" title="Do not ask for coordinate clicks"><p>Gua's value is semantic operation. Ask the agent to inspect <code>get_ui_tree</code> first, then act using ID, role, or text as evidence.</p></Callout>
+  <h2 id="observe">Read additional observations</h2><p>When the game advertises <code>observe_v1</code>, <code>gui-mcp</code> exposes <code>get_observe_snapshot</code>, <code>subscribe_observations</code>, <code>poll_observations</code>, and <code>unsubscribe_observations</code>. The game registers values; the client cannot register getters remotely or upgrade its profile. Reconnect or a gap requires a fresh subscription. <a href="/docs/gua-runtime/#observe">Registration and subscription</a>.</p>
+  <h2 id="spatial">Query an authorized physics provider</h2><p>Use <code>get_spatial_info</code>/<code>query_spatial_batch</code> only when the native host explicitly enables its Testing/Debug spatial provider. They are bounded physics queries, separate from World radius searches, and are invalidated by reset or scene/provider changes. <a href="/world-object-tree/#physics">Provider setup and query limits</a>.</p>
+  <h2 id="metadata">Discover action value metadata</h2><p>Explicitly use <code>get_game_input_actions_v2</code>/<code>find_game_input_actions_v2</code> when <code>semantic_game_input_metadata_v1</code> is available. <code>valueSchema</code>/<code>examples</code> describe values but do not bypass permission or confirmation. <a href="/game-input/#metadata">Input metadata guide</a>.</p>
 </DocPage>

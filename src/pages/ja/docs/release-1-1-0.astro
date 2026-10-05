@@ -1,7 +1,6 @@
 ---
 import DocPage from '../../../components/DocPage.astro';
 import CodeBlock from '../../../components/CodeBlock.astro';
-import Callout from '../../../components/Callout.astro';
 const source = 'https://github.com/gua-project/gua/blob/gua-v1.1.0/';
 ---
 <DocPage eyebrow="DOCS / PACKAGES &amp; FEATURES" title="Gua 1.1.0のパッケージと機能を選ぶ" lead="ゲームのengineとテストAPIを選び、必要に応じてSemantic baseline、画像比較、操作の記録・再生、AIツールを追加します。" description="Gua 1.1.0のpackage選択と使い方。UIテスト、追加観測値、Trace、Semantic snapshot、空間照会、ゲーム入力を対応APIから導入。" section="docs">
@@ -19,7 +18,7 @@ const source = 'https://github.com/gua-project/gua/blob/gua-v1.1.0/';
     <tr><td>TypeScriptで共通の型を使う</td><td>Valueの検証・等価比較は<code>gua-value-tools</code>、Worldの型・selectorは<code>gua-world-tools</code>。</td><td><a href="/ja/docs/value/">Value</a> · <a href="/ja/world-object-tree/">World Object</a></td></tr>
   </tbody></table></div>
   <CodeBlock title="例: GodotテストにSemantic baselineを追加" lang="powershell" code={'dotnet add package Gua.Testing.Godot --version 1.1.0\ndotnet add package Gua.Testing.Snapshots --version 1.1.0'} />
-  <p>ゲームにはengine integrationも必要です。test packageの導入だけではGodot addonやUnity UPMは配置されません。engine archiveを選ぶ前に<a href="#distribution">配布状況</a>を確認してください。</p>
+  <p>ゲームにはengine integrationも必要です。test packageの導入だけではGodot addonやUnity UPMは配置されません。ゲーム側の導入にあたって<a href="#distribution">配布状況</a>を確認してください。</p>
   <h2 id="snapshots">Gua.Testing.Snapshotsで意味的な状態を比較する</h2>
   <p><code>GuaSemanticSnapshots.ExpectSnapshot</code>でUIと任意のWorldのJSON baselineを比較します。ID、階層、text、value、state、公開順序を比較し、geometryとruntime metadataは既定で除外します。baselineの欠落・差分は失敗として扱い、明示更新後に差分をreviewします。mask/ignoreはcapture前に設定してください。clippingなどpixelの変化を調べる場合は<code>Gua.Testing.Visual</code>を追加します。<a href="/ja/docs/dotnet-packages/#semantic-snapshots">導入・比較例</a>と<a href={source + 'bindings/dotnet/src/Gua.Testing.Snapshots/README.md'}>Snapshots API</a>を参照してください。</p>
   <h2 id="observe">Gua.Runtimeで追加の値を観測する</h2>
@@ -44,7 +43,7 @@ const source = 'https://github.com/gua-project/gua/blob/gua-v1.1.0/';
   <p><code>Gua.Testing.Recording</code>は通常の逐次<code>GuaReplayer.ReplayAsync</code>と、有限game-input plan用の明示的な<code>ReplayTimedSegmentAsync</code>を提供します。Timed replayには<code>IGuaTimedSegmentHost</code>が必要で、付属の<code>Gua.Testing.Recording.GuaRuntimeSegmentHost</code>はin-process realtime FIFO hostです。offset、execution/cleanup予算、明示releaseを設定します。Timed Segment内にはUI/input混在planやcondition waitを含めません。組み込みMCP/Inspectorのreplayは逐次で、Timed実行を提供しません。<a href={source + 'bindings/dotnet/src/Gua.Testing.Recording/README.md'}>Recording導入・Timed Segment例</a>を参照してください。</p>
   <h2 id="distribution">1.1.0を導入・版固定する</h2>
   <p>npmとNuGetのpackageは1.1.0を導入できます。.NETでは<code>--version 1.1.0</code>、npmでは<code>@1.1.0</code>を指定し、ゲームruntimeとtest packageの版を揃えます。<code>Gua.Testing</code>は<code>GuaDistribution.ReadSchema</code>/<code>ValidateJson</code>とoffline Viewerも内包します。offline consumerは同梱resourceを使ってください。<a href="/ja/docs/dotnet-packages/">NuGet package</a>、<a href="/ja/docs/value/">Value導入</a>、<a href={source + 'docs/distribution-contract.md'}>resource API</a>を参照してください。</p>
-  <Callout kind="warn" title="Engine archiveの配布"><p><a href="https://github.com/gua-project/gua/releases/tag/gua-v1.1.0">1.1.0のGitHub Release</a>には現在Godot addon、Unity UPM、native archive、Inspector installer assetがありません。1.1.0でこれらのintegrationを使う場合は、<a href={source + 'README.md'}>source build手順</a>に従い<code>gua-v1.1.0</code>からbuildします。archive取得workflowは必要なassetがあるreleaseと、それに対応するpackage versionを使います。</p></Callout>
+  <p>ゲーム側の導入方法とファイルの入手先は<a href="/ja/godot/ui/">Godotの導入</a>／<a href="/ja/unity/ui/">Unityの導入</a>、CIでのバージョン指定は<a href="/ja/docs/github-actions/">GitHub Actions</a>を参照してください。</p>
   <h2 id="support">Engineを選ぶときの対応範囲</h2>
   <div class="table-wrap"><table><thead><tr><th>経路</th><th>現在の対応</th></tr></thead><tbody>
     <tr><td>Unity 6000.5.3f1 desktop Mono Player: Windows x64、Linux x64、Intel macOS、Apple Silicon macOS</td><td>実装済み・検証済み。</td></tr>

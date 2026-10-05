@@ -9,10 +9,10 @@ import CodeBlock from '../../components/CodeBlock.astro';
     <tr><td><code>addons/gua</code></td><td>Automatically collect the Godot Control tree and dispatch external actions to real UI</td><td>Godot project</td></tr>
     <tr><td><code>Gua.Testing.Godot</code></td><td>Launch, connect to, and stop Godot; collect output, screenshots, and diagnostics</td><td>External .NET test</td></tr>
     <tr><td><code>Gua.Testing</code></td><td>Engine-neutral locators, waits, assertions, and remote connections</td><td>External .NET test</td></tr>
-    <tr><td><code>Gua.Testing.Visual</code></td><td>PNG baseline comparison and diff artifacts, shared by Godot and Unity</td><td>Optional external .NET tests</td></tr>
+    <tr><td><code>Gua.Testing.Snapshots</code></td><td>Semantic UI/World JSON baseline comparison</td><td>Optional external .NET tests</td></tr><tr><td><code>Gua.Testing.Visual</code></td><td>PNG baseline comparison and diff artifacts, shared by Godot and Unity</td><td>Optional external .NET tests</td></tr>
     <tr><td><code>Gua.Testing.Recording</code></td><td>Semantic action recording and request-correlated replay, shared by Godot and Unity</td><td>Optional external .NET tests</td></tr>
   </tbody></table></div>
-  <Callout kind="tip" title="Install from the latest release"><p>Download the Godot ZIP from the <a href="https://github.com/link1345/gua/releases/latest">latest Gua release</a> and copy its extracted <code>addons/gua</code> directory into the game. The released addon is the normal installation path.</p></Callout>
+  <Callout kind="tip" title="Install the Godot add-on"><p>The game needs <code>addons/gua</code> with matching native libraries. See <a href="/godot/ui/">Godot installation</a> for the file source and 1.1.0 setup.</p></Callout>
 
   <h2>Godot public types</h2>
   <div class="table-wrap"><table><thead><tr><th>Type / setting</th><th>Contract</th></tr></thead><tbody>
@@ -25,8 +25,8 @@ import CodeBlock from '../../components/CodeBlock.astro';
 
   <h2>Godot runtime surface</h2>
   <div class="table-wrap"><table><thead><tr><th>File</th><th>Responsibility</th></tr></thead><tbody>
-    <tr><td><a href="https://github.com/link1345/gua/blob/main/examples/godot-gdscript/addons/gua/gua_auto_adapter.gd"><code>gua_auto_adapter.gd</code></a></td><td>Recursive Control collection, state reflection, action dispatch, events, and screenshots</td></tr>
-    <tr><td><a href="https://github.com/link1345/gua/blob/main/examples/godot-gdscript/addons/gua/gua.gdextension"><code>gua.gdextension</code></a></td><td>Declares the Godot entry point and platform-specific native library</td></tr>
+    <tr><td><a href="https://github.com/gua-project/gua/blob/main/examples/godot-gdscript/addons/gua/gua_auto_adapter.gd"><code>gua_auto_adapter.gd</code></a></td><td>Recursive Control collection, state reflection, action dispatch, events, and screenshots</td></tr>
+    <tr><td><a href="https://github.com/gua-project/gua/blob/main/examples/godot-gdscript/addons/gua/gua.gdextension"><code>gua.gdextension</code></a></td><td>Declares the Godot entry point and platform-specific native library</td></tr>
     <tr><td><code>gua_godot.windows.debug.x86_64.dll</code></td><td>C++ GDExtension that registers <code>GuaContext</code> as a Godot type</td></tr>
     <tr><td><code>gua_runtime.dll</code></td><td>Shared runtime that owns Gua core, request/event queues, diagnostics, and the Inspector WebSocket bridge</td></tr>
     <tr><td><code>plugin.cfg</code> / <code>plugin.gd</code></td><td>EditorPlugin shell used to load the Godot addon</td></tr>
@@ -90,7 +90,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
   ui.update("title")`} />
   <h3>Key parts of the <code>main.gd</code> sample</h3>
-  <p><a href="https://github.com/link1345/gua/blob/main/examples/godot-gdscript/scripts/main.gd">View the complete main.gd on GitHub ↗</a></p>
+  <p><a href="https://github.com/gua-project/gua/blob/main/examples/godot-gdscript/scripts/main.gd">View the complete main.gd on GitHub ↗</a></p>
   <div class="table-wrap"><table><thead><tr><th>Function / setting</th><th>Purpose</th></tr></thead><tbody>
     <tr><td><code>start_inspector_bridge_on_ready</code></td><td>Whether to start the in-game WebSocket bridge from Ready</td></tr>
     <tr><td><code>inspector_bridge_port</code></td><td>Inspector and MCP port; can be overridden through the environment</td></tr>
@@ -108,5 +108,6 @@ func _process(_delta: float) -> void:
     <li>When running multiple Godot processes in parallel, allocate an available port per test instead of sharing one fixed port.</li>
     <li>A missing, stale, or platform-incompatible native DLL prevents creation of <code>GuaContext</code>.</li>
   </ul>
-  <Callout kind="tip" title="Current support"><p>The released Godot addon targets Godot 4.7 on Windows debug x86_64. Other operating systems, CPUs, and Release configurations require matching GDExtension and shared-runtime builds.</p></Callout>
+  <Callout kind="tip" title="Supported configurations"><p>The Godot 4.7 add-on has Debug/Release configurations for Windows x64, Linux x64, Intel macOS, Apple Silicon macOS, and single-threaded Godot Web. Prepare the libraries matching the OS, CPU, and build configuration. See <a href="/godot/ui/">Godot installation</a>.</p></Callout>
+  <h2 id="observe-spatial">Observe and physics API</h2><p>The engine integration can register typed Observe values on published UI/World owners. External <code>Gua.Testing.GuaWebSocketContext</code> uses <code>GetObserveSnapshotJson</code>/<code>SubscribeObservations</code> when <code>observe_v1</code> is advertised. <a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/protocol/specs/observe-transport-v1.md">Engine registration examples</a> · <a href="/docs/gua-runtime/#observe">Managed and remote examples</a>.</p><p>Physics queries use an explicitly authorized Testing/Debug provider; Debug observation alone is insufficient. External tests call <code>GetSpatialInfo</code>/<code>QuerySpatialBatch</code>. <a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/docs/spatial-engine-r1.md">GodotPhysics3D/Jolt and Unity PhysX setup</a> documents bounds and invalidation. Built-in browser WebMCP privileged physics queries are unsupported. <a href="/world-object-tree/#physics">Query semantics and limits</a>.</p>
 </DocPage>

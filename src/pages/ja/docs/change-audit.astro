@@ -7,5 +7,5 @@ import DocPage from '../../../components/DocPage.astro'; import CodeBlock from '
   <h2>PR全体を意図的に監査する</h2><CodeBlock title="mainからの累積diffを監査" lang="powershell" code={`git fetch origin main
 ./scripts/run-local-pr-audit.ps1 -Base origin/main`} /><p><code>-Fix</code>を付けるとparentが支持できるfindingを検証し、scope内を修正してfocused checkを行い、最大4 passまで繰り返します。並列review laneを維持できないhostでは<code>-Sequential</code>を使います。</p>
   <Callout kind="warn" title="公開操作は行いません"><p>harnessはcommit、push、GitHub review comment投稿を行いません。有用なreview境界は近似できますが、非公開のGitHub Connector prompt・runtimeを完全再現するものではありません。</p></Callout>
-  <p>限定scopeの委譲例と正確な挙動は<a href="https://github.com/link1345/gua/blob/main/docs/bug-hunting-subagent.md">repositoryの監査ガイド</a>を参照してください。</p>
+  <p>限定scopeの委譲例と正確な挙動は<a href="https://github.com/gua-project/gua/blob/main/docs/bug-hunting-subagent.md">repositoryの監査ガイド</a>を参照してください。</p>
 </DocPage>

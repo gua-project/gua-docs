@@ -1,7 +1,6 @@
 ---
 import DocPage from '../../components/DocPage.astro';
 import CodeBlock from '../../components/CodeBlock.astro';
-import Callout from '../../components/Callout.astro';
 const source = 'https://github.com/gua-project/gua/blob/gua-v1.1.0/';
 ---
 <DocPage eyebrow="DOCS / PACKAGES &amp; FEATURES" title="Choose Gua packages and features (1.1.0)" lead="Start with the engine host and test API you need, then add semantic baselines, visual comparison, recording, or AI tools to that setup." description="Choose and use Gua 1.1.0 packages for UI tests, additional observations, Trace, semantic snapshots, spatial queries, and game input." section="docs">
@@ -19,7 +18,7 @@ const source = 'https://github.com/gua-project/gua/blob/gua-v1.1.0/';
     <tr><td>Use shared types in TypeScript</td><td><code>gua-value-tools</code> for Value validation/equality; <code>gua-world-tools</code> for World types/selectors.</td><td><a href="/docs/value/">Value</a> · <a href="/world-object-tree/">World objects</a></td></tr>
   </tbody></table></div>
   <CodeBlock title="Example: Godot tests with semantic baselines" lang="powershell" code={'dotnet add package Gua.Testing.Godot --version 1.1.0\ndotnet add package Gua.Testing.Snapshots --version 1.1.0'} />
-  <p>The game also needs its engine integration; installing a test package does not install the Godot addon or Unity UPM package. See <a href="#distribution">distribution</a> before choosing an engine archive.</p>
+  <p>The game also needs its engine integration; installing a test package does not install the Godot addon or Unity UPM package. See <a href="#distribution">distribution</a> for game-side setup.</p>
   <h2 id="snapshots">Compare semantic state with Gua.Testing.Snapshots</h2>
   <p>Use <code>GuaSemanticSnapshots.ExpectSnapshot</code> for UI and optional World JSON baselines. It compares IDs, hierarchy, text, values, state, and publication order while excluding geometry and runtime metadata by default. Missing or changed baselines fail; update them explicitly and review the diff. Configure mask/ignore rules before capture. For clipping or other pixel changes, add <code>Gua.Testing.Visual</code> instead. See the <a href="/docs/dotnet-packages/#semantic-snapshots">installation and comparison example</a> and <a href={source + 'bindings/dotnet/src/Gua.Testing.Snapshots/README.md'}>Snapshots API</a>.</p>
   <h2 id="observe">Expose additional values with Gua.Runtime</h2>
@@ -44,7 +43,7 @@ const source = 'https://github.com/gua-project/gua/blob/gua-v1.1.0/';
   <p><code>Gua.Testing.Recording</code> provides ordinary sequential <code>GuaReplayer.ReplayAsync</code> and explicit <code>ReplayTimedSegmentAsync</code> for finite game-input plans. Timed replay uses an <code>IGuaTimedSegmentHost</code>; the supplied <code>Gua.Testing.Recording.GuaRuntimeSegmentHost</code> is an in-process realtime FIFO host. Set offsets, execution/cleanup budgets, and explicit releases. Mixed UI/input plans and condition waits do not belong inside a Timed Segment. Built-in MCP/Inspector replay remains sequential; it does not provide timed execution. See the <a href={source + 'bindings/dotnet/src/Gua.Testing.Recording/README.md'}>Recording installation and Timed Segment example</a>.</p>
   <h2 id="distribution">Install and pin 1.1.0</h2>
   <p>The npm and NuGet packages are available at 1.1.0. Use <code>--version 1.1.0</code> for .NET and <code>@1.1.0</code> for npm, and keep the game runtime and test packages aligned. <code>Gua.Testing</code> also supplies embedded schemas through <code>GuaDistribution.ReadSchema</code>/<code>ValidateJson</code> and the offline Viewer; use those packaged resources for offline consumers. See <a href="/docs/dotnet-packages/">NuGet packages</a>, <a href="/docs/value/">Value installation</a>, and <a href={source + 'docs/distribution-contract.md'}>resource APIs</a>.</p>
-  <Callout kind="warn" title="Engine archives"><p>The <a href="https://github.com/gua-project/gua/releases/tag/gua-v1.1.0">1.1.0 GitHub Release</a> currently has no Godot addon, Unity UPM, native archive, or Inspector installer assets. To use those integrations at 1.1.0, build from <code>gua-v1.1.0</code> using the <a href={source + 'README.md'}>source build instructions</a>. Archive-download workflows need a release with the required assets and matching package versions.</p></Callout>
+  <p>For game-side installation and file availability, see <a href="/godot/ui/">Godot installation</a> or <a href="/unity/ui/">Unity installation</a>. For CI version selection, see <a href="/docs/github-actions/">GitHub Actions</a>.</p>
   <h2 id="support">Support limits when choosing an engine</h2>
   <div class="table-wrap"><table><thead><tr><th>Route</th><th>Current status</th></tr></thead><tbody>
     <tr><td>Unity 6000.5.3f1 desktop Mono Players: Windows x64, Linux x64, Intel macOS, Apple Silicon macOS</td><td>Implemented and verified.</td></tr>
