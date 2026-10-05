@@ -6,7 +6,7 @@ import Callout from '../../../components/Callout.astro';
 <DocPage eyebrow="DOCS / CI" title="GitHub Actions" lead="link1345/gua-testerは、Godot 4.7とUnity 6のGua UIテストを実行するバージョン付きCI workflowを提供します。" description="Gua Tester Actionsが提供するGodot／Unityの入力、credentials、artifact、Visual report。" section="docs">
   <Callout title="Gua Tester Actions v3.1"><p>実装とReleaseは<a href="https://github.com/link1345/gua-tester">link1345/gua-tester</a>を参照してください。v3.1はGodot／Unityテストを対応desktop platformへ拡張します。</p></Callout>
 
-  <Callout kind="warn" title="エンジンarchiveの版固定"><p>以下のarchiveを取得する例は1.0.7を維持しています。2026-10-05時点で1.1.0のnpm/NuGet packageは公開済みですが、GitHub Releaseのengine assetはありません。addon/UPMをダウンロードするworkflowでは、実際にassetがあるtagと同じNuGet versionを使ってください。 <a href="/ja/docs/release-1-1-0/#distribution">配布状況</a></p></Callout>
+  <Callout kind="warn" title="エンジンarchiveの版固定"><p>1.1.0のnpm/NuGet packageは導入できますが、GitHub Releaseのengine archiveはありません。取得例はassetがある1.0.7 tagを使うため、test packageも同じversionへ固定します。1.1.0を使う場合はtagged sourceからengine integrationをbuildしてください。 <a href="/ja/docs/release-1-1-0/#distribution">配布状況</a></p></Callout>
   <h2>Godot 4.7</h2>
   <p>Godot composite Actionはrunnerに合うGodot公式版を取得し、配布済みGua addonを配置して<code>GODOT_EXECUTABLE</code>を設定します。project import後、外部<code>Gua.Testing.Godot</code>テストを実行します。</p>
   <CodeBlock title=".github/workflows/godot.yml" lang="yaml" code={`jobs:

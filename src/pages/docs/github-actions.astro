@@ -6,7 +6,7 @@ import Callout from '../../components/Callout.astro';
 <DocPage eyebrow="DOCS / CI" title="GitHub Actions" lead="link1345/gua-tester provides versioned CI workflows for Gua UI tests in Godot 4.7 and Unity 6 projects." description="Godot and Unity inputs, credentials, artifacts, and visual reports provided by Gua Tester Actions." section="docs">
   <Callout title="Gua Tester Actions v3.1"><p>See <a href="https://github.com/link1345/gua-tester">link1345/gua-tester</a> for the implementation and releases. v3.1 runs Godot and Unity tests across the supported desktop platforms.</p></Callout>
 
-  <Callout kind="warn" title="Engine archive version pin"><p>The archive-download examples below retain 1.0.7. As of 2026-10-05, the 1.1.0 npm/NuGet packages are published, but the GitHub Release has no engine assets. Workflows that download an addon or UPM archive need a tag with those assets and matching NuGet versions. <a href="/docs/release-1-1-0/#distribution">Distribution status</a></p></Callout>
+  <Callout kind="warn" title="Engine archive version pin"><p>The 1.1.0 npm/NuGet packages are available, but its GitHub Release has no engine archives. The download examples use an asset-bearing 1.0.7 tag; pin test packages to the same version when using them. For 1.1.0, build the engine integration from its tagged source. <a href="/docs/release-1-1-0/#distribution">Distribution status</a></p></Callout>
   <h2>Godot 4.7</h2>
   <p>The Godot composite action downloads the official Godot build matching its runner, links the released Gua addon, exports <code>GODOT_EXECUTABLE</code>, prepares project imports, and runs the external <code>Gua.Testing.Godot</code> test project.</p>
   <CodeBlock title=".github/workflows/godot.yml" lang="yaml" code={`jobs:
