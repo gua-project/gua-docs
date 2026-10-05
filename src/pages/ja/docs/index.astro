@@ -1,12 +1,11 @@
 ---
 import DocPage from '../../../components/DocPage.astro'; import Callout from '../../../components/Callout.astro';
 ---
-<DocPage eyebrow="DOCS / REFERENCE" title="Docs" lead="Guideが『どう導入するか』を扱うのに対し、Docsはソースに登場するクラス、変数、関数、責務を名前から引けるリファレンスです。" description="Guaのクラス、変数、サンプルコードの日本語リファレンス。" section="docs">
-  <Callout kind="tip" title="Guaが扱う範囲"><p>Guaは、Playwrightライクな設計思想をもとにしたSemantic UI自動化を核に、World Object Tree、ゲーム入力、MCP・WebMCP、AIエージェント公開ポリシー、仮想時計、Recording・Visual比較など、ゲーム開発に最適化された機能群を同じプロトコル上で提供します。</p></Callout>
+<DocPage eyebrow="DOCS / REFERENCE" title="Docs" lead="必要なパッケージを導入し、値やAPIの具体例を調べます。機能の追加・変更は更新履歴にまとめています。" description="Guaのクラス、変数、サンプルコードの日本語リファレンス。" section="docs">
   <Callout title="参照している公式ソース"><p>packageとValueのリファレンスは<code>gua-v1.1.0</code>に固定したsourceへリンクします。既存API guideには<code>main</code>の実装へのリンクもあります。packageとengine integrationの対応は使うversionに合わせて確認してください。</p></Callout>
   <div class="card-grid">
-    <a class="chapter-card" href="/ja/docs/release-1-1-0/"><span>GUA / 1.1.0</span><h3>1.1.0のパッケージと機能</h3><p>engine、比較、観測、再生に必要なpackageを選び、導入・API・対応範囲を調べる。</p></a>
-    <a class="chapter-card" href="/ja/docs/value/"><span>VALUE / NPM</span><h3>Value v1 / gua-value-tools</h3><p>共通Valueの型、検証、enum catalog、等価比較。</p></a>
+    <a class="chapter-card" href="/ja/docs/npm-packages/"><span>PACKAGES / NPM</span><h3>npmパッケージ</h3><p>AI接続とデータ処理に使う4パッケージの導入・具体例。</p></a>
+    <a class="chapter-card" href="/ja/docs/value/"><span>TOOLS / VALUE</span><h3>Valueツール</h3><p>ゲームから届く値を検証し、期待した値と比較する。</p></a>
     <a class="chapter-card" href="/ja/docs/dotnet-packages/"><span>PACKAGES / .NET</span><h3>.NETパッケージ</h3><p>Core、Testing、Godot、Visual、Snapshots、Recordingの責務と.NET Standard 2.1対応。</p></a>
     <a class="chapter-card" href="/ja/docs/gua-runtime/"><span>ADAPTER / RUNTIME</span><h3>Gua.Runtime実装ガイド</h3><p>独自engine adapterでframe、action、screenshot、Inspector bridgeを実装する具体的な流れ。</p></a>
     <a class="chapter-card" href="/ja/docs/runtime-adapters/"><span>ENGINE / GODOT</span><h3>Godot API・仕様</h3><p>GDScriptアドオン、GDExtension、外部テストAPI、Control写像、他エンジンへ拡張できる境界。</p></a>

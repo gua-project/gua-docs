@@ -1,0 +1,29 @@
+---
+import DocPage from '../../../components/DocPage.astro';
+import CodeBlock from '../../../components/CodeBlock.astro';
+import Callout from '../../../components/Callout.astro';
+---
+<DocPage eyebrow="DOCS / NPM" title="npmパッケージ" lead="AIとゲームをつなぐツールと、ゲームから届くデータを扱うライブラリを選びます。npmで公開する4パッケージの役割と導入方法をまとめます。" description="gui-mcp、gua-webmcp、gua-value-tools、gua-world-toolsの用途、導入、組み合わせ。" section="docs">
+  <h2>最初に選ぶもの</h2>
+  <p>AIでゲームを操作するなら、デスクトップにはgui-mcp、ブラウザーにはgua-webmcpを使います。独自の画面やデータ処理を作る場合に、gua-value-toolsとgua-world-toolsを直接使います。</p>
+  <div class="table-wrap"><table><thead><tr><th>正式名</th><th>使う場面</th><th>受け渡すもの</th><th>手順</th></tr></thead><tbody><tr><td><code>gui-mcp</code></td><td>デスクトップのゲームをAIから操作する</td><td>AIの要求をWebSocket経由でゲームへ送り、状態や操作結果を返す。Bunで動くコマンド。</td><td><a href="/ja/mcp/">MCPサーバー</a></td></tr>
+<tr><td><code>gua-webmcp</code></td><td>ブラウザーのゲームをAIから操作する</td><td>Godot Web／Unity WebGLのページにAI向け操作を登録する。ゲームが用意した同じタブの接続口を使う。</td><td><a href="/ja/webmcp/">ブラウザーWebMCP</a></td></tr>
+<tr><td><code>gua-value-tools</code></td><td>ゲームから届く値を検証・比較する</td><td>型付きJSONを検証し、TypeScriptで使える値を返す。enumの候補や、順序を無視するsetの比較にも使う。</td><td><a href="/ja/docs/value/">Valueツール</a></td></tr>
+<tr><td><code>gua-world-tools</code></td><td>ゲーム世界の情報を扱う独自ツールを作る</td><td>公開された物体の一覧や検索結果を検証し、検索条件や読み取り専用ツールを組み立てる。</td><td><a href="/ja/world-object-tree/">World Object Tree</a></td></tr></tbody></table></div>
+  <h2>ValueとWorldは何が違うか</h2>
+  <p>共通点は、ゲームが公開したデータを安全に読み取るための型と検証を提供することです。扱う単位は異なります。Valueは「所持アイテムの集合」など1つの型付きの値、Worldは「どのドアがどこにあり、施錠されているか」など物体の一覧です。</p>
+  <CodeBlock title="Value: アイテムの順番が違っても同じ集合" lang="ts" code={"import { parseValue, valuesEqual } from \"gua-value-tools\";\n\nconst actual = parseValue('{\"type\":\"set\",\"elementType\":\"string\",\"value\":[\"key\",\"map\"]}');\nconst expected = parseValue('{\"type\":\"set\",\"elementType\":\"string\",\"value\":[\"map\",\"key\"]}');\nconsole.log(valuesEqual(actual, expected)); // true"} />
+  <p>2つのJSON文字列を渡すと、検証済みの値が得られ、valuesEqualはtrueを返します。setの比較では順番を無視します。listなら順番も比較します。</p>
+  <CodeBlock title="World: ドアの一覧と検索条件" lang="ts" code={"import { parseWorldObjectTree, selectorFromArguments } from \"gua-world-tools\";\n\nconst tree = parseWorldObjectTree({\n  schemaVersion: 1, sessionEpoch: 1, frameSequence: 12, revision: 2,\n  scene: \"level-1\",\n  objects: [{ id: \"door\", kind: \"door\", space: \"world2d\",\n    position: { x: 4, y: 2 }, visibleToPlayer: true, active: true,\n    agentExposure: \"auto\", state: { locked: false } }]\n});\nconst selector = selectorFromArguments({ kind: \"door\", stateKey: \"locked\", stateValue: false });\nconsole.log(tree.objects[0].id); // \"door\"\nconsole.log(selector); // { kind: \"door\", state: { key: \"locked\", value: false } }"} />
+  <p>parseWorldObjectTreeは一覧の構造を検証し、selectorFromArgumentsは「開いているドア」という検索条件を返します。この関数だけでは検索しません。条件をGuaWorldProvider.findWorldObjectsへ渡し、ゲーム側が許可した情報から結果を取得します。Worldのstateは通常のstring／number／boolean／nullを使い、Valueの型付きJSONではありません。</p>
+  <Callout title="位置検索と物理照会は別"><p>Worldの近傍検索は公開された座標を使います。レイを飛ばして衝突を調べる物理照会は別の機能です。gua-world-toolsはその要求形式も提供しますが、物理計算や権限判断はゲーム側が行います。 <a href="/ja/world-object-tree/#physics">詳しい違い</a></p></Callout>
+  <h2>導入と組み合わせ</h2>
+  <p>以下は1.1.0のAPIを使う例です。ゲーム側パッケージと同じGuaバージョンを指定します。各パッケージをすべて入れる必要はありません。</p>
+  <CodeBlock title="デスクトップのAI接続（Bun）" lang="powershell" code={'bunx gui-mcp@1.1.0 mcp'} />
+  <p>ゲームでGuaのWebSocketブリッジを起動し、AIクライアントにこのコマンドを登録します。既定の接続先はws://127.0.0.1:8765です。別の接続先はGUA_BRIDGE_URLで指定します。 <a href="/ja/mcp/">接続手順</a></p>
+  <CodeBlock title="ブラウザーのAI接続" lang="powershell" code={'npm install gua-webmcp@1.1.0'} />
+  <p>gua-webmcpはgua-value-toolsとgua-world-toolsを依存パッケージとして使います。通常の導入では別途追加する必要はありません。ゲームのWeb出力を先に読み込み、その接続口ができてからtoolを登録します。実験的なdocument.modelContext APIに対応したブラウザーが必要です。 <a href="/ja/webmcp/">登録例</a></p>
+  <CodeBlock title="独自のデータ処理" lang="powershell" code={'npm install gua-value-tools@1.1.0 gua-world-tools@1.1.0'} />
+  <p>2つのライブラリはブラウザーでも使えます。自動でゲームに接続したり、シーンを収集したりはしません。ゲームや接続ツールから得たデータを渡します。gui-mcpは共通ライブラリをビルドへ組み込むため、実行のために別途インストールする必要はありません。</p>
+  <p>実装と公開パッケージ: <a href="https://www.npmjs.com/package/gui-mcp">gui-mcp</a> · <a href="https://www.npmjs.com/package/gua-webmcp">gua-webmcp</a> · <a href="https://www.npmjs.com/package/gua-value-tools">gua-value-tools</a> · <a href="https://www.npmjs.com/package/gua-world-tools">gua-world-tools</a>. <a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/packages/world-tools/README.md">World API</a> · <a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/packages/value/README.md">Value API</a></p>
+</DocPage>

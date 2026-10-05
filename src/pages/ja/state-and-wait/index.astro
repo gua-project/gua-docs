@@ -1,49 +1,32 @@
 ---
-import DocPage from '../../../components/DocPage.astro'; import Callout from '../../../components/Callout.astro';
+import DocPage from '../../../components/DocPage.astro'; import CodeBlock from '../../../components/CodeBlock.astro';
 ---
-<DocPage eyebrow="CONCEPT / STATE & WAIT" title="状態・操作・待機の仕組み" lead="ゲームの本当の状態は、常にゲーム側が持ちます。engine adapterが公開を許可された情報をGua Runtimeへ渡し、MCP、WebMCP、テスト、Inspectorはその情報を読み、ゲームへ操作を要求します。" description="Guaにおけるゲーム状態、公開snapshot、操作要求、完了結果、待機、保持入力の所有関係を平易に説明します。" section="state-and-wait">
-  <h2>誰が何を持つのか</h2>
-  <p>上から順に見ると、各部分の担当が分かります。接続方法が変わっても、ゲームの複製が別の場所に作られるわけではありません。</p>
-  <figure class="state-map">
+<DocPage eyebrow="CONCEPT / STATE &amp; WAIT" title="状態・操作・待機の仕組み" lead="ゲームの本当の状態はGodotやUnityが持ちます。Guaは公開された状態の一覧と操作の結果を管理し、AIやテストへ伝えます。" description="ゲーム状態、操作結果、条件待機、接続ごとの入力を図と具体例で説明します。" section="state-and-wait">
+  <h2>例: Startを押してゲーム画面を待つ</h2><p>ボタンを押した直後に次の画面が完成するとは限りません。Guaはまず「ゲームがクリックを処理したか」を確認し、その後「game画面になったか」を新しい状態一覧で確認します。操作の完了と、操作後の画面変化は別々に確かめます。</p>
+  <CodeBlock title="外部.NETテストでの例" lang="csharp" code={"using System;\nusing Gua.Testing;\n\nawait GuaAssertions.Query(host.Context)\n    .ById(\"start\").ClickAsync();\n\nawait GuaWaits.WaitForVisibleAsync(host.Context, \"game-title\",\n    timeout: TimeSpan.FromSeconds(5));"} />
+  <p>host.Contextは起動したゲームへの接続です。ById("start")は公開IDがstartのボタンを探し、ClickAsyncは操作できる状態と処理の完了を待ちます。GuaWaits.WaitForVisibleAsyncは、次の画面のgame-titleというIDが表示されるまで、最大5秒間、新しい状態を確認します。</p>
+  <h2>どこに何があるか</h2><p>上から順に、ゲームの状態がAIやテストへ届きます。操作要求は反対方向へ戻ります。「Runtime」は、公開した状態と操作の受け渡しを管理するGuaの部分です。</p>
+    <figure class="state-map">
     <div class="state-stage"><small>本当の状態</small><strong>Godot・Unity</strong><p>scene、UI部品、ゲーム内の値、入力状態そのものを持ちます。</p></div>
     <b class="state-arrow" aria-hidden="true">↓</b>
     <div class="state-stage"><small>収集</small><strong>ゲームエンジン連携部分</strong><p>ゲームの更新ごとに、公開を許可されたUI・ゲーム世界の情報だけを集めます。</p></div>
     <b class="state-arrow" aria-hidden="true">↓</b>
-    <div class="state-stage runtime"><small>公開用のプロトコル状態</small><strong>Gua Runtime</strong><p>現在の状態一覧と変更番号を保持し、操作要求をqueueへ入れ、ゲーム側の完了結果を対応付けます。</p></div>
+    <div class="state-stage runtime"><small>公開する状態と操作</small><strong>Gua Runtime</strong><p>現在の状態一覧と変更番号を保持し、操作要求を順番待ちへ入れ、ゲーム側の完了結果を対応付けます。</p></div>
     <b class="state-arrow" aria-hidden="true">↓</b>
     <div class="state-branches">
-      <div class="state-stage"><small>DESKTOP AI</small><strong>gui-mcp → AI client</strong><p>stdio MCP serverからWebSocketのgame bridgeへ接続します。</p></div>
-      <div class="state-stage"><small>BROWSER AI</small><strong>gua-webmcp → AI client</strong><p>page toolから同じbrowser tab内のengine portへ接続します。</p></div>
-      <div class="state-stage"><small>その他のプロトコル利用者</small><strong>テスト・Inspector</strong><p>local bindingまたはgame bridgeを直接使い、2つのMCP接続部分は経由しません。</p></div>
+      <div class="state-stage"><small>デスクトップのAI</small><strong>gui-mcp → AIクライアント</strong><p>別プロセスからゲームへWebSocketで接続します。</p></div>
+      <div class="state-stage"><small>ブラウザーのAI</small><strong>gua-webmcp → AIクライアント</strong><p>同じブラウザータブ内のゲームの接続口を使います。</p></div>
+      <div class="state-stage"><small>テストと調査</small><strong>テスト・Inspector</strong><p>ゲームへ直接接続します。MCPサーバーを経由する必要はありません。</p></div>
     </div>
-    <figcaption>ゲーム側が本当の状態を所有します。Gua Runtimeが所有するのは、公開用の状態一覧と操作の管理情報です。MCPとWebMCPはAIの接続経路であり、テストとInspectorは同じプロトコルを使う独立した利用者です。</figcaption>
+    <figcaption>ゲーム側が本当の状態を所有します。Gua Runtimeが所有するのは、公開用の状態一覧と操作の管理情報です。MCPとWebMCPはAIの接続経路であり、テストとInspectorは同じ公開情報を直接読む別のツールです。</figcaption>
   </figure>
-
-  <h2>ゲームの更新ごとに「現在の状態一覧」を作る</h2>
-  <p>engine adapterは、UIの公開処理が完了するごとに、同じ時点の情報でそろえたSemantic UI Treeを公開します。World Object Treeは、明示的に公開したゲーム世界のobjectを表す別の観測専用一覧で、公開処理も別です。Gua Runtimeは完成したsnapshotをそれぞれ一括で入れ替えますが、button、door、enemy、scoreそのものの所有者にはなりません。</p>
-  <div class="table-wrap"><table><thead><tr><th>情報</th><th>平易な意味</th><th>何が分かるか</th></tr></thead><tbody><tr><td><code>frameSequence</code></td><td>1つのTreeについて、このsessionで何回のhost frameが完了したかを表す番号。</td><td>そのTreeの意味情報が同じままでも、より新しい公開結果を観測したことが分かります。</td></tr><tr><td><code>revision</code></td><td>1つのTreeについて、公開中の意味情報が何回変化したかを表す番号。</td><td>UIの変化はUI側、Worldの変化は別のWorld側revisionを増やします。</td></tr><tr><td><code>sessionEpoch</code></td><td>resetで区切られた、現在のsessionを識別する番号。</td><td>UIとWorldがこの値を共有するため、古いsessionや異なるsessionの情報を取り違えずに済みます。</td></tr></tbody></table></div>
-  <Callout title="frameとrevisionはTreeごとに別々"><p><code>frameSequence</code>と<code>revision</code>は、同じTreeかつ同じ<code>sessionEpoch</code>内で比較し、UI側とWorld側の番号を比較しません。resetが成功すると新しいepochが始まり、対象のcounterが0から始まります。</p></Callout>
-
-  <h2>操作の完了と、その後の画面変化は別</h2>
-  <ol class="steps"><li><strong>利用者が操作を送る</strong><p>たとえば、意味情報でbuttonをclickする、game actionを押す、といった要求です。</p></li><li><strong>Gua Runtimeが要求をqueueへ入れる</strong><p>要求には安定した<code>requestId</code>が付きます。queueへ受理された時点では、まだ成功ではありません。</p></li><li><strong>engine adapterが要求を取り出す</strong><p>現在の対象、権限、状態を必要に応じて再確認し、engine上の操作を実行します。</p></li><li><strong>ゲーム側が同じIDで完了を通知する</strong><p>成功または失敗の結果に同じrequest IDを付けることで、その操作をゲーム側が処理したと分かります。</p></li><li><strong>期待する状態になるまで別に待つ</strong><p>clickでmenuが開くはずでも、操作完了だけではmenu表示まで証明できません。新しいsnapshotを読み、menuが表示されたことを確認します。</p></li></ol>
-  <Callout kind="tip" title="完了通知は「処理したか」の証拠"><p>animation、scene遷移、network応答などは操作完了より後になることがあります。「その結果、何が見えるようになったか」はUIやWorldの状態で別に確認します。</p></Callout>
-
-  <h2>条件待機は新しい状態を確認し続ける</h2>
-  <p>状態待機は、対応している条件が成立するか、時間切れになるまで新しいsnapshotを取得します。呼び出し元の取消を伝播するtransportでは、それより早く終了できます。<code>wait_for_node</code>が待つのは指定IDの存在、<code>wait_for_world_object</code>が待つのはWorld selectorへの一致です。Worldの近傍selectorでは、pollのたびに1つの新しい投影済みsnapshot内で基準と候補を解決し直し、過去frameの位置やmatchを現在のobjectと組み合わせません。テストclientは<code>WaitForStateAsync</code>などで、より詳しい条件を新しいsnapshotへ適用できます。PCの速さではなく、期待する条件そのものを成功基準にできます。</p>
-  <p>成功したWorld queryは、そのWorld snapshotの<code>sessionEpoch</code>、<code>frameSequence</code>、<code>revision</code>を返します。検証結果を記録するときはmatchと一緒に保持すると、どの投影済みsnapshotを評価した結果かを識別できます。</p>
-  <div class="grid-2"><div class="mini-card"><strong>状態を待つ</strong><p>「Loading nodeが出現するまで待つ」。対応する条件が成立した時点ですぐ終わります。表示状態も必要なら、IDの存在だけで表示中と決めず、新しいsnapshot上の状態を確認します。</p></div><div class="mini-card"><strong>固定時間を待つ</strong><p>「2秒待つ」。clientのsleepやRecordingのdelayは時間を進めるだけで、期待する状態の成立は証明しません。</p></div></div>
-  <p>経過時間そのものを試す場合だけ固定時間を使います。通常の同期では、適切なtimeoutを付けた状態待機を優先します。</p>
-
-  <h2>保持中のゲーム入力は接続ごとに所有する</h2>
-  <p>Wキーの押しっぱなしなど、状態を持つゲーム入力は、それを開始したWebSocket接続、local input session、Inspector接続、browser page bridgeごとに分けて管理します。leaseは保持できる時間の上限です。明示的な解除、lease切れ、切断、reset、session終了、tool登録解除、engine終了時には、その所有者の入力だけをneutralへ戻し、別の接続が保持している入力には影響させません。</p>
-
-  <h2>MCPとWebMCPの共通部分・異なる部分</h2>
-  <div class="table-wrap"><table><thead><tr><th>観点</th><th>gui-mcp</th><th>gua-webmcp</th></tr></thead><tbody><tr><td>共通するGuaの動作</td><td colspan="2">hostが認可した意味情報のsnapshotと操作、request IDに対応するゲーム側完了、条件待機、所有者ごとの入力cleanup。</td></tr><tr><td>観測・操作profile</td><td>native hostが固定したprofileを使います。既定はDebugです。Player向けhostではPlayerを明示設定し、policyも構成します。</td><td>常にhostのPlayer投影とPlayer action認可を使います。page toolからDebugを要求できません。</td></tr><tr><td>接続部分が動く場所</td><td>別processのstdio MCP server。</td><td>exportされたゲームのbrowser page内。</td></tr><tr><td>Runtimeまでの経路</td><td>WebSocket game bridge。</td><td>同じtab内のengine-owned JavaScript port。</td></tr><tr><td>入力の所有者</td><td>WebSocket接続ごとに1つ。</td><td>登録したpage bridgeごとに1つ。</td></tr></tbody></table></div>
-
-  <h2>Guaが保持しないもの</h2>
-  <p>Gua Runtimeは、AIとの会話、plan、推論を自動で保存しません。公開snapshot、要求・完了の管理情報、接続が所有する入力状態など、範囲を限定した実行中のprotocol状態を保持します。テストはGua.Testing Traceを使い、明示的な証拠を別途保存できます。toolが待機している間にAIが別の処理を進められるかは、AI clientと実行環境の仕組みによって決まり、Guaの機能ではありません。</p>
-  <Callout kind="tip" title="具体的なデータモデルへ進む"><p>UIのsnapshotは<a href="/ja/semantic-ui-tree/">Semantic UI Tree編</a>、ゲーム世界の観測は<a href="/ja/world-object-tree/">World Object Tree編</a>、入力の所有・lease・cleanupは<a href="/ja/game-input/">ゲーム入力編</a>を参照してください。</p></Callout>
-  <h2 id="observe">追加の型付き観測値</h2><p>Observe v1では、公開済みUI／Worldのownerに結び付けた値を明示的に観測できます。ゲーム側が<code>Gua.Runtime</code>やエンジン統合からgetterを登録します。値は<code>Gua.Core.GuaValue</code>、TypeScript側は<a href="/ja/docs/value/">gua-value-tools</a>を使います。snapshotは現在の証拠、購読は上限付きの変化を返します。再接続、gap、<code>stale_session</code>では新しい購読が必要で、空の正常な観測として扱いません。<a href="/ja/docs/gua-runtime/#observe">登録と購読の例</a>を参照してください。</p>
-  <h2 id="locators">locatorによるaction待機</h2><p><code>Gua.Testing</code>の<code>GuaAssertions.Query(context)</code>は使用時に最新状態を解決するlocatorを作ります。actionは単一のvisible／enabledな対象と対応actionを待ち、同じtimeout内でhost completionを待ちます。複数一致は即時失敗、拒否は再試行しません。操作後の画面やvalueは別に待ちます。<a href="/ja/godot/testing/#locators">Godot</a>／<a href="/ja/unity/testing/#locators">Unity</a>の例を参照してください。</p>
-  <h2 id="trace">Traceは保存された証拠</h2><p><code>Gua.Testing.GuaTraceSession</code>はテストの操作、観測、runnerが決めた結果を必要に応じて記録します。offline Viewerは保存済みの事実を読み、AIの思考の保存、欠損eventの推測、actionの再生はしません。<a href="/ja/inspector/#trace">Traceの確認</a>と<a href="/ja/recording/#timed-segment">有限区間の入力再生</a>は別の用途です。</p>
+  <h2>状態一覧はゲームの更新に合わせて作られる</h2><p>ゲームエンジン連携部分が、公開を許可されたUIや物体を集めます。Gua Runtimeは完成した一覧へ切り替えます。画面のUI一覧をSemantic UI Tree、ドアや敵などの物体一覧をWorld Object Treeと呼びます。それぞれ別に更新されます。</p>
+  <div class="table-wrap"><table><thead><tr><th>名前</th><th>意味</th><th>使う理由</th></tr></thead><tbody><tr><td><code>frameSequence</code></td><td>この一覧の更新が何回完成したか。</td><td>内容が同じでも、新しい更新が届いたと分かる。</td></tr><tr><td><code>revision</code></td><td>この一覧の内容が何回変わったか。</td><td>状態が変化した更新を区別できる。</td></tr><tr><td><code>sessionEpoch</code></td><td>リセットで区切られる実行の番号。</td><td>前の実行の古い情報を混ぜずに済む。</td></tr></tbody></table></div>
+  <p>frameSequenceとrevisionは、同じ一覧・同じsessionEpochの中で比較します。UIの番号とWorldの番号は比較しません。リセットが成功すると新しいsessionEpochになり、該当する更新番号も最初から始まります。</p>
+  <h2>操作が終わるまで</h2><ol class="steps"><li><strong>要求を送る</strong><p>AIやテストが「startをクリック」と指定します。</p></li><li><strong>Runtimeが順番待ちへ入れる</strong><p>requestIdという要求番号で追跡します。受け付けただけでは完了ではありません。</p></li><li><strong>ゲーム側が処理する</strong><p>現在の対象や必要な権限を確認して、ゲームの通常の操作経路で実行します。</p></li><li><strong>結果を返す</strong><p>同じ要求番号で成功・失敗を返します。その後の画面や物体の変化は別の条件待機で確認します。</p></li></ol>
+  <h2>条件待機と時間待機の違い</h2><p>条件待機は、新しい状態を読み直して「game画面になった」「ドアが開いた」などを調べます。条件成立か時間切れで終わり、取消を伝えられる接続では取消でも止まります。単に2秒待つ処理は、目的の状態になった証拠にはなりません。</p><p>MCPのwait_for_nodeはIDの存在を待ちます。存在しても表示中とは限りません。Worldのwait_for_world_objectは指定条件に一致する物体を待ちます。近傍検索も毎回1つの新しい一覧で距離を計算し、古い位置を混ぜません。詳しい条件は<a href="/ja/godot/testing/">テストガイド</a>で扱います。</p>
+  <h2>MCPとWebMCPで変わること</h2><div class="table-wrap"><table><thead><tr><th>項目</th><th>gui-mcp</th><th>gua-webmcp</th></tr></thead><tbody><tr><td>つなぎ方</td><td>別プロセスからWebSocketでゲームへ接続。</td><td>同じブラウザータブ内のゲームの接続口を使う。</td></tr><tr><td>公開範囲</td><td>ゲーム側が決めた範囲。既定は開発用のDebug。Player向けにはゲーム側の設定が必要。</td><td>常にPlayer向け。ページ側からDebugへ変更できない。</td></tr><tr><td>共通する動作</td><td colspan="2">公開された一覧、ゲーム側での操作確認、条件待機、接続ごとの入力管理。</td></tr></tbody></table></div>
+  <h2>押し続ける入力は接続ごとに管理する</h2><p>Wキーを押し続ける操作などは、それを開始した接続や入力セッションが所有します。leaseは保持できる時間の上限です。明示的な解放、期限切れ、切断、リセット、入力セッションの破棄、ツール登録解除、ゲーム終了で、その所有者の入力を解放します。他の接続の入力は解放しません。<a href="/ja/game-input/">入力の設定と手順</a></p>
+  <h2>AIの会話や考え途中の状態はAI側にある</h2><p>GuaはAIの会話や推論途中の状態を保持しません。待機中にAIが別の処理を進められるかは、AIクライアントや実行環境の仕組みによります。Traceはテスト中の観測や結果を保存する機能で、AIの思考を保存するものではありません。</p>
+  <p>次の手順: <a href="/ja/mcp/">デスクトップAI接続</a> · <a href="/ja/webmcp/">ブラウザーAI接続</a> · <a href="/ja/semantic-ui-tree/">UI一覧</a> · <a href="/ja/world-object-tree/">物体一覧</a> · <a href="/ja/docs/gua-runtime/">Runtimeの実装詳細</a></p>
 </DocPage>

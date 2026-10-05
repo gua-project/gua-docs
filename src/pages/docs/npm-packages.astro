@@ -1,0 +1,29 @@
+---
+import DocPage from '../../components/DocPage.astro';
+import CodeBlock from '../../components/CodeBlock.astro';
+import Callout from '../../components/Callout.astro';
+---
+<DocPage eyebrow="DOCS / NPM" title="npm packages" lead="Choose a connector for AI and games, or a library for reading game data. These are the four packages published on npm and how they work together." description="Roles, installation, examples, and combinations of all four Gua npm packages." section="docs">
+  <h2>Start with your task</h2>
+  <p>For AI control, use gui-mcp on desktop or gua-webmcp in a browser. Import gua-value-tools or gua-world-tools directly when building your own data processing or inspection UI.</p>
+  <div class="table-wrap"><table><thead><tr><th>Package</th><th>When to use it</th><th>What it does</th><th>Guide</th></tr></thead><tbody><tr><td><code>gui-mcp</code></td><td>Let AI operate a desktop game</td><td>A Bun command that forwards AI requests over WebSocket and returns game state or action results.</td><td><a href="/mcp/">MCP server</a></td></tr>
+<tr><td><code>gua-webmcp</code></td><td>Let AI operate a browser game</td><td>Registers AI tools in a Godot Web or Unity WebGL page using the game-provided port in that tab.</td><td><a href="/webmcp/">Browser WebMCP</a></td></tr>
+<tr><td><code>gua-value-tools</code></td><td>Validate and compare values from a game</td><td>Checks typed JSON and returns a TypeScript value. Includes enum catalogs and order-independent set equality.</td><td><a href="/docs/value/">Value tools</a></td></tr>
+<tr><td><code>gua-world-tools</code></td><td>Build tools that read game-world information</td><td>Validates published object trees and query results, builds selectors, and supplies read-only tool adapters.</td><td><a href="/world-object-tree/">World Object Tree</a></td></tr></tbody></table></div>
+  <h2>How Value and World differ</h2>
+  <p>Both provide types and validation for data published by a game. Their units differ: Value handles one typed value, such as a set of inventory items; World handles an object tree, such as doors, their positions, and whether they are locked.</p>
+  <CodeBlock title="Value: item order does not change a set" lang="ts" code={"import { parseValue, valuesEqual } from \"gua-value-tools\";\n\nconst actual = parseValue('{\"type\":\"set\",\"elementType\":\"string\",\"value\":[\"key\",\"map\"]}');\nconst expected = parseValue('{\"type\":\"set\",\"elementType\":\"string\",\"value\":[\"map\",\"key\"]}');\nconsole.log(valuesEqual(actual, expected)); // true"} />
+  <p>Pass two JSON strings to obtain validated values. valuesEqual returns true because set equality ignores order; list equality includes order.</p>
+  <CodeBlock title="World: a door tree and a selector" lang="ts" code={"import { parseWorldObjectTree, selectorFromArguments } from \"gua-world-tools\";\n\nconst tree = parseWorldObjectTree({\n  schemaVersion: 1, sessionEpoch: 1, frameSequence: 12, revision: 2,\n  scene: \"level-1\",\n  objects: [{ id: \"door\", kind: \"door\", space: \"world2d\",\n    position: { x: 4, y: 2 }, visibleToPlayer: true, active: true,\n    agentExposure: \"auto\", state: { locked: false } }]\n});\nconst selector = selectorFromArguments({ kind: \"door\", stateKey: \"locked\", stateValue: false });\nconsole.log(tree.objects[0].id); // \"door\"\nconsole.log(selector); // { kind: \"door\", state: { key: \"locked\", value: false } }"} />
+  <p>parseWorldObjectTree validates the tree; selectorFromArguments builds an “unlocked door” selector. It does not execute a search. Pass the selector to GuaWorldProvider.findWorldObjects to query the host-approved view. World state uses ordinary string/number/boolean/null values, not typed Value JSON.</p>
+  <Callout title="Position search and physics queries differ"><p>World proximity searches use published coordinates. Physics queries such as raycasts are separate. gua-world-tools also supplies request types for them, but the game performs physics calculations and authorizes access. <a href="/world-object-tree/#physics">Details</a></p></Callout>
+  <h2>Install and combine</h2>
+  <p>These examples use the 1.1.0 APIs. Pin the same Gua version as the game integration. Install only the packages your setup needs.</p>
+  <CodeBlock title="Desktop AI connector (Bun)" lang="powershell" code={'bunx gui-mcp@1.1.0 mcp'} />
+  <p>Start the game’s Gua WebSocket bridge and register this command in the AI client. The default endpoint is ws://127.0.0.1:8765; use GUA_BRIDGE_URL to change it. <a href="/mcp/">Connection steps</a></p>
+  <CodeBlock title="Browser AI connector" lang="powershell" code={'npm install gua-webmcp@1.1.0'} />
+  <p>gua-webmcp depends on gua-value-tools and gua-world-tools; a normal installation brings them in. Load the exported game first, wait for its port, then register tools. The browser must support the experimental document.modelContext API. <a href="/webmcp/">Registration example</a></p>
+  <CodeBlock title="Custom data processing" lang="powershell" code={'npm install gua-value-tools@1.1.0 gua-world-tools@1.1.0'} />
+  <p>Both libraries work in browsers. They do not connect to a game or collect a scene automatically; pass data obtained from the game or a connector. gui-mcp bundles the shared libraries, so running it does not require separate installations.</p>
+  <p>Implementation and published packages: <a href="https://www.npmjs.com/package/gui-mcp">gui-mcp</a> · <a href="https://www.npmjs.com/package/gua-webmcp">gua-webmcp</a> · <a href="https://www.npmjs.com/package/gua-value-tools">gua-value-tools</a> · <a href="https://www.npmjs.com/package/gua-world-tools">gua-world-tools</a>. <a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/packages/world-tools/README.md">World API</a> · <a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/packages/value/README.md">Value API</a></p>
+</DocPage>

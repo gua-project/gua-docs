@@ -3,10 +3,14 @@ import DocPage from '../../../components/DocPage.astro';
 import CodeBlock from '../../../components/CodeBlock.astro';
 import Callout from '../../../components/Callout.astro';
 ---
-<DocPage eyebrow="DOCS / VALUE V1" title="共通Value v1とgua-value-tools" lead="追加観測値、enum catalog、等価比較に共通の型付きValue契約を使い、native・managed・TypeScriptで同じ意味を保ちます。" description="gua-value-toolsの導入、Value v1の型、JSONの厳密な読取、enum catalog、比較と互換性。" section="docs">
-  <h2>npm packageの導入</h2>
+<DocPage eyebrow="TOOLS / VALUE" title="Valueツール" lead="gua-value-toolsは、ゲームから届く値が正しい形式かを確かめ、値どうしを比較するTypeScriptライブラリです。追加の観測値を読む画面やテストのデータ処理に使います。" description="gua-value-toolsの具体的な利用場面、入力と出力、導入、型と比較。" section="docs">
+  <h2>例: 所持アイテムが揃っているか確かめる</h2><p>ゲームから届いた「keyとmapを持っている」というJSONを、期待した集合と比べます。JSON文字列をparseValueへ渡すと検証済みの値が得られ、valuesEqualは同じ内容かをbooleanで返します。形式が不正ならValueErrorが発生します。</p>
+  <CodeBlock title="順番が異なる集合を比較" lang="ts" code={"import { parseValue, valuesEqual } from \"gua-value-tools\";\n\nconst actual = parseValue('{\"type\":\"set\",\"elementType\":\"string\",\"value\":[\"key\",\"map\"]}');\nconst expected = parseValue('{\"type\":\"set\",\"elementType\":\"string\",\"value\":[\"map\",\"key\"]}');\nconsole.log(valuesEqual(actual, expected)); // true"} />
+  <p>ゲーム側では、画面に直接出ていない値をObserveとして登録します。これは「追加の観測値を公開する」機能です。gua-value-toolsは受け取った値を扱い、ゲームへの登録や接続は行いません。<a href="/ja/docs/gua-runtime/#observe">Observeの登録</a>・<a href="/ja/docs/npm-packages/">npmパッケージの組み合わせ</a></p>
+  <h2>パッケージを導入する</h2>
   <CodeBlock title="1.1.0へ版固定" lang="powershell" code={`npm install gua-value-tools@1.1.0`} />
   <p><a href="https://www.npmjs.com/package/gua-value-tools">gua-value-tools</a>はTypeScriptの型と検証、JSON入出力、enum catalog、意味的な等価比較を提供します。</p>
+  <p>enumは、決められた候補から選ぶ値です。例えばボスの段階がFirstかSecondのどちらかなら、その候補をEnumCatalogへ登録します。未知の候補や別の型は検証で拒否されます。</p>
   <CodeBlock title="enumの読取・検証・比較" lang="ts" code={`import { EnumCatalog, parseValue, serializeValue, valuesEqual } from "gua-value-tools";
 
 const catalog = new EnumCatalog();
@@ -24,12 +28,12 @@ console.log(valuesEqual(value, value, catalog));`} />
     <tr><td><code>list</code></td><td>順序付きの同種scalar要素。重複を許可します。</td></tr>
     <tr><td><code>set</code></td><td>同種scalar要素。比較では順序を無視し、重複を拒否します。JSON出力は入力順を保持します。</td></tr>
   </tbody></table></div>
-  <p>空collectionも<code>elementType</code>と必要な<code>enumType</code>を保持します。null、任意object、object参照、入れ子collection、BigInt、NaN、Infinityは禁止です。型が異なる有効値は非等価、不正値は検証エラーです。JSONのバイト一致ではなく<code>valuesEqual</code>を使ってください。</p>
-  <Callout kind="warn" title="元のJSON文字列を渡す"><p>外部JSONは直接<code>parseValue</code>へ渡します。先に<code>JSON.parse</code>を呼ぶと、整数の精度を検証前に失う可能性があります。<code>createValue</code>はJavaScript値を検証し、コピー・freezeして返しますが、既に失われた精度は復元できません。<code>ValueError</code>はcodeとpathを返します。</p></Callout>
-  <h2>enum catalogの寿命</h2>
-  <p><code>game.BossPhase</code>のような明示的なdotted IDと、重複のない空でない候補集合を登録します。同じIDと同じ候補集合の再登録は順序にかかわらず成功し、異なる集合は拒否します。定義変更には新しいIDを使います。空enum collectionを含め、検証・出力・比較には対応するcatalogを渡してください。catalogはグローバルではなく、言語の型名からIDを推定しません。</p>
-  <h2>nativeと.NET</h2>
-  <p>同じ契約を<code>gua/value.h</code>、C++の<code>gua::Value</code>/<code>gua::EnumCatalog</code>、<code>Gua.Core.GuaValue</code>/<code>GuaEnumCatalog</code>で使えます。C++と.NETはnative C ABIへ委譲します。TypeScript packageも同じ型付きValueの意味を提供します。</p>
-  <Callout title="既存valueとは別契約"><p>Value v1は既存UIの<code>value</code>、Worldの<code>state</code>、Input vector2のwire形式を変更しません。追加Observe値は独立契約と<code>observe_v1</code> capabilityを使います。<a href="/ja/docs/release-1-1-0/#observe">Observeの登録・購読</a>を参照してください。</p></Callout>
+  <p>空のlistやsetも<code>elementType</code>と必要な<code>enumType</code>を保持します。null、任意のオブジェクト、オブジェクト参照、入れ子のlistやset、BigInt、NaN、Infinityは禁止です。型が異なる有効値は非等価、不正値は検証エラーです。JSONのバイト一致ではなく<code>valuesEqual</code>を使ってください。</p>
+  <Callout kind="warn" title="元のJSON文字列を渡す"><p>外部JSONは直接<code>parseValue</code>へ渡します。先に<code>JSON.parse</code>を呼ぶと、整数の精度を検証前に失う可能性があります。<code>createValue</code>はJavaScript値を検証し、コピーして変更できない形で返しますが、既に失われた精度は復元できません。<code>ValueError</code>はエラーの種類と問題のある位置を返します。</p></Callout>
+  <h2>enum候補の登録と変更</h2>
+  <p><code>game.BossPhase</code>のようなドットで区切った明示的なIDと、重複のない空でない候補集合を登録します。同じIDと同じ候補集合の再登録は順序にかかわらず成功し、異なる集合は拒否します。定義変更には新しいIDを使います。空のenumのlistやsetを含め、検証・出力・比較には対応する候補一覧を渡してください。候補一覧は自動で共有されず、言語の型名からIDを推定しません。</p>
+  <h2>C++・C#で同じ値を扱う</h2>
+  <p>同じ契約を<code>gua/value.h</code>、C++の<code>gua::Value</code>/<code>gua::EnumCatalog</code>、<code>Gua.Core.GuaValue</code>/<code>GuaEnumCatalog</code>で使えます。C++と.NETは共通のネイティブAPIを呼び出します。TypeScript packageも同じ型付きValueの意味を提供します。</p>
+  <Callout title="UI・Worldの値との関係"><p>Value v1は既存UIの<code>value</code>、Worldの<code>state</code>、Input vector2のJSON形式を変更しません。追加Observe値は専用の形式を使い、対応していることを示す<code>observe_v1</code>を使います。<a href="/ja/docs/gua-runtime/#observe">Observeの登録・購読</a>を参照してください。</p></Callout>
   <p>1.1.0に固定した参照: <a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/packages/value/README.md">package API</a>、<a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/protocol/specs/value-v1.md">Valueの意味・ABI契約</a>、<a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/protocol/schema/value-v1.schema.json">schema</a>。</p>
 </DocPage>
