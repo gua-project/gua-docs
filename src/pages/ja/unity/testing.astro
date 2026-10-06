@@ -6,12 +6,12 @@ import CodeNotes from '../../../components/CodeNotes.astro';
 ---
 <DocPage eyebrow="UNITY / TESTING" title="テストの仕方" lead="Gua.Testing.UnityはUnity Editor Play Modeまたはdesktop Mono Playerを起動し、共通のIGuaContextへ接続します。" description="Gua.Testing.UnityによるUnity UI外部テスト。" section="unity">
   <h2>1. テストパッケージを追加する</h2>
-  <p><code>Gua.Testing.Unity</code>はNuGetで公開されています。次のコマンドは1.1.0を解決します。projectへ書き込まれたversionをcommitし、3つのGuaパッケージを同じversion系列へ揃えてください。</p>
-  <CodeBlock title="Unity test hostを追加" lang="powershell" code={`dotnet add package Gua.Core --version 1.1.0\ndotnet add package Gua.Testing --version 1.1.0\ndotnet add package Gua.Testing.Unity --version 1.1.0`} />
+  <p><code>Gua.Testing.Unity</code>はNuGetで公開されています。次のコマンドは互換性のある最新安定版を取得します。projectへ書き込まれたversionをcommitし、3つのGuaパッケージを同じversion系列へ揃えてください。</p>
+  <CodeBlock title="Unity test hostを追加" lang="powershell" code={`dotnet add package Gua.Core\ndotnet add package Gua.Testing\ndotnet add package Gua.Testing.Unity`} /><p>ゲーム側と関連Guaパッケージの版を揃えます。取得後の版の記録・固定は<a href="/ja/docs/dotnet-packages/#versions">バージョンの管理</a>を参照してください。</p>
   <CodeNotes title="パッケージごとの役割" codeLabel="コマンド" explanationLabel="追加される機能" items={[
-    { code: 'dotnet add package Gua.Core --version 1.1.0', explanation: 'Guaの共通型とnative runtime境界を追加します。' },
-    { code: 'dotnet add package Gua.Testing --version 1.1.0', explanation: 'Godot版と共通のSemantic locator、action、待機、assertion、diagnosticsを追加します。' },
-    { code: 'dotnet add package Gua.Testing.Unity --version 1.1.0', explanation: 'Unity Editor/Playerのbuild・起動・bridge接続・終了処理を行うhostを追加します。' },
+    { code: 'dotnet add package Gua.Core', explanation: 'Guaの共通型とnative runtime境界を追加します。' },
+    { code: 'dotnet add package Gua.Testing', explanation: 'Godot版と共通のSemantic locator、action、待機、assertion、diagnosticsを追加します。' },
+    { code: 'dotnet add package Gua.Testing.Unity', explanation: 'Unity Editor/Playerのbuild・起動・bridge接続・終了処理を行うhostを追加します。' },
   ]} />
   <h2>2. PlayerまたはEditorを起動する</h2>
   <CodeBlock title="ビルドしてrendered Playerをテスト" lang="csharp" code={`using Gua.Core;
@@ -146,8 +146,8 @@ GuaAssertions.GetByRole(
   <h2 id="locators">操作できるUIを待つ</h2><p><code>Gua.Testing</code>のlocatorは使用時に最新のtreeから厳密な単一一致を解決します。actionはvisible／enabledと対応actionを待ち、requestIdに対応するhost completionを待ちます。複数一致は即時失敗です。解決・enqueue・completionは同じtimeoutを共有し、enqueue拒否やhost失敗は自動再試行しません。</p>
   <CodeBlock title="クリック後に次の画面を待つ" lang="csharp" code={"using Gua.Testing;\n\nvar play = GuaAssertions.Query(host.Context).ByRole(\"button\", \"Play\");\nawait play.ClickAsync(timeout: TimeSpan.FromSeconds(5));\nawait GuaAssertions.Query(host.Context).ById(\"game-screen\").ResolveAsync();"} />
   <p><code>ResolveAsync</code>は次のnodeの存在を待ちます。テストで必要な状態のassertionも加えます。<a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/bindings/dotnet/src/Gua.Testing/README.md">locator APIとtimeout規則</a>。</p>
-  <h2 id="semantic-baselines">ピクセルを使わず意味的な状態を比較する</h2><p><code>Gua.Testing.Snapshots</code> 1.1.0を追加すると、UIのID、階層、text、value、stateをreview済みJSON baselineと比較できます。headlessでも<code>host.Context</code>で使えます。描画結果も調べる場合は<code>Gua.Testing.Visual</code>を別途追加します。<a href="/ja/docs/dotnet-packages/#semantic-snapshots">導入・mask・baseline更新の例</a>を参照してください。</p>
-  <CodeBlock title="意味的な比較を追加する" lang="powershell" code={"dotnet add package Gua.Testing.Snapshots --version 1.1.0"} />
+  <h2 id="semantic-baselines">ピクセルを使わず意味的な状態を比較する</h2><p><code>Gua.Testing.Snapshots</code>を追加すると、UIのID、階層、text、value、stateをreview済みJSON baselineと比較できます。headlessでも<code>host.Context</code>で使えます。描画結果も調べる場合は<code>Gua.Testing.Visual</code>を別途追加します。<a href="/ja/docs/dotnet-packages/#semantic-snapshots">導入・mask・baseline更新の例</a>を参照してください。</p>
+  <CodeBlock title="意味的な比較を追加する" lang="powershell" code={"dotnet add package Gua.Testing.Snapshots"} />
   <h2 id="trace">Gua.Testing Traceでテストの証拠を保存する</h2><p>Traceは<code>Gua.Testing</code>の機能です。追加のTraceパッケージは不要です。テストscopeに設定し、実際の結果で完了させ、新しい出力先にoffline HTML reportを生成します。</p>
   <CodeBlock title="テストを記録して確認する" lang="csharp" code={"using Gua.Testing;\n\nawait using var trace = new GuaTraceSession(new() {\n    OutputDirectory = \"artifacts/traces\",\n    SavePolicy = GuaTraceSavePolicy.Always,\n});\nusing var scope = GuaAssertionScope.Use(new() { Trace = trace });\ntry {\n    await GuaAssertions.Query(host.Context).ById(\"play\").ClickAsync();\n    await trace.CompleteAsync(GuaTraceOutcome.Passed);\n} catch {\n    await trace.CompleteAsync(GuaTraceOutcome.Failed);\n    throw;\n}\nvar report = GuaTraceReport.WriteHtml(trace.ArtifactPath, \"artifacts/report.html\");\n// Check report.Succeeded and trace.Status separately from the test result."} />
   <p>Traceは証拠を記録し、flowの再生や結果の変更はしません。UI／WorldやObserve値が必要な場合は明示的に取得し、記録前に機密情報の扱いを決めます。<a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/bindings/dotnet/src/Gua.Testing/README.md">Traceの取得API</a>・<a href="/ja/inspector/#trace">Inspectorで保存済みTraceを開く</a>を参照してください。</p>

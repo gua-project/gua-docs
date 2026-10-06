@@ -16,7 +16,7 @@ import Callout from '../../components/Callout.astro';
   <figure class="doc-figure"><div class="flow"><span>Inspector / MCP / Tests<small>observe and request</small></span><b>↔</b><span>native gua_runtime<small>state, queues, bridge</small></span><b>↔</b><span>Gua.Runtime<small>managed API</small></span><b>↔</b><span>Custom adapter<small>engine translation</small></span><b>↔</b><span>Game UI<small>real widgets</small></span></div><figcaption>Figure 1: Gua.Runtime is the managed boundary between the protocol runtime and engine-specific UI APIs.</figcaption></figure>
 
   <h2>Install and deploy</h2>
-  <CodeBlock title="Add the 1.1.0 package to an adapter project" lang="powershell" code={`dotnet add package Gua.Runtime --version 1.1.0`} />
+  <CodeBlock title="Add the package to an adapter project" lang="powershell" code={`dotnet add package Gua.Runtime`} /><p>Align the game integration and related Gua package versions. See <a href="/docs/dotnet-packages/#versions">version management</a> for recording and pinning the result.</p>
   <p>The package targets <code>net10.0</code> and <code>netstandard2.1</code>. Use matching native libraries for the target OS/CPU: <code>gua.dll</code>/<code>gua_runtime.dll</code> on Windows, <code>libgua.so</code>/<code>libgua_runtime.so</code> on Linux, or <code>libgua.dylib</code>/<code>libgua_runtime.dylib</code> on macOS. Missing or mismatched libraries produce an explicit load error in the constructor.</p>
 
   <h2>One adapter frame</h2>

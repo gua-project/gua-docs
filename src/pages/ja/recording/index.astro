@@ -19,7 +19,7 @@ import Callout from '../../../components/Callout.astro';
   </figure>
 
   <h2>導入</h2>
-  <CodeBlock title="1.1.0をscenario test projectへ追加" lang="powershell" code={`dotnet add package Gua.Testing.Recording --version 1.1.0`} />
+  <CodeBlock title="scenario test projectへ追加" lang="powershell" code={`dotnet add package Gua.Testing.Recording`} /><p>ゲーム側と関連Guaパッケージの版を揃えます。取得後の版の記録・固定は<a href="/ja/docs/dotnet-packages/#versions">バージョンの管理</a>を参照してください。</p>
 
   <h2>操作を記録する</h2>
   <CodeBlock title="ログインflowを記録" lang="csharp" code={`using Gua.Testing.Recording;

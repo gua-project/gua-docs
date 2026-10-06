@@ -8,7 +8,7 @@ import Callout from '../../../components/Callout.astro';
   <CodeBlock title="順番が異なる集合を比較" lang="ts" code={"import { parseValue, valuesEqual } from \"gua-value-tools\";\n\nconst actual = parseValue('{\"type\":\"set\",\"elementType\":\"string\",\"value\":[\"key\",\"map\"]}');\nconst expected = parseValue('{\"type\":\"set\",\"elementType\":\"string\",\"value\":[\"map\",\"key\"]}');\nconsole.log(valuesEqual(actual, expected)); // true"} />
   <p>ゲーム側では、画面に直接出ていない値をObserveとして登録します。これは「追加の観測値を公開する」機能です。gua-value-toolsは受け取った値を扱い、ゲームへの登録や接続は行いません。<a href="/ja/docs/gua-runtime/#observe">Observeの登録</a>・<a href="/ja/docs/npm-packages/">npmパッケージの組み合わせ</a></p>
   <h2>パッケージを導入する</h2>
-  <CodeBlock title="1.1.0へ版固定" lang="powershell" code={`npm install gua-value-tools@1.1.0`} />
+  <CodeBlock title="パッケージを導入" lang="powershell" code={`npm install gua-value-tools@latest`} /><p>新規導入向けの指定です。既存のゲームに合わせる版の選び方とlockfileは<a href="/ja/docs/npm-packages/">npmパッケージガイド</a>を参照してください。</p>
   <p><a href="https://www.npmjs.com/package/gua-value-tools">gua-value-tools</a>はTypeScriptの型と検証、JSON入出力、enum catalog、意味的な等価比較を提供します。</p>
   <p>enumは、決められた候補から選ぶ値です。例えばボスの段階がFirstかSecondのどちらかなら、その候補をEnumCatalogへ登録します。未知の候補や別の型は検証で拒否されます。</p>
   <CodeBlock title="enumの読取・検証・比較" lang="ts" code={`import { EnumCatalog, parseValue, serializeValue, valuesEqual } from "gua-value-tools";

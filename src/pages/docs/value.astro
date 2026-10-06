@@ -8,7 +8,7 @@ import Callout from '../../components/Callout.astro';
   <CodeBlock title="Compare sets with a different item order" lang="ts" code={"import { parseValue, valuesEqual } from \"gua-value-tools\";\n\nconst actual = parseValue('{\"type\":\"set\",\"elementType\":\"string\",\"value\":[\"key\",\"map\"]}');\nconst expected = parseValue('{\"type\":\"set\",\"elementType\":\"string\",\"value\":[\"map\",\"key\"]}');\nconsole.log(valuesEqual(actual, expected)); // true"} />
   <p>The game registers values outside the standard UI as Observe values: additional published observations. gua-value-tools handles received values; it does not register them or connect to the game. <a href="/docs/gua-runtime/#observe">Register observations</a> · <a href="/docs/npm-packages/">Combine npm packages</a></p>
   <h2>Install the npm package</h2>
-  <CodeBlock title="Pin the 1.1.0 package" lang="powershell" code={`npm install gua-value-tools@1.1.0`} />
+  <CodeBlock title="Install the package" lang="powershell" code={`npm install gua-value-tools@latest`} /><p>This is for a new setup. See <a href="/docs/npm-packages/">npm packages</a> for aligning an existing game and recording a lockfile.</p>
   <p><a href="https://www.npmjs.com/package/gua-value-tools">gua-value-tools</a> provides TypeScript types and validation, JSON parsing/serialization, enum catalogs, and semantic equality.</p>
   <p>An enum is a value chosen from named alternatives. If a boss phase is First or Second, register those names in an EnumCatalog. Validation rejects unknown members or the wrong type.</p>
   <CodeBlock title="Parse, validate, and compare an enum" lang="ts" code={`import { EnumCatalog, parseValue, serializeValue, valuesEqual } from "gua-value-tools";

@@ -10,7 +10,7 @@ import Callout from '../../components/Callout.astro';
 
   <figure class="doc-figure"><div class="flow"><span>Semantic target<small>ID / role / focus</small></span><b>→</b><span>Enqueue action<small>assign requestId</small></span><b>→</b><span>Host completion<small>same requestId</small></span><b>→</b><span>recording.json<small>target, timing, revision</small></span><b>→</b><span>Replay + wait<small>resolve every step</small></span></div><figcaption>Figure 1: Recording waits for host completion instead of treating queue acceptance as success.</figcaption></figure>
 
-  <h2>Install</h2><CodeBlock title="Add the 1.1.0 package to a scenario test project" lang="powershell" code={`dotnet add package Gua.Testing.Recording --version 1.1.0`} />
+  <h2>Install</h2><CodeBlock title="Add the package to a scenario test project" lang="powershell" code={`dotnet add package Gua.Testing.Recording`} /><p>Align the game integration and related Gua package versions. See <a href="/docs/dotnet-packages/#versions">version management</a> for recording and pinning the result.</p>
 
   <h2>Record a flow</h2>
   <CodeBlock title="Record login" lang="csharp" code={`using Gua.Testing.Recording;
