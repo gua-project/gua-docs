@@ -11,7 +11,7 @@ import Callout from '../../components/Callout.astro';
 
   <figure class="doc-figure"><div class="flow"><span>Stable UI frame<small>optionally wait</small></span><b>→</b><span>Actual PNG<small>from diagnostics</small></span><b>→</b><span>Reviewed baseline<small>name + variant</small></span><b>→</b><span>Pixel comparison<small>threshold + masks</small></span><b>→</b><span>PASS / artifacts<small>review differences</small></span></div><figcaption>Figure 1: The baseline is selected by test name and variant; failures preserve all comparison evidence.</figcaption></figure>
 
-  <h2>Install</h2><CodeBlock title="Add the 1.1.0 package to a visual test project" lang="powershell" code={`dotnet add package Gua.Testing.Visual --version 1.1.0`} />
+  <h2>Install</h2><CodeBlock title="Add the package to a visual test project" lang="powershell" code={`dotnet add package Gua.Testing.Visual`} /><p>Align the game integration and related Gua package versions. See <a href="/docs/dotnet-packages/#versions">version management</a> for recording and pinning the result.</p>
 
   <h2>Create a baseline deliberately</h2>
   <CodeBlock title="Allow a local baseline update" lang="powershell" code={`$env:GUA_UPDATE_BASELINES = "1"

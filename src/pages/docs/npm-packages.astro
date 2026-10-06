@@ -18,12 +18,13 @@ import Callout from '../../components/Callout.astro';
   <p>parseWorldObjectTree validates the tree; selectorFromArguments builds an “unlocked door” selector. It does not execute a search. Pass the selector to GuaWorldProvider.findWorldObjects to query the host-approved view. World state uses ordinary string/number/boolean/null values, not typed Value JSON.</p>
   <Callout title="Position search and physics queries differ"><p>World proximity searches use published coordinates. Physics queries such as raycasts are separate. gua-world-tools also supplies request types for them, but the game performs physics calculations and authorizes access. <a href="/world-object-tree/#physics">Details</a></p></Callout>
   <h2>Install and combine</h2>
-  <p>These examples use the 1.1.0 APIs. Pin the same Gua version as the game integration. Install only the packages your setup needs.</p>
-  <CodeBlock title="Desktop AI connector (Bun)" lang="powershell" code={'bunx gui-mcp@1.1.0 mcp'} />
+  <p>For a new setup, these commands request the current npm latest tag. Install only what you need and align the result with the game integration. For an existing game or reproducible MCP setup, use a matching explicit version.</p>
+  <CodeBlock title="Desktop AI connector (Bun)" lang="powershell" code={'bunx gui-mcp@latest mcp'} />
   <p>Start the game’s Gua WebSocket bridge and register this command in the AI client. The default endpoint is ws://127.0.0.1:8765; use GUA_BRIDGE_URL to change it. <a href="/mcp/">Connection steps</a></p>
-  <CodeBlock title="Browser AI connector" lang="powershell" code={'npm install gua-webmcp@1.1.0'} />
+  <CodeBlock title="Browser AI connector" lang="powershell" code={'npm install gua-webmcp@latest'} />
   <p>gua-webmcp depends on gua-value-tools and gua-world-tools; a normal installation brings them in. Load the exported game first, wait for its port, then register tools. The browser must support the experimental document.modelContext API. <a href="/webmcp/">Registration example</a></p>
-  <CodeBlock title="Custom data processing" lang="powershell" code={'npm install gua-value-tools@1.1.0 gua-world-tools@1.1.0'} />
+  <CodeBlock title="Custom data processing" lang="powershell" code={'npm install gua-value-tools@latest gua-world-tools@latest'} />
   <p>Both libraries work in browsers. They do not connect to a game or collect a scene automatically; pass data obtained from the game or a connector. gui-mcp bundles the shared libraries, so running it does not require separate installations.</p>
+  <p><code>npm install</code> records a dependency range in <code>package.json</code> and resolved versions in <code>package-lock.json</code>. Commit both; use <code>npm ci</code> in CI. It does not make a running app continuously update itself. <a href="https://docs.npmjs.com/cli/v11/commands/npm-install/">npm install specification</a></p>
   <p>Implementation and published packages: <a href="https://www.npmjs.com/package/gui-mcp">gui-mcp</a> · <a href="https://www.npmjs.com/package/gua-webmcp">gua-webmcp</a> · <a href="https://www.npmjs.com/package/gua-value-tools">gua-value-tools</a> · <a href="https://www.npmjs.com/package/gua-world-tools">gua-world-tools</a>. <a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/packages/world-tools/README.md">World API</a> · <a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/packages/value/README.md">Value API</a></p>
 </DocPage>

@@ -20,7 +20,7 @@ import Callout from '../../../components/Callout.astro';
   </figure>
 
   <h2>導入</h2>
-  <CodeBlock title="1.1.0をvisual test projectへ追加" lang="powershell" code={`dotnet add package Gua.Testing.Visual --version 1.1.0`} />
+  <CodeBlock title="visual test projectへ追加" lang="powershell" code={`dotnet add package Gua.Testing.Visual`} /><p>ゲーム側と関連Guaパッケージの版を揃えます。取得後の版の記録・固定は<a href="/ja/docs/dotnet-packages/#versions">バージョンの管理</a>を参照してください。</p>
 
   <h2>1. baselineを明示的に作る</h2>
   <p>baselineが無い通常実行は失敗します。初回または意図したUI変更時だけ、developerが明示的に更新します。</p>

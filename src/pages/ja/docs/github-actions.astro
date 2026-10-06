@@ -4,9 +4,9 @@ import CodeBlock from '../../../components/CodeBlock.astro';
 import Callout from '../../../components/Callout.astro';
 ---
 <DocPage eyebrow="DOCS / CI" title="GitHub Actions" lead="gua-project/gua-testerは、Godot 4.7とUnity 6のGua UIテストを実行するバージョン付きCI workflowを提供します。" description="Gua Tester Actionsが提供するGodot／Unityの入力、credentials、artifact、Visual report。" section="docs">
-  <Callout title="Gua Tester Actions v3.2"><p><a href="https://github.com/gua-project/gua-tester/releases/tag/v3.2">公開済みv3.2</a>を使います。Actionのバージョン（<code>@v3.2</code>）、Guaのバージョン（例：<code>gua-v1.1.0</code>）、Godot／Unityのバージョンは別々に指定します。</p></Callout>
+  <Callout title="Gua Tester Actions v3.2"><p><a href="https://github.com/gua-project/gua-tester/releases/tag/v3.2">公開済みv3.2</a>を使います。Actionのバージョン（<code>@v3.2</code>）、Guaのバージョン（例：<code>gua-v1.1.1</code>）、Godot／Unityのバージョンは別々に指定します。</p></Callout>
 
-  <Callout kind="tip" title="CIでゲーム側パッケージを導入する"><p>Godot Actionは選択したGua Releaseの<code>gua-godot-addon-*.zip</code>を、Unity workflowは<code>com.link1345.gua-*.tgz</code>を取得します。以下の例は<code>gua-v1.1.0</code>を指定し、テストプロジェクトのNuGetも<code>1.1.0</code>に揃えます。ゲームへの導入手順は<a href="/ja/godot/ui/">Godot</a>／<a href="/ja/unity/ui/">Unity</a>を参照してください。タグを省略すると、必要なパッケージを含む最新のstable Releaseが選択されます。再現性のあるCIではタグを明示します。</p></Callout>
+  <Callout kind="tip" title="CIでゲーム側パッケージを導入する"><p>Godot Actionは選択したGua Releaseの<code>gua-godot-addon-*.zip</code>を、Unity workflowは<code>com.link1345.gua-*.tgz</code>を取得します。以下の例は<code>gua-v1.1.1</code>を指定し、テストプロジェクトのNuGetも<code>1.1.1</code>に揃えます。ゲームへの導入手順は<a href="/ja/godot/ui/">Godot</a>／<a href="/ja/unity/ui/">Unity</a>を参照してください。タグを省略すると、必要なパッケージを含む最新のstable Releaseが選択されます。再現性のあるCIではタグを明示します。</p></Callout>
   <h2>Godot 4.7</h2>
   <p>Godot composite Actionはrunnerに合うGodot公式版を取得し、配布済みGua addonを配置して<code>GODOT_EXECUTABLE</code>を設定します。project import後、外部<code>Gua.Testing.Godot</code>テストを実行します。</p>
   <CodeBlock title=".github/workflows/godot.yml" lang="yaml" code={`jobs:
@@ -20,7 +20,7 @@ import Callout from '../../../components/Callout.astro';
           test-project: tests/GuaTester.Tests.csproj
           godot-version: "4.7"
           godot-status: stable
-          gua-plugin-tag: gua-v1.1.0`} />
+          gua-plugin-tag: gua-v1.1.1`} />
   <div class="grid-2"><div class="mini-card"><strong>test-project（必須）</strong><p><code>Gua.Testing.Godot</code>を参照する<code>.csproj</code>です。</p></div><div class="mini-card"><strong>project-path</strong><p>Godot projectのパス。既定値は<code>game</code>です。</p></div><div class="mini-card"><strong>godot-version / godot-status</strong><p>既定値は<code>4.7</code>と<code>stable</code>です。</p></div><div class="mini-card"><strong>test-logger</strong><p>既定値は<code>trx;LogFileName=godot.trx</code>です。</p></div></div>
   <p>出力は<code>godot-executable</code>と<code>addon-path</code>です。構成Actionの<code>gua-project/gua-tester/setup-godot@v3.2</code>と<code>gua-project/gua-tester/link-gua-gdscript-addon@v3.2</code>も個別に利用できます。</p>
 
@@ -37,7 +37,7 @@ import Callout from '../../../components/Callout.astro';
       artifact-key: game
       platform: LinuxX64
       unity-version: auto
-      gua-tag: gua-v1.1.0
+      gua-tag: gua-v1.1.1
     secrets:
       UNITY_EMAIL: \${{ secrets.UNITY_EMAIL }}
       UNITY_PASSWORD: \${{ secrets.UNITY_PASSWORD }}

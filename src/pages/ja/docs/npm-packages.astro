@@ -18,12 +18,13 @@ import Callout from '../../../components/Callout.astro';
   <p>parseWorldObjectTreeは一覧の構造を検証し、selectorFromArgumentsは「施錠されていないドア」という検索条件を返します。この関数だけでは検索しません。条件をGuaWorldProvider.findWorldObjectsへ渡し、ゲーム側が許可した情報から結果を取得します。Worldのstateは通常のstring／number／boolean／nullを使い、Valueの型付きJSONではありません。</p>
   <Callout title="位置検索と物理照会は別"><p>Worldの近傍検索は公開された座標を使います。レイを飛ばして衝突を調べる物理照会は別の機能です。gua-world-toolsはその要求形式も提供しますが、物理計算や権限判断はゲーム側が行います。 <a href="/ja/world-object-tree/#physics">詳しい違い</a></p></Callout>
   <h2>導入と組み合わせ</h2>
-  <p>以下は1.1.0のAPIを使う例です。ゲーム側パッケージと同じGuaバージョンを指定します。各パッケージをすべて入れる必要はありません。</p>
-  <CodeBlock title="デスクトップのAI接続（Bun）" lang="powershell" code={'bunx gui-mcp@1.1.0 mcp'} />
+  <p>新規導入では、以下のコマンドでnpmのlatestタグが指す版を取得します。必要なパッケージだけを入れ、ゲーム側と版を揃えます。既存のゲームや再現用のMCP設定には、一致する具体的な版を指定してください。</p>
+  <CodeBlock title="デスクトップのAI接続（Bun）" lang="powershell" code={'bunx gui-mcp@latest mcp'} />
   <p>ゲームでGuaのWebSocketブリッジを起動し、AIクライアントにこのコマンドを登録します。既定の接続先はws://127.0.0.1:8765です。別の接続先はGUA_BRIDGE_URLで指定します。 <a href="/ja/mcp/">接続手順</a></p>
-  <CodeBlock title="ブラウザーのAI接続" lang="powershell" code={'npm install gua-webmcp@1.1.0'} />
+  <CodeBlock title="ブラウザーのAI接続" lang="powershell" code={'npm install gua-webmcp@latest'} />
   <p>gua-webmcpはgua-value-toolsとgua-world-toolsを依存パッケージとして使います。通常の導入では別途追加する必要はありません。ゲームのWeb出力を先に読み込み、その接続口ができてからtoolを登録します。実験的なdocument.modelContext APIに対応したブラウザーが必要です。 <a href="/ja/webmcp/">登録例</a></p>
-  <CodeBlock title="独自のデータ処理" lang="powershell" code={'npm install gua-value-tools@1.1.0 gua-world-tools@1.1.0'} />
+  <CodeBlock title="独自のデータ処理" lang="powershell" code={'npm install gua-value-tools@latest gua-world-tools@latest'} />
   <p>2つのライブラリはブラウザーでも使えます。自動でゲームに接続したり、シーンを収集したりはしません。ゲームや接続ツールから得たデータを渡します。gui-mcpは共通ライブラリをビルドへ組み込むため、実行のために別途インストールする必要はありません。</p>
+  <p><code>npm install</code>は依存する版の範囲を<code>package.json</code>へ、解決した版を<code>package-lock.json</code>へ記録します。両方をcommitし、CIでは<code>npm ci</code>を使います。実行中のアプリが常時自動更新される設定ではありません。<a href="https://docs.npmjs.com/cli/v11/commands/npm-install/">npm installの仕様</a></p>
   <p>実装と公開パッケージ: <a href="https://www.npmjs.com/package/gui-mcp">gui-mcp</a> · <a href="https://www.npmjs.com/package/gua-webmcp">gua-webmcp</a> · <a href="https://www.npmjs.com/package/gua-value-tools">gua-value-tools</a> · <a href="https://www.npmjs.com/package/gua-world-tools">gua-world-tools</a>. <a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/packages/world-tools/README.md">World API</a> · <a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/packages/value/README.md">Value API</a></p>
 </DocPage>

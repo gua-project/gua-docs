@@ -19,7 +19,7 @@ import Callout from '../../../components/Callout.astro';
   </figure>
 
   <h2>導入とnative library</h2>
-  <CodeBlock title="1.1.0をadapter projectへ追加" lang="powershell" code={`dotnet add package Gua.Runtime --version 1.1.0`} />
+  <CodeBlock title="adapter projectへ追加" lang="powershell" code={`dotnet add package Gua.Runtime`} /><p>ゲーム側と関連Guaパッケージの版を揃えます。取得後の版の記録・固定は<a href="/ja/docs/dotnet-packages/#versions">バージョンの管理</a>を参照してください。</p>
   <p><code>Gua.Runtime</code>は<code>net10.0</code>と<code>netstandard2.1</code>を対象にします。実行時には対象OS／CPUと一致するnativeライブラリを使います。Windowsは<code>gua.dll</code>／<code>gua_runtime.dll</code>、Linuxは<code>libgua.so</code>／<code>libgua_runtime.so</code>、macOSは<code>libgua.dylib</code>／<code>libgua_runtime.dylib</code>です。不一致や欠落はconstructorで明示的なload errorになります。</p>
 
   <h2>adapterの1 frame</h2>
