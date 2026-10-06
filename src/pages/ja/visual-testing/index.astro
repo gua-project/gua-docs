@@ -20,7 +20,7 @@ import Callout from '../../../components/Callout.astro';
   </figure>
 
   <h2>導入</h2>
-  <CodeBlock title="最新安定版をvisual test projectへ追加" lang="powershell" code={`dotnet add package Gua.Testing.Visual`} />
+  <CodeBlock title="1.1.0をvisual test projectへ追加" lang="powershell" code={`dotnet add package Gua.Testing.Visual --version 1.1.0`} />
 
   <h2>1. baselineを明示的に作る</h2>
   <p>baselineが無い通常実行は失敗します。初回または意図したUI変更時だけ、developerが明示的に更新します。</p>
@@ -87,7 +87,7 @@ var result = await GuaVisualAssertions.ExpectScreenshotAsync(
 
 - name: Upload visual report
   if: failure()
-  uses: link1345/gua-tester/visual-report@v3.1
+  uses: gua-project/gua-tester/visual-report@v3.2
   with:
     artifact-path: artifacts/gua
     test-outcome: failure

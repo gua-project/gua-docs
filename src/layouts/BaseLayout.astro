@@ -36,7 +36,7 @@ const structuredData = {
     name: 'Gua',
     applicationCategory: 'DeveloperApplication',
     operatingSystem: 'Windows',
-    url: 'https://github.com/link1345/gua',
+    url: 'https://github.com/gua-project/gua',
   },
 };
 const webMcpDocumentPaths = Object.keys(import.meta.glob('../pages/**/*.astro'))
@@ -99,7 +99,7 @@ const webMcpNavigationPages = createWebMcpNavigationPages(siteBase);
       <nav class="topbar-actions" aria-label={isEnglish ? 'Language and community links' : '言語選択とコミュニティリンク'}>
         <a class="lang-link" href={isEnglish ? japanesePath : englishPath}>{isEnglish ? '日本語' : 'English'}</a>
         <a class="github-link" href="https://discord.gg/B495mwsTKK" target="_blank" rel="noreferrer" title={isEnglish ? 'Support Discord server' : 'サポートDiscordサーバー'}>Discord ↗</a>
-        <a class="github-link" href="https://github.com/link1345/gua" target="_blank" rel="noreferrer">GitHub ↗</a>
+        <a class="github-link" href="https://github.com/gua-project/gua" target="_blank" rel="noreferrer">GitHub ↗</a>
       </nav>
     </header>
     <div class="shell">
@@ -125,14 +125,14 @@ const webMcpNavigationPages = createWebMcpNavigationPages(siteBase);
         <div class="side-children docs-nav">
           {activeDocs.map((item) => <a class:list={[path === item.href && 'active']} href={item.href}>{item.label}</a>)}
         </div>
-        <div class="version-note"><span>{isEnglish ? 'TARGET' : '対象'}</span><strong>Gua / gua-v1.0.7</strong><small>Godot 4.7 · Unity 6000.5+ · Win/Linux/macOS</small></div>
+        <div class="version-note"><span>{isEnglish ? 'TARGET' : '対象'}</span><strong>Gua / gua-v1.1.0</strong><small>Godot 4.7 · Unity 6000.5+ · Win/Linux/macOS</small></div>
       </aside>
       <main class:list={["content", section && `section-${section}`]}>
         {!isEnglish && <div class="translation-note">英語版が正式な参照です。内容に差異がある場合は、<a href={englishPath}>英語版</a>を優先してください。</div>}
         <slot />
       </main>
     </div>
-    <footer><span>{isEnglish ? 'Gua Reference' : 'Gua 日本語リファレンス'}</span><span>{isEnglish ? 'Official documentation' : '公式ドキュメント'}</span><a href="https://github.com/link1345/gua/blob/main/LICENSE">MIT License</a></footer>
+    <footer><span>{isEnglish ? 'Gua Reference' : 'Gua 日本語リファレンス'}</span><span>{isEnglish ? 'Official documentation' : '公式ドキュメント'}</span><a href="https://github.com/gua-project/gua/blob/main/LICENSE">MIT License</a></footer>
     <script>
       import '../scripts/register-docs-webmcp';
 

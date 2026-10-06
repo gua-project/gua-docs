@@ -25,10 +25,10 @@ await GuaAssertions.WaitForTextAsync(
 );`;
 ---
 <DocPage eyebrow="GODOT / TESTING" title="テストの仕方" lead="Godotプロセスを起動し、ライブなSemantic UI Treeへ接続します。座標ではなくrole・text・idで操作結果を待ちます。" description="Gua.Testing.GodotでGodotシーンをテストする方法。" section="godot">
-  <h2>1. 必須NuGetパッケージを入れる</h2><p>Godotの外部テストには<strong>Gua.Core、Gua.Testing、Gua.Testing.Godotの3パッケージが必要</strong>です。テストプロジェクトのディレクトリで次を実行して最新の安定版を解決し、projectへ書き込まれたversionをcommitします。</p><CodeBlock title="PowerShell" lang="powershell" code={`dotnet add package Gua.Core\ndotnet add package Gua.Testing\ndotnet add package Gua.Testing.Godot\n\n# NUnitを使う場合\ndotnet add package Microsoft.NET.Test.Sdk\ndotnet add package NUnit\ndotnet add package NUnit3TestAdapter`} /><CodeNotes title="コマンドごとの役割" codeLabel="コマンド" explanationLabel="追加される機能" items={[
-    { code: 'dotnet add package Gua.Core', explanation: 'Guaの共通型とnative runtime境界をテストprojectへ追加します。' },
-    { code: 'dotnet add package Gua.Testing', explanation: 'Semantic locator、action、待機、assertion、diagnosticsを追加します。' },
-    { code: 'dotnet add package Gua.Testing.Godot', explanation: 'Godot processの起動、bridge接続、終了処理を行うtest hostを追加します。' },
+  <h2>1. 必須NuGetパッケージを入れる</h2><p>Godotの外部テストには<strong>Gua.Core、Gua.Testing、Gua.Testing.Godotの3パッケージが必要</strong>です。テストプロジェクトのディレクトリで次を実行して1.1.0を解決し、projectへ書き込まれたversionをcommitします。</p><CodeBlock title="PowerShell" lang="powershell" code={`dotnet add package Gua.Core --version 1.1.0\ndotnet add package Gua.Testing --version 1.1.0\ndotnet add package Gua.Testing.Godot --version 1.1.0\n\n# NUnitを使う場合\ndotnet add package Microsoft.NET.Test.Sdk\ndotnet add package NUnit\ndotnet add package NUnit3TestAdapter`} /><CodeNotes title="コマンドごとの役割" codeLabel="コマンド" explanationLabel="追加される機能" items={[
+    { code: 'dotnet add package Gua.Core --version 1.1.0', explanation: 'Guaの共通型とnative runtime境界をテストprojectへ追加します。' },
+    { code: 'dotnet add package Gua.Testing --version 1.1.0', explanation: 'Semantic locator、action、待機、assertion、diagnosticsを追加します。' },
+    { code: 'dotnet add package Gua.Testing.Godot --version 1.1.0', explanation: 'Godot processの起動、bridge接続、終了処理を行うtest hostを追加します。' },
     { code: 'dotnet add package Microsoft.NET.Test.Sdk', explanation: 'dotnet testからtest runnerを起動する基盤です。' },
     { code: 'dotnet add package NUnit', explanation: '[Test]やAssertなどNUnitのtest APIを追加します。' },
     { code: 'dotnet add package NUnit3TestAdapter', explanation: 'Microsoft.NET.Test.SdkからNUnit testを検出・実行できるようにします。' },
@@ -136,7 +136,7 @@ GuaAssertions.GetByRole(
     { code: 'DiagnosticsSession = diagnostics', explanation: 'assertion失敗時にUI Tree、履歴、log、process情報を保存する対象を指定します。' },
     { code: '.ToBeVisible()', explanation: '失敗した場合も元のassertion例外を主原因として保ち、診断取得失敗は副次情報にします。' },
   ]} /><p>GitHub Actionsを使う場合は、テスト後に<code>artifacts/gua/**</code>を<code>actions/upload-artifact</code>へ渡すと、失敗した実行から診断ファイルを取得できます。</p>
-  <h2>GitHub Actionsで実行する</h2><p>公開Actionの<a href="https://github.com/link1345/gua-tester"><code>link1345/gua-tester/godot@v3.1</code></a>を使うと、runnerに合うGodot公式版の導入、最新の配布済みGuaアドオンの配置、<code>GODOT_EXECUTABLE</code>の設定、<code>dotnet test</code>の実行をまとめて行えます。</p><CodeBlock title=".github/workflows/godot.yml" lang="yaml" code={`name: Godot Gua UI tests
+  <h2>GitHub Actionsで実行する</h2><p>以下の例は<code>gua-v1.1.0</code>のアドオンを導入します。テストプロジェクトのNuGetも<code>1.1.0</code>に揃えます。<a href="/ja/docs/github-actions/">CIの導入方法とバージョン指定</a>を参照してください。</p><p>公開Actionの<a href="https://github.com/gua-project/gua-tester"><code>gua-project/gua-tester/godot@v3.2</code></a>を使うと、runnerに合うGodot公式版の導入、選択したReleaseのGuaアドオンの配置、<code>GODOT_EXECUTABLE</code>の設定、<code>dotnet test</code>の実行をまとめて行えます。</p><CodeBlock title=".github/workflows/godot.yml" lang="yaml" code={`name: Godot Gua UI tests
 
 on:
   pull_request:
@@ -149,18 +149,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run Gua UI tests
-        uses: link1345/gua-tester/godot@v3.1
+        uses: gua-project/gua-tester/godot@v3.2
         with:
           project-path: game
           test-project: tests/GuaTester.Tests.csproj
           godot-version: "4.7"
+          gua-plugin-tag: gua-v1.1.0
           godot-status: stable`} /><CodeNotes title="workflowの各部" codeLabel="記述" explanationLabel="意味" items={[
     { code: 'on: pull_request / push', explanation: 'pull requestとmainへのpushをtestの起動条件にします。' },
     { code: 'runs-on: windows-latest', explanation: 'ここではWindowsを例示します。ubuntu-22.04／macOS runnerでは対応するGodot公式archiveを自動選択します。' },
     { code: 'actions/checkout@v4', explanation: 'gameとtestのsourceをrunnerへcheckoutします。' },
-    { code: 'uses: link1345/gua-tester/godot@v3.1', explanation: 'Godot導入、Gua add-on配置、dotnet testをまとめた公開Actionを実行します。' },
+    { code: 'uses: gua-project/gua-tester/godot@v3.2', explanation: 'Godot導入、Gua add-on配置、dotnet testをまとめた公開Actionを実行します。' },
     { code: 'project-path: game', explanation: 'project.godotがあるdirectoryを指定します。' },
     { code: 'test-project: tests/GuaTester.Tests.csproj', explanation: '実行する.NET test projectを指定します。' },
     { code: 'godot-version / godot-status', explanation: '取得するGodotを4.7 stableへ固定します。' },
   ]} /><Callout kind="tip" title="配布済みアドオンを使用"><p>このActionは指定または最新安定版の<code>gua-v*</code> Releaseから対応するaddon ZIPを取得し、<code>game/addons/gua</code>へ配置します。CI上でGuaのネイティブ拡張をビルドする必要はありません。入力・出力の全一覧は<a href="/ja/docs/github-actions/">GitHub Actionsリファレンス</a>を参照してください。</p></Callout>
+  <h2 id="locators">操作できるUIを待つ</h2><p><code>Gua.Testing</code>のlocatorは使用時に最新のtreeから厳密な単一一致を解決します。actionはvisible／enabledと対応actionを待ち、requestIdに対応するhost completionを待ちます。複数一致は即時失敗です。解決・enqueue・completionは同じtimeoutを共有し、enqueue拒否やhost失敗は自動再試行しません。</p>
+  <CodeBlock title="クリック後に次の画面を待つ" lang="csharp" code={"using Gua.Testing;\n\nvar play = GuaAssertions.Query(host.Context).ByRole(\"button\", \"Play\");\nawait play.ClickAsync(timeout: TimeSpan.FromSeconds(5));\nawait GuaAssertions.Query(host.Context).ById(\"game-screen\").ResolveAsync();"} />
+  <p><code>ResolveAsync</code>は次のnodeの存在を待ちます。テストで必要な状態のassertionも加えます。<a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/bindings/dotnet/src/Gua.Testing/README.md">locator APIとtimeout規則</a>。</p>
+  <h2 id="semantic-baselines">ピクセルを使わず意味的な状態を比較する</h2><p><code>Gua.Testing.Snapshots</code> 1.1.0を追加すると、UIのID、階層、text、value、stateをreview済みJSON baselineと比較できます。headlessでも<code>host.Context</code>で使えます。描画結果も調べる場合は<code>Gua.Testing.Visual</code>を別途追加します。<a href="/ja/docs/dotnet-packages/#semantic-snapshots">導入・mask・baseline更新の例</a>を参照してください。</p>
+  <CodeBlock title="意味的な比較を追加する" lang="powershell" code={"dotnet add package Gua.Testing.Snapshots --version 1.1.0"} />
+  <h2 id="trace">Gua.Testing Traceでテストの証拠を保存する</h2><p>Traceは<code>Gua.Testing</code>の機能です。追加のTraceパッケージは不要です。テストscopeに設定し、実際の結果で完了させ、新しい出力先にoffline HTML reportを生成します。</p>
+  <CodeBlock title="テストを記録して確認する" lang="csharp" code={"using Gua.Testing;\n\nawait using var trace = new GuaTraceSession(new() {\n    OutputDirectory = \"artifacts/traces\",\n    SavePolicy = GuaTraceSavePolicy.Always,\n});\nusing var scope = GuaAssertionScope.Use(new() { Trace = trace });\ntry {\n    await GuaAssertions.Query(host.Context).ById(\"play\").ClickAsync();\n    await trace.CompleteAsync(GuaTraceOutcome.Passed);\n} catch {\n    await trace.CompleteAsync(GuaTraceOutcome.Failed);\n    throw;\n}\nvar report = GuaTraceReport.WriteHtml(trace.ArtifactPath, \"artifacts/report.html\");\n// Check report.Succeeded and trace.Status separately from the test result."} />
+  <p>Traceは証拠を記録し、flowの再生や結果の変更はしません。UI／WorldやObserve値が必要な場合は明示的に取得し、記録前に機密情報の扱いを決めます。<a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/bindings/dotnet/src/Gua.Testing/README.md">Traceの取得API</a>・<a href="/ja/inspector/#trace">Inspectorで保存済みTraceを開く</a>を参照してください。</p>
 </DocPage>

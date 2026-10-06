@@ -5,7 +5,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <section class="hero-home"><div class="inner">
     <span class="kicker">PLAYWRIGHT-STYLE UI AUTOMATION FOR GAMES</span>
     <h1>ゲームUIを、<em>意味</em>で操作する。</h1>
-    <p><strong>Guaは、Playwrightライクな設計思想をもとに開発された、Godot・Unity向けのゲームテスト／自動化プロトコルです。</strong> Semantic UI TreeによるUI操作を核に、World Object Tree、ゲーム入力、MCP・WebMCP、AIエージェント公開ポリシー、仮想時計、Recording・Visual比較を提供します。AIがゲームを開発・検証するだけでなく、許可された情報と操作を使ってリリース版をプレイヤーとして遊べます。</p>
+    <p><strong>GuaはGodot・Unityのゲームをテストし、AIから操作するための仕組みです。</strong>「Startというボタン」「施錠されたドア」のように、ゲームが公開した名前や状態を使います。ボタンを押し、画面やゲームの変化を確認できます。AIによる開発・検証にも、公開を許可された情報だけで遊ぶAIプレイヤーにも使えます。</p>
     <div class="hero-actions"><a class="button" href="/ja/godot/">Godot UIテストを始める →</a><a class="button secondary" href="/ja/ai-coding/">AI開発とAIプレイヤーを見る</a></div>
     <figure class="hero-demo">
       <img src="/gua-hero-demo.webp" alt="AIエージェントがGua MCPサーバーを使い、Semantic UI Treeを読み取ってGodotゲームのStart Gameボタンを遠隔操作するデモ" width="1280" height="720" decoding="async" />
@@ -20,8 +20,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <div class="mini-card"><strong>リリース版を遊ぶAIプレイヤー</strong><p>AIエージェントプレイヤーがPlayer profileで許可されたUI・World情報を読み、許可されたUI操作とゲーム入力だけを使ってゲームを進めます。</p></div>
     </div>
     <div class="hero-actions"><a class="button secondary" href="/ja/ai-coding/">二つの仕組みと権限の違いを見る →</a></div>
-    <span class="kicker">GET THE LATEST</span><h2>まず最新Releaseを取得する</h2>
-    <p>GodotアドオンとWindows版Inspectorは<a href="https://github.com/link1345/gua/releases/latest" style="color:var(--mint);text-decoration:underline">GitHub Releases / Latest</a>から取得できます。ソースビルドはGua本体を開発するときの経路です。</p>
+    <span class="kicker">GET STARTED</span><h2>使うエンジンとツールを選ぶ</h2>
+    <p><a href="/ja/godot/ui/" style="color:var(--mint);text-decoration:underline">Godot</a>／<a href="/ja/unity/ui/" style="color:var(--mint);text-decoration:underline">Unityの導入手順</a>に沿ってゲーム側へ導入し、必要なテストパッケージを追加します。ゲームを調べる場合は<a href="/ja/inspector/" style="color:var(--mint);text-decoration:underline">Inspectorの導入</a>を参照してください。各ガイドでReleaseのゲーム用パッケージとInspectorの導入方法、テストパッケージとのバージョンの揃え方を説明します。</p>
     <p>Guaについての質問・相談は、<a href="https://discord.gg/B495mwsTKK" style="color:var(--mint);text-decoration:underline">サポートDiscordサーバー</a>へどうぞ。</p>
     <span class="kicker">HOW IT WORKS</span><h2>ゲームの入力経路を壊さずに観測する</h2>
     <div class="pipeline"><div><strong>01 / DRAW</strong>ゲームエンジンが通常どおりUIを描画</div><div><strong>02 / REFLECT</strong>アダプターが意味情報を自動収集</div><div><strong>03 / CONNECT</strong>WebSocketブリッジが外部へ公開</div><div><strong>04 / ACT</strong>テスト・Inspector・MCPが操作</div></div>

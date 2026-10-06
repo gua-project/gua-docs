@@ -1,11 +1,12 @@
 ---
 import DocPage from '../../components/DocPage.astro'; import Callout from '../../components/Callout.astro';
 ---
-<DocPage eyebrow="DOCS / REFERENCE" title="Docs" lead="The guide explains how to complete a workflow. These API docs explain the classes, variables, functions, and ownership boundaries you encounter in source." description="Official Gua API and sample reference." section="docs">
-  <Callout kind="tip" title="What Gua covers"><p>Gua keeps Playwright-like Semantic UI automation at its core, then provides game-development capabilities on the same protocol: the World Object Tree, gameplay input, MCP and WebMCP, AI agent exposure policy, virtual time, Recording, and visual comparison.</p></Callout>
-  <Callout title="Source of truth"><p>These pages are derived from the implementation on Gua's <code>main</code> branch. Each reference links to its corresponding source on GitHub.</p></Callout>
+<DocPage eyebrow="DOCS / REFERENCE" title="Docs" lead="Find package installation steps and concrete examples of values and APIs. Additions and changes are listed in the changelog." description="Official Gua API and sample reference." section="docs">
+  <Callout title="Source of truth"><p>The package and Value references link to source pinned to <code>gua-v1.1.0</code>. Existing API guides also link to implementation on <code>main</code>; package and engine integration support must be checked for the version in use.</p></Callout>
   <div class="card-grid">
-    <a class="chapter-card" href="/docs/dotnet-packages/"><span>PACKAGES / .NET</span><h3>.NET packages</h3><p>Core, Testing, Godot, Visual, Recording, and .NET Standard 2.1 support.</p></a>
+    <a class="chapter-card" href="/docs/npm-packages/"><span>PACKAGES / NPM</span><h3>npm packages</h3><p>Install the four packages for AI connections and game data processing, with examples.</p></a>
+    <a class="chapter-card" href="/docs/value/"><span>TOOLS / VALUE</span><h3>Value tools</h3><p>Validate values from a game and compare them with expectations.</p></a>
+    <a class="chapter-card" href="/docs/dotnet-packages/"><span>PACKAGES / .NET</span><h3>.NET packages</h3><p>Core, Testing, Godot, Unity, Visual, Snapshots, Recording, and .NET Standard 2.1 support.</p></a>
     <a class="chapter-card" href="/docs/gua-runtime/"><span>ADAPTER / RUNTIME</span><h3>Gua.Runtime guide</h3><p>Implement frames, actions, screenshots, and the Inspector bridge in a custom engine adapter.</p></a>
     <a class="chapter-card" href="/docs/runtime-adapters/"><span>ENGINE / GODOT</span><h3>Godot API and specification</h3><p>The GDScript addon, GDExtension, external testing API, Control mappings, and extension boundary for other engines.</p></a>
     <a class="chapter-card" href="/docs/unity-reference/"><span>ENGINE / UNITY</span><h3>Unity API and specification</h3><p>UPM, public types, control mappings, actions, test host, supported environment, and shared specification.</p></a>

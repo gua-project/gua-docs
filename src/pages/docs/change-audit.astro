@@ -7,5 +7,5 @@ import DocPage from '../../components/DocPage.astro'; import CodeBlock from '../
   <h2>Deliberate pull-request-wide audit</h2><CodeBlock title="Review the cumulative diff from main" lang="powershell" code={`git fetch origin main
 ./scripts/run-local-pr-audit.ps1 -Base origin/main`} /><p>Add <code>-Fix</code> to let the parent validate supported findings, apply in-scope fixes, run focused checks, and repeat for at most four passes. Use <code>-Sequential</code> on a host that cannot sustain the concurrent review lanes.</p>
   <Callout kind="warn" title="No publication side effects"><p>The harness does not commit, push, or post GitHub review comments. It approximates the useful review boundaries but cannot reproduce the private GitHub Connector prompt or runtime exactly.</p></Callout>
-  <p>See <a href="https://github.com/link1345/gua/blob/main/docs/bug-hunting-subagent.md">the repository audit guide</a> for bounded delegation examples and exact behavior.</p>
+  <p>See <a href="https://github.com/gua-project/gua/blob/main/docs/bug-hunting-subagent.md">the repository audit guide</a> for bounded delegation examples and exact behavior.</p>
 </DocPage>

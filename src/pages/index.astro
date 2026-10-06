@@ -5,7 +5,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <section class="hero-home"><div class="inner">
     <span class="kicker">PLAYWRIGHT-STYLE UI AUTOMATION FOR GAMES</span>
     <h1>Drive game UI by <em>meaning</em>.</h1>
-    <p><strong>Gua is a game testing and automation protocol for Godot and Unity, built around Playwright-like design principles.</strong> Semantic UI Tree automation remains its core, with the World Object Tree, gameplay input, MCP and WebMCP, AI agent exposure policy, virtual time, Recording, and visual comparison. AI can develop and verify a game, then use approved information and operations to play its release build as a player.</p>
+    <p><strong>Gua helps you test Godot and Unity games and operate them with AI.</strong> It uses names and state published by the game, such as “the Start button” or “a locked door.” Click a button and check how the screen or game changes. Use it for AI-assisted development or an AI player that sees only approved information.</p>
     <div class="hero-actions"><a class="button" href="/godot/">Start testing Godot UI →</a><a class="button secondary" href="/ai-coding/">Explore AI development and players</a></div>
     <figure class="hero-demo">
       <img src="/gua-hero-demo.webp" alt="An AI agent uses the Gua MCP server to inspect the semantic UI tree and remotely activate the Start Game button in a Godot game" width="1280" height="720" decoding="async" />
@@ -20,8 +20,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <div class="mini-card"><strong>AI player in a release build</strong><p>An AI agent player uses the Player profile to read approved UI and World information and advances the game with only authorized UI operations and gameplay input.</p></div>
     </div>
     <div class="hero-actions"><a class="button secondary" href="/ai-coding/">Compare the two workflows and permission models →</a></div>
-    <span class="kicker">GET THE LATEST</span><h2>Start with the latest release</h2>
-    <p>Download the Godot add-on and Windows Inspector from <a href="https://github.com/link1345/gua/releases/latest" style="color:var(--mint);text-decoration:underline">GitHub Releases / Latest</a>. Building Gua from source is intended for contributors working on Gua itself.</p>
+    <span class="kicker">GET STARTED</span><h2>Choose your engine and tools</h2>
+    <p>Follow the <a href="/godot/ui/" style="color:var(--mint);text-decoration:underline">Godot</a> or <a href="/unity/ui/" style="color:var(--mint);text-decoration:underline">Unity installation guide</a>, then add the test packages you need. For inspecting a game, see <a href="/inspector/" style="color:var(--mint);text-decoration:underline">Inspector setup</a>. The guides explain how to install the released game integrations and Inspector and keep their Gua versions aligned with the test packages.</p>
     <p>Questions about Gua? Join our <a href="https://discord.gg/B495mwsTKK" style="color:var(--mint);text-decoration:underline">support Discord server</a>.</p>
     <span class="kicker">HOW IT WORKS</span><h2>Observe the real input path</h2>
     <div class="pipeline"><div><strong>01 / DRAW</strong>The game engine renders UI normally</div><div><strong>02 / REFLECT</strong>The adapter collects semantic state</div><div><strong>03 / CONNECT</strong>The bridge publishes it over WebSocket</div><div><strong>04 / ACT</strong>Tests, Inspector, and MCP operate it</div></div>

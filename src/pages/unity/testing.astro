@@ -5,10 +5,10 @@ import CodeBlock from '../../components/CodeBlock.astro';
 import CodeNotes from '../../components/CodeNotes.astro';
 ---
 <DocPage eyebrow="UNITY / TESTING" title="Testing UI" lead="Gua.Testing.Unity starts Unity Editor Play Mode or a desktop Mono Player and connects the shared IGuaContext to its bridge." description="External Unity UI testing with Gua.Testing.Unity." section="unity">
-  <h2>1. Add test packages</h2><p><code>Gua.Testing.Unity</code> is published on NuGet. These commands resolve the latest stable releases; commit the versions written to the project and keep the three Gua packages on the same version line.</p><CodeBlock title="Add the Unity test host" lang="powershell" code={`dotnet add package Gua.Core\ndotnet add package Gua.Testing\ndotnet add package Gua.Testing.Unity`} /><CodeNotes title="What each package adds" items={[
-    { code: 'dotnet add package Gua.Core', explanation: 'Adds shared Gua types and the native runtime boundary.' },
-    { code: 'dotnet add package Gua.Testing', explanation: 'Adds the same semantic locators, actions, waits, assertions, and diagnostics used with Godot.' },
-    { code: 'dotnet add package Gua.Testing.Unity', explanation: 'Adds Unity Editor/Player build, startup, bridge connection, and teardown.' },
+  <h2>1. Add test packages</h2><p><code>Gua.Testing.Unity</code> is published on NuGet. These commands resolve the 1.1.0 packages; commit the versions written to the project and keep the three Gua packages on the same version line.</p><CodeBlock title="Add the Unity test host" lang="powershell" code={`dotnet add package Gua.Core --version 1.1.0\ndotnet add package Gua.Testing --version 1.1.0\ndotnet add package Gua.Testing.Unity --version 1.1.0`} /><CodeNotes title="What each package adds" items={[
+    { code: 'dotnet add package Gua.Core --version 1.1.0', explanation: 'Adds shared Gua types and the native runtime boundary.' },
+    { code: 'dotnet add package Gua.Testing --version 1.1.0', explanation: 'Adds the same semantic locators, actions, waits, assertions, and diagnostics used with Godot.' },
+    { code: 'dotnet add package Gua.Testing.Unity --version 1.1.0', explanation: 'Adds Unity Editor/Player build, startup, bridge connection, and teardown.' },
   ]} />
   <h2>2. Start a Player or Editor</h2><CodeBlock title="Build and test a rendered Player" lang="csharp" code={`using Gua.Core;
 using Gua.Testing;
@@ -45,7 +45,7 @@ var screenshot = host.CaptureScreenshot();`} />
   ]} />
   <div class="table-wrap"><table><thead><tr><th>Entry point</th><th>Use</th></tr></thead><tbody><tr><td><code>LoadPlayer</code></td><td>Existing <code>-batchmode -nographics</code> Player for fast semantic tests</td></tr><tr><td><code>LoadRenderedPlayer</code></td><td>Rendered existing Player for screenshots and visual tests</td></tr><tr><td><code>LoadEditor</code></td><td>Open a scene in Editor Play Mode</td></tr><tr><td><code>BuildAndLoadPlayer</code></td><td>Build and start the selected desktop Mono Player</td></tr></tbody></table></div>
   <h2>3. Use the same semantic API as Godot</h2><p><code>host.Context</code> is the engine-neutral <code>IGuaContext</code>. Tests use the same locators and waits instead of branching on Unity UI technology.</p><CodeBlock title="Input, focus, and observed state" lang="csharp" code={`var name = GuaAssertions.Query(host.Context)
-    .ByRole("textbox").Within("LoginForm").Get();
+    .ByRole("textbox").Within("LoginForm");
 
 await name.SetValueAsync("alice");
 await name.FocusAsync();
@@ -53,14 +53,14 @@ await GuaAssertions.PressKeyAsync(host.Context, "Enter");
 
 await GuaAssertions.GetById(host.Context, "RememberMe")
     .SetCheckedAsync(true);
-await name.WaitForValueAsync("alice");`} /><CodeNotes title="What each semantic operation does" items={[
+await name.ByValue("alice").ResolveAsync();`} /><CodeNotes title="What each semantic operation does" items={[
     { code: 'Query(host.Context).ByRole("textbox")', explanation: 'Queries Unity UI through the shared textbox role.' },
-    { code: '.Within("LoginForm").Get()', explanation: 'Scopes the query and requires exactly one match.' },
+    { code: '.Within("LoginForm")', explanation: 'Scopes the locator; each action resolves a current strict single match.' },
     { code: 'SetValueAsync("alice")', explanation: 'Sets a UI Toolkit, uGUI, or TMP text input through one action.' },
     { code: 'FocusAsync()', explanation: 'Uses Unity focus so the next global key gesture has a target.' },
     { code: 'PressKeyAsync(..., "Enter")', explanation: 'Sends key-down and key-up to the focused textbox.' },
     { code: 'SetCheckedAsync(true)', explanation: 'Checks a UI Toolkit or uGUI/TMP toggle.' },
-    { code: 'WaitForValueAsync("alice")', explanation: 'Waits for a later published frame to expose the value.' },
+    { code: 'ByValue("alice").ResolveAsync()', explanation: 'Waits for a later published frame to expose the value.' },
   ]} />
   <h2>Four rules for reliable Unity tests</h2><div class="grid-2"><div class="mini-card"><strong>Choose the host for the purpose</strong><p>Use headless for semantic tests and a rendered Player or Editor for screenshots.</p></div><div class="mini-card"><strong>Wait for state</strong><p>Observe nodes, text, and values instead of guessing Unity frame timing with sleeps.</p></div><div class="mini-card"><strong>Isolate each test</strong><p>Use available ports and strict reset to detect collisions and leaked work.</p></div><div class="mini-card"><strong>Keep failure evidence</strong><p>Retain the UI tree, history, Unity log, process data, and optional PNG.</p></div></div>
   <h2>Visual comparison and recording</h2><p><code>Gua.Testing.Visual</code> and <code>Gua.Testing.Recording</code> are engine-neutral packages, so both work with the <code>host.Context</code> supplied by <code>Gua.Testing.Unity</code>. Use <code>LoadRenderedPlayer</code> or Editor Play Mode when Visual needs a PNG. Recording operates on semantic actions and also works with a headless Player.</p><CodeBlock title="Use shared packages with a Unity host" lang="csharp" code={`using Gua.Testing.Recording;
@@ -117,4 +117,13 @@ GuaAssertions.GetByRole(
     { code: '.ToBeVisible()', explanation: 'Keeps the assertion as the primary error while collecting evidence.' },
   ]} /><p><code>SceneTimeout</code> currently serves mainly as the default screenshot timeout; it does not wait for scene transitions automatically.</p>
   <Callout kind="tip" title="Unity.exe resolution"><p>The host checks <code>UnityExecutablePath</code>, then <code>UNITY_EXECUTABLE</code>, then the newest install below <code>C:\Program Files\Unity\Hub\Editor</code>.</p></Callout>
+  <h2 id="locators">Wait for actionable UI</h2><p><code>Gua.Testing</code> locators resolve a current strict single match when used. Actions wait for visible/enabled state and the advertised action, then correlated host completion. Multiple matches fail immediately. Resolution, enqueue, and completion share one timeout budget; rejected enqueue and host failure are not automatically retried.</p>
+  <CodeBlock title="Click, then wait for the next screen" lang="csharp" code={"using Gua.Testing;\n\nvar play = GuaAssertions.Query(host.Context).ByRole(\"button\", \"Play\");\nawait play.ClickAsync(timeout: TimeSpan.FromSeconds(5));\nawait GuaAssertions.Query(host.Context).ById(\"game-screen\").ResolveAsync();"} />
+  <p><code>ResolveAsync</code> waits for the next node to exist; add the state assertion your test requires. <a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/bindings/dotnet/src/Gua.Testing/README.md">Locator API and timeout rules</a>.</p>
+  <h2 id="semantic-baselines">Compare semantic state without pixels</h2><p>Add <code>Gua.Testing.Snapshots</code> at 1.1.0 to compare UI IDs, hierarchy, text, values, and state against reviewed JSON baselines. It works with <code>host.Context</code>, including a headless host. Add <code>Gua.Testing.Visual</code> separately when rendered pixels matter. <a href="/docs/dotnet-packages/#semantic-snapshots">Installation, masks, and baseline update example</a>.</p>
+  <CodeBlock title="Add semantic comparison" lang="powershell" code={"dotnet add package Gua.Testing.Snapshots --version 1.1.0"} />
+  <h2 id="trace">Save test evidence with Gua.Testing Trace</h2><p>Trace belongs to <code>Gua.Testing</code>; no extra Trace package is needed. Enable it for a test scope, complete it with the test's actual outcome, and create an offline HTML report at a new output path.</p>
+  <CodeBlock title="Record and inspect a test" lang="csharp" code={"using Gua.Testing;\n\nawait using var trace = new GuaTraceSession(new() {\n    OutputDirectory = \"artifacts/traces\",\n    SavePolicy = GuaTraceSavePolicy.Always,\n});\nusing var scope = GuaAssertionScope.Use(new() { Trace = trace });\ntry {\n    await GuaAssertions.Query(host.Context).ById(\"play\").ClickAsync();\n    await trace.CompleteAsync(GuaTraceOutcome.Passed);\n} catch {\n    await trace.CompleteAsync(GuaTraceOutcome.Failed);\n    throw;\n}\nvar report = GuaTraceReport.WriteHtml(trace.ArtifactPath, \"artifacts/report.html\");\n// Check report.Succeeded and trace.Status separately from the test result."} />
+  <p>Trace records evidence; it does not replay the flow or change its result. Capture UI/World or Observe values explicitly when required, and handle sensitive data before recording. <a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/bindings/dotnet/src/Gua.Testing/README.md">Trace capture APIs</a> · <a href="/inspector/#trace">Open a saved Trace in Inspector</a>.</p>
+  <h2 id="support">Support when selecting a host</h2><p>Unity 6000.5.3f1 desktop Mono Players are implemented and verified on Windows, Linux, Intel macOS, and Apple Silicon macOS. Editor Play Mode is verified on Windows, Linux, and Apple M4; native Intel macOS Editor is implemented but unverified. See <a href="/docs/unity-reference/">Unity APIs and limits</a>.</p>
 </DocPage>

@@ -9,7 +9,7 @@ import Callout from '../../../components/Callout.astro';
     <tr><td><code>Gua.Runtime</code></td><td>別のengine adapterを実装するときに使う共有runtime API</td><td>net10.0 / netstandard2.1</td></tr>
     <tr><td><code>Gua.Testing.Unity</code></td><td>外部.NETテストからUnity Editor/Playerをbuild・起動・接続</td><td>net10.0 / netstandard2.1</td></tr>
     <tr><td><code>Gua.Testing</code></td><td>locator、assertion、remote接続、screenshotのengine共通テストAPI</td><td>engine非依存</td></tr>
-    <tr><td><code>Gua.Testing.Visual</code></td><td>Unityを含む任意のGua contextでPNG baseline比較と差分artifactを追加</td><td>net10.0 / netstandard2.1</td></tr>
+    <tr><td><code>Gua.Testing.Snapshots</code></td><td>UI／Worldの意味的JSON baselineを比較</td><td>net10.0 / netstandard2.1</td></tr><tr><td><code>Gua.Testing.Visual</code></td><td>Unityを含む任意のGua contextでPNG baseline比較と差分artifactを追加</td><td>net10.0 / netstandard2.1</td></tr>
     <tr><td><code>Gua.Testing.Recording</code></td><td>Unityを含む任意のGua contextでSemantic操作を記録・Replay</td><td>net10.0 / netstandard2.1</td></tr>
   </tbody></table></div>
   <Callout kind="tip" title="Godot C#アダプターとの共有"><p><code>Gua.Runtime</code>はUnity専用ではなく、Godot C#など別engineのアダプターからも利用できます。GodotのGDScript経路と既存C ABIも引き続き利用できます。</p></Callout>
@@ -29,7 +29,7 @@ import Callout from '../../../components/Callout.astro';
 
   <h2>テストホスト公開型</h2>
   <div class="table-wrap"><table><thead><tr><th>型 / member</th><th>意味</th></tr></thead><tbody>
-    <tr><td><code>UnityPlayerBuilder.Build</code></td><td>指定sceneからWindows64 Mono Playerをbatch build</td></tr>
+    <tr><td><code>UnityPlayerBuilder.Build</code></td><td>指定sceneからWindows／Linux／macOSの選択したdesktop Mono Playerをbatch build</td></tr>
     <tr><td><code>UnitySceneTestHost.LoadPlayer</code></td><td>headless Playerを起動</td></tr>
     <tr><td><code>LoadRenderedPlayer</code></td><td>描画付きPlayerを起動</td></tr>
     <tr><td><code>LoadEditor</code></td><td><code>StartPlayMode</code> editor commandでsceneを開始</td></tr>
@@ -77,5 +77,6 @@ import Callout from '../../../components/Callout.astro';
     <li>独自Controlを登録する場合は、roleに対応するactionを<code>TryApply</code>へ実装してください。観測だけのControlでは操作用actionを持たないroleを選べます。</li>
     <li>Unityを並列起動するテストでは各hostが動的portを使います。同じportを固定利用する別processとの同時実行は避けてください。</li>
   </ul>
-  <Callout kind="tip" title="現在の対応範囲"><p>stable scopeはUnity 6000.5以降のWindows x64 Mono Player／Editorで、UI Toolkit、uGUI、TMPのruntime UIを利用できます。IL2CPP、macOS/Linux、mobile、Unity IMGUI、EditorWindow、自動uGUI list/tab写像はstable scope外です。Unity WebGLにはscreenshot非対応の実験的なbrowser-native WebMCP経路があります。</p></Callout>
+  <Callout kind="tip" title="desktopとブラウザの対応範囲"><p>Unity 6000.5.3f1のdesktop Mono Playerは、Windows x64、Linux x64、Intel macOS、Apple Silicon macOSで実装・検証済みです。Editor Play ModeはWindows、Linux、Apple M4で検証済み、native Intel macOS Editorは実装済み・未検証です。runtime UI Toolkit、uGUI、TMPを利用できます。desktop IL2CPP、mobile、IMGUI、EditorWindow、自動uGUI list/tab写像は対象外です。Unity WebGLは実験的なPlayer経路で、screenshotと権限付き物理クエリは非対応です。</p></Callout>
+  <h2 id="observe-spatial">Observeと物理queryのAPI</h2><p>エンジン統合は公開済みUI／World ownerに型付きObserve値を登録できます。外部の<code>Gua.Testing.GuaWebSocketContext</code>は<code>observe_v1</code>がある場合に<code>GetObserveSnapshotJson</code>／<code>SubscribeObservations</code>を使います。<a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/protocol/specs/observe-transport-v1.md">エンジンごとの登録例</a>・<a href="/ja/docs/gua-runtime/#observe">managed／remoteの例</a>を参照してください。</p><p>物理queryにはTesting／Debug用providerの明示的な認可が必要です。Debugの観測だけでは有効になりません。外部テストは<code>GetSpatialInfo</code>／<code>QuerySpatialBatch</code>を使います。<a href="https://github.com/gua-project/gua/blob/gua-v1.1.0/docs/spatial-engine-r1.md">GodotPhysics3D／JoltとUnity PhysXの設定</a>で上限と無効化条件を確認します。組み込みbrowser WebMCPの権限付き物理queryは非対応です。<a href="/ja/world-object-tree/#physics">queryの意味と制限</a>を参照してください。</p>
 </DocPage>

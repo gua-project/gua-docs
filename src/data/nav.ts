@@ -50,10 +50,13 @@ export const sectionGroups = [
       { label: 'AIエージェント公開ポリシー編', href: '/ja/agent-policy/', accent: 'blue', children: [] },
     ],
   },
+  { label: '更新履歴', items: [{ label: 'v1.1.0', href: '/ja/docs/release-1-1-0/', accent: 'mint', children: [] }] },
 ] as const;
 
 export const docs = [
   { label: 'Docs概要', href: '/ja/docs/' },
+  { label: 'npmパッケージ', href: '/ja/docs/npm-packages/' },
+  { label: 'Valueツール', href: '/ja/docs/value/' },
   { label: '.NETパッケージ', href: '/ja/docs/dotnet-packages/' },
   { label: 'Gua.Runtime実装ガイド', href: '/ja/docs/gua-runtime/' },
   { label: 'Godot API・仕様', href: '/ja/docs/runtime-adapters/' },
@@ -114,10 +117,13 @@ export const sectionGroupsEn = [
       { label: 'AI agent exposure policy', href: '/agent-policy/', accent: 'blue', children: [] },
     ],
   },
+  { label: 'CHANGELOG', items: [{ label: 'v1.1.0', href: '/docs/release-1-1-0/', accent: 'mint', children: [] }] },
 ] as const;
 
 export const docsEn = [
   { label: 'Docs overview', href: '/docs/' },
+  { label: 'npm packages', href: '/docs/npm-packages/' },
+  { label: 'Value tools', href: '/docs/value/' },
   { label: '.NET packages', href: '/docs/dotnet-packages/' },
   { label: 'Gua.Runtime guide', href: '/docs/gua-runtime/' },
   { label: 'Godot API and specification', href: '/docs/runtime-adapters/' },

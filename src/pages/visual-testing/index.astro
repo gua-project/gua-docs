@@ -11,7 +11,7 @@ import Callout from '../../components/Callout.astro';
 
   <figure class="doc-figure"><div class="flow"><span>Stable UI frame<small>optionally wait</small></span><b>→</b><span>Actual PNG<small>from diagnostics</small></span><b>→</b><span>Reviewed baseline<small>name + variant</small></span><b>→</b><span>Pixel comparison<small>threshold + masks</small></span><b>→</b><span>PASS / artifacts<small>review differences</small></span></div><figcaption>Figure 1: The baseline is selected by test name and variant; failures preserve all comparison evidence.</figcaption></figure>
 
-  <h2>Install</h2><CodeBlock title="Add the latest stable package to a visual test project" lang="powershell" code={`dotnet add package Gua.Testing.Visual`} />
+  <h2>Install</h2><CodeBlock title="Add the 1.1.0 package to a visual test project" lang="powershell" code={`dotnet add package Gua.Testing.Visual --version 1.1.0`} />
 
   <h2>Create a baseline deliberately</h2>
   <CodeBlock title="Allow a local baseline update" lang="powershell" code={`$env:GUA_UPDATE_BASELINES = "1"
@@ -71,7 +71,7 @@ var result = await GuaVisualAssertions.ExpectScreenshotAsync(
 
 - name: Upload visual report
   if: failure()
-  uses: link1345/gua-tester/visual-report@v3.1
+  uses: gua-project/gua-tester/visual-report@v3.2
   with:
     artifact-path: artifacts/gua
     test-outcome: failure
