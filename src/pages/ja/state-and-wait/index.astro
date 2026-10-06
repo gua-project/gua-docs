@@ -3,8 +3,8 @@ import DocPage from '../../../components/DocPage.astro'; import CodeBlock from '
 ---
 <DocPage eyebrow="CONCEPT / STATE &amp; WAIT" title="状態・操作・待機の仕組み" lead="ゲームの本当の状態はGodotやUnityが持ちます。Guaは公開された状態の一覧と操作の結果を管理し、AIやテストへ伝えます。" description="ゲーム状態、操作結果、条件待機、接続ごとの入力を図と具体例で説明します。" section="state-and-wait">
   <h2>例: Startを押してゲーム画面を待つ</h2><p>ボタンを押した直後に次の画面が完成するとは限りません。Guaはまず「ゲームがクリックを処理したか」を確認し、その後「game画面になったか」を新しい状態一覧で確認します。操作の完了と、操作後の画面変化は別々に確かめます。</p>
-  <CodeBlock title="外部.NETテストでの例" lang="csharp" code={"using System;\nusing Gua.Testing;\n\nawait GuaAssertions.Query(host.Context)\n    .ById(\"start\").ClickAsync();\n\nawait GuaWaits.WaitForVisibleAsync(host.Context, \"game-title\",\n    timeout: TimeSpan.FromSeconds(5));"} />
-  <p>host.Contextは起動したゲームへの接続です。ById("start")は公開IDがstartのボタンを探し、ClickAsyncは操作できる状態と処理の完了を待ちます。GuaWaits.WaitForVisibleAsyncは、次の画面のgame-titleというIDが表示されるまで、最大5秒間、新しい状態を確認します。</p>
+  <CodeBlock title="外部.NETテストでの例" lang="csharp" code={"using System;\nusing Gua.Testing;\n\nawait GuaAssertions.Query(host.Context)\n    .ById(\"start\").ClickAsync();\n\nawait GuaAssertions.WaitForVisibleAsync(host.Context, \"game-title\",\n    timeout: TimeSpan.FromSeconds(5));"} />
+  <p>host.Contextは起動したゲームへの接続です。ById("start")は公開IDがstartのボタンを探し、ClickAsyncは操作できる状態と処理の完了を待ちます。GuaAssertions.WaitForVisibleAsyncは、次の画面のgame-titleというIDが表示されるまで、最大5秒間、新しい状態を確認します。</p>
   <h2>どこに何があるか</h2><p>上から順に、ゲームの状態がAIやテストへ届きます。操作要求は反対方向へ戻ります。「Runtime」は、公開した状態と操作の受け渡しを管理するGuaの部分です。</p>
     <figure class="state-map">
     <div class="state-stage"><small>本当の状態</small><strong>Godot・Unity</strong><p>scene、UI部品、ゲーム内の値、入力状態そのものを持ちます。</p></div>
