@@ -1,7 +1,9 @@
 ---
+import RemoteBuildNotice from '../../components/RemoteBuildNotice.astro';
 import DocPage from '../../components/DocPage.astro'; import Callout from '../../components/Callout.astro';
 ---
 <DocPage eyebrow="DOCS / REFERENCE" title="Docs" lead="Find package installation steps and concrete examples of values and APIs. Additions and changes are listed in the changelog." description="Official Gua API and sample reference." section="docs">
+  <RemoteBuildNotice />
   <Callout title="Source of truth"><p>The package and Value references link to source pinned to <code>gua-v1.1.0</code>. Existing API guides also link to implementation on <code>main</code>; package and engine integration support must be checked for the version in use.</p></Callout>
   <div class="card-grid">
     <a class="chapter-card" href="/docs/npm-packages/"><span>PACKAGES / NPM</span><h3>npm packages</h3><p>Install the four packages for AI connections and game data processing, with examples.</p></a>

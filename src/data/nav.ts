@@ -4,6 +4,7 @@ export const sectionGroups = [
     items: [
       { label: 'AI開発・AIプレイヤー', href: '/ja/ai-coding/', accent: 'blue', children: [] },
       { label: '状態・操作・待機', href: '/ja/state-and-wait/', accent: 'mint', children: [] },
+      { label: '用途別のビルド設定（v1.2.0）', href: '/ja/remote-builds/', accent: 'amber', children: [] },
       {
         label: 'Godot編', href: '/ja/godot/', accent: 'mint',
         children: [
@@ -50,7 +51,7 @@ export const sectionGroups = [
       { label: 'AIエージェント公開ポリシー編', href: '/ja/agent-policy/', accent: 'blue', children: [] },
     ],
   },
-  { label: '更新履歴', items: [{ label: 'v1.1.0', href: '/ja/docs/release-1-1-0/', accent: 'mint', children: [] }] },
+  { label: '更新履歴', items: [{ label: 'v1.2.0', href: '/ja/docs/release-1-2-0/', accent: 'amber', children: [] }, { label: 'v1.1.0', href: '/ja/docs/release-1-1-0/', accent: 'mint', children: [] }] },
 ] as const;
 
 export const docs = [
@@ -71,6 +72,7 @@ export const sectionGroupsEn = [
     items: [
       { label: 'AI development & players', href: '/ai-coding/', accent: 'blue', children: [] },
       { label: 'State, actions, and waits', href: '/state-and-wait/', accent: 'mint', children: [] },
+      { label: 'Choose a build purpose (v1.2.0)', href: '/remote-builds/', accent: 'amber', children: [] },
       {
         label: 'Godot', href: '/godot/', accent: 'mint',
         children: [
@@ -117,7 +119,7 @@ export const sectionGroupsEn = [
       { label: 'AI agent exposure policy', href: '/agent-policy/', accent: 'blue', children: [] },
     ],
   },
-  { label: 'CHANGELOG', items: [{ label: 'v1.1.0', href: '/docs/release-1-1-0/', accent: 'mint', children: [] }] },
+  { label: 'CHANGELOG', items: [{ label: 'v1.2.0', href: '/docs/release-1-2-0/', accent: 'amber', children: [] }, { label: 'v1.1.0', href: '/docs/release-1-1-0/', accent: 'mint', children: [] }] },
 ] as const;
 
 export const docsEn = [

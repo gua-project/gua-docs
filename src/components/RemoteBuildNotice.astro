@@ -1,0 +1,7 @@
+---
+import Callout from './Callout.astro';
+const ja = Astro.url.pathname.startsWith('/ja/');
+---
+<Callout kind="warn" title={ja ? 'v1.2.0 以降：遠隔操作にはビルド時の明示的な有効化が必要です' : 'v1.2.0 and later: remote automation must be explicitly enabled at build time'}>
+  {ja ? <p>v1.1.2 と v1.2.0 以降ではビルド設定が異なります。v1.2.0 以降の通常配布用ビルド（遠隔操作なし）は遠隔実装を含まず、Release／Debug の選択や Player profile だけでは有効になりません。<a href="/ja/remote-builds/">必須フラグ・用途別の選択・移行手順</a>を確認してください。</p> : <p>Build settings differ between v1.1.2 and v1.2.0 or later. The ordinary user-facing release build (with no remote control) in v1.2.0 and later contains no remote implementation; choosing Release/Debug or the Player profile does not enable it. See <a href="/remote-builds/">required flags, build choices, and migration steps</a>.</p>}
+</Callout>
