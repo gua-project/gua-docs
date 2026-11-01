@@ -1,0 +1,14 @@
+---
+import DocPage from '../../components/DocPage.astro';
+import Callout from '../../components/Callout.astro';
+---
+<DocPage eyebrow="CHANGELOG / UPCOMING V1.2.0" title="v1.2.0 — upcoming migration" lead="Remote automation becomes an explicit build choice. Review this compatibility change before upgrading a v1.1.2 game integration." description="Upcoming Gua v1.2.0 compatibility change: explicit remote build flag, Shipping default OFF, fixed AI Player ceiling, and package migration." section="changelog">
+  <Callout kind="warn" title="Not released yet"><p>This is advance migration documentation, not a published v1.2.0 release announcement. Continue using matching v1.1.2 components for the current release, or evaluate the new behavior from a source revision containing it. Do not assume a v1.2.0 package or tag exists.</p></Callout>
+  <h2>Important compatibility change</h2>
+  <p>Choosing Debug/Release, exporting a Release executable, or setting <code>GUA_OBSERVATION_PROFILE=player</code> does not enable remote automation. Native source builds now require an explicit <code>GUA_ENABLE_REMOTE_AUTOMATION=ON</code> together with an appropriate <code>GUA_DISTRIBUTION_FLAVOR</code>. The default is <code>shipping</code> / OFF, with the remote implementation excluded at compile/link/package time.</p>
+  <ul><li>Development/Editor: opt in to remote use; local-only OFF is also supported.</li><li>QA Release: opt in with <code>qa</code>, with Debug as the maximum profile.</li><li>AI Player Shipping: opt in with <code>ai-player</code>, with a fixed Player ceiling.</li><li>Normal Shipping: no remote implementation; runtime environment variables and APIs cannot restore it.</li></ul>
+  <h2>What to change when upgrading</h2>
+  <ol><li>Choose the build purpose before installing/building the game integration.</li><li>Replace matched native/managed/add-on/test components together and use fresh build/staging directories.</li><li>For Unity source adapters, match <code>GUA_REMOTE_AUTOMATION</code> and, for AI Player, <code>GUA_PLAYER_ONLY</code>. These cannot alter a prebuilt native DLL or precompiled managed assembly.</li><li>Keep the variant manifests and identity/hash checks. Native NuGet pack requires verified per-RID assets; the unlabeled single-DLL fallback is removed.</li><li>Verify absence on Shipping, allowed Player operations without Debug elevation on AI Player, and remote operation on the opted-in QA/Development build.</li></ol>
+  <p>Bridge ABI failure stubs and necessary local APIs remain. The development presets and SDK build workflows explicitly opt in; an SDK archive or “Release” name is not a normal Shipping guarantee. This change does not automatically enable Player gameplay input or replace host exposure policy.</p>
+  <p><a class="button" href="/remote-builds/">Required flags, commands, engine setup, and migration steps →</a></p>
+</DocPage>

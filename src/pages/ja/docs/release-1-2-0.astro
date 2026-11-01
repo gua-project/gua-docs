@@ -1,0 +1,14 @@
+---
+import DocPage from '../../../components/DocPage.astro';
+import Callout from '../../../components/Callout.astro';
+---
+<DocPage eyebrow="CHANGELOG / UPCOMING V1.2.0" title="v1.2.0：次版への移行案内" lead="遠隔操作の有無を明示的にビルドで選ぶようになります。v1.1.2 のゲーム組込みを更新する前に確認してください。" description="次版 Gua v1.2.0 の重要な互換性変更。遠隔ビルドの明示フラグ、Shipping 既定OFF、AI Player上限固定、パッケージ移行。" section="changelog">
+  <Callout kind="warn" title="まだ公開済みのリリースではありません"><p>これは事前の移行案内であり、v1.2.0 の公開告知ではありません。現行版は v1.1.2 のコンポーネントを揃えて使い、新仕様を評価する場合は対応するソース revision を使ってください。v1.2.0 のパッケージやタグがあるとは仮定しません。</p></Callout>
+  <h2>重要な互換性変更</h2>
+  <p>Debug／Release の選択、Release EXE への export、<code>GUA_OBSERVATION_PROFILE=player</code> の指定だけでは、遠隔操作を利用できることになりません。native のソースビルドは、用途に合う <code>GUA_DISTRIBUTION_FLAVOR</code> と、明示的な <code>GUA_ENABLE_REMOTE_AUTOMATION=ON</code> が必要です。既定は <code>shipping</code>／OFF となり、compile／link／package 時に遠隔実装を除外します。</p>
+  <ul><li>Development／Editor：遠隔利用は opt-in。ローカル専用 OFF も利用可能。</li><li>QA Release：<code>qa</code> で opt-in。上限は Debug。</li><li>AI Player Shipping：<code>ai-player</code> で opt-in。上限は Player 固定。</li><li>通常 Shipping：遠隔実装なし。実行時の環境変数や API では復活しない。</li></ul>
+  <h2>移行時に変えること</h2>
+  <ol><li>ゲーム側組込みを導入・ビルドする前に用途を選びます。</li><li>native／managed／addon／test の対応版を一式交換し、新しい build／staging directory を使います。</li><li>Unity adapter をソースから作る場合は <code>GUA_REMOTE_AUTOMATION</code>、AI Player ならさらに <code>GUA_PLAYER_ONLY</code> を揃えます。ゲーム側の define だけで既製 native DLL やコンパイル済み managed assembly は変わりません。</li><li>variant の manifest と identity／hash 検査を保持します。native NuGet pack は検証済みの全 RID 資産が必要で、未ラベル単一 DLL fallback は廃止されます。</li><li>Shipping の機能不在、AI Player の許可操作と Debug 昇格不可、opt-in した QA／Development の遠隔正常系を確認します。</li></ol>
+  <p>互換用 bridge ABI の失敗 stub と必要なローカル API は維持します。開発 preset と SDK build workflow は明示的に opt-in しており、SDK archive や「Release」という名前だけでは通常出荷用とは判断できません。この変更で Player のゲーム入力が自動許可されることはなく、ホストの公開ポリシーも引き続き必要です。</p>
+  <p><a class="button" href="/ja/remote-builds/">必須フラグ・コマンド・engine 設定・移行手順 →</a></p>
+</DocPage>

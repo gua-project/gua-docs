@@ -1,4 +1,5 @@
 ---
+import RemoteBuildNotice from '../../../components/RemoteBuildNotice.astro';
 import DocPage from '../../../components/DocPage.astro'; import CodeBlock from '../../../components/CodeBlock.astro'; import Callout from '../../../components/Callout.astro';
 const config = `{
   "mcpServers": {
@@ -14,6 +15,7 @@ const config = `{
 }`;
 ---
 <DocPage eyebrow="TOOL / MCP SERVER" title="MCPサーバー操作編" lead="gui-mcpは、AIエージェントのツール呼び出しを実行中ゲームのWebSocketブリッジへ中継する薄いstdioサーバーです。" description="gui-mcpの設定とGuaゲームランタイム操作方法。" section="mcp">
+  <RemoteBuildNotice />
   <h2>先にゲームを起動する</h2><div class="flow"><span>AI client</span><b>stdio →</b><span>gui-mcp</span><b>WebSocket →</b><span>Game bridge</span><b>→</b><span>Gua adapter</span></div><p>MCPサーバー自身はUI状態を持ちません。Godotアプリがブリッジを起動し、<code>ws://127.0.0.1:8765</code>で待ち受けている必要があります。</p>
   <Callout kind="tip" title="状態を持つのはゲームとGua Runtime"><p>MCPとWebMCPに共通する状態・操作・待機の所有関係は<a href="/ja/state-and-wait/">状態・操作・待機の仕組み</a>を参照してください。</p></Callout>
   <h2>MCPクライアントへ登録</h2><p>Bun環境では公開パッケージを<code>bunx</code>で起動する。クライアントの設定形式に合わせ、次のコマンドと引数を登録する。</p><CodeBlock title="MCP設定例" lang="json" code={config} /><Callout title="接続先とartifact"><p><code>GUA_BRIDGE_URL</code>で別ポートへ接続できます。Recording、baseline、画像差分は既定で<code>.gua</code>へ保存され、<code>GUA_ARTIFACT_DIR</code>で変更できます。</p></Callout>

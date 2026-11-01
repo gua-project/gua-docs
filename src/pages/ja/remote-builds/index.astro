@@ -1,0 +1,79 @@
+---
+import DocPage from '../../../components/DocPage.astro';
+import Callout from '../../../components/Callout.astro';
+import CodeBlock from '../../../components/CodeBlock.astro';
+const qa = [
+  'git clone https://github.com/gua-project/gua.git',
+  'cd gua',
+  'cmake --preset windows-qa -DGUA_BUILD_EXAMPLES=OFF',
+  'cmake --build --preset windows-qa --target gua gua-runtime gua-godot',
+  'pwsh -NoProfile -File scripts/stage-remote-build.ps1 -BuildDirectory build/windows-qa -OutputDirectory artifacts/qa -Flavor qa -Remote on -GodotExtension build/windows-qa/stage/addons/gua/bin/gua_godot.windows.release.x86_64.dll',
+].join('\n');
+const dev = [
+  'cmake -S . -B build/dev-remote -G "Visual Studio 18 2026" -A x64 -DGUA_DISTRIBUTION_FLAVOR=development -DGUA_ENABLE_REMOTE_AUTOMATION=ON -DGUA_STAGE_IN_SAMPLE=OFF -DGUA_BUILD_EXAMPLES=OFF -DGUA_GODOT_CONFIGURATION=Debug',
+  'cmake --build build/dev-remote --config Debug --target gua gua-runtime gua-godot',
+].join('\n');
+const godot = [
+  'extends Control',
+  'const Adapter = preload("res://addons/gua/gua_auto_adapter.gd")',
+  'var ui = Adapter.new()',
+  'func _ready() -> void:',
+  '  ui.attach(self)',
+  '  ui.update("title")',
+  '  if ui.get_build_info().get("remoteEnabled", false):',
+  '    if not ui.start_inspector_bridge(8765):',
+  '      push_error("The compiled bridge could not start")',
+  'func _process(_delta: float) -> void:',
+  '  ui.update("title")',
+].join('\n');
+---
+<DocPage eyebrow="BUILD / REMOTE AUTOMATION" title="遠隔操作できるビルドを選ぶ" lead="次版 v1.2.0 では、コンパイル・パッケージ作成時に遠隔機能の有無を選びます。実行時の profile は権限を制限するもので、入っていないコードを追加するものではありません。" description="次版 Gua v1.2.0 の必須ビルドフラグ、Shipping・QA・Development・AI Player、Godot・Unity・native manifest と v1.1.2 からの移行手順。" section="remote-builds">
+  <Callout kind="warn" title="v1.2.0 は次版です。まだ公開済みのパッケージではありません"><p>ここでは Gua ソースに取り込まれた次版のビルド契約を説明します。v1.2.0 のタグ・配布ファイル・registry パッケージが公開済みであるという案内ではありません。現行 v1.1.2 を使う場合は、ゲーム側 addon・native library・managed assembly・テストパッケージを同じバージョンに揃えてください。古い native DLL に次版の API 例をそのまま適用しないでください。</p><p><a href="/ja/docs/release-1-2-0/">v1.2.0 の変更・移行案内</a> · <a href="/ja/godot/ui/">Godot 導入</a> · <a href="/ja/unity/ui/">Unity 導入</a></p></Callout>
+  <h2 id="three-choices">別々に選ぶ3つのこと</h2>
+  <ol><li><strong>Debug／Release</strong> はビルド構成です。Release という名前だけで遠隔機能がないとは判断できず、Debug にするだけで遠隔機能が有効になるわけでもありません。</li><li><strong>コンパイルする機能</strong> は native Gua のビルド時に <code>GUA_DISTRIBUTION_FLAVOR</code> と <code>GUA_ENABLE_REMOTE_AUTOMATION</code> で指定します。遠隔 transport・dispatch の実装が成果物に入るかどうかを決めます。</li><li><strong>Debug／Player profile</strong> は、コンパイル済みの上限内で公開情報と操作を制限します。<code>GUA_OBSERVATION_PROFILE=player</code> は利用可能な runtime の制限であり、接続を作ったり bridge をコンパイルに追加したりする設定ではありません。</li></ol>
+  <h2 id="matrix">用途に合った成果物を選ぶ</h2>
+  <div class="table-wrap"><table><thead><tr><th>用途 / flavor</th><th>native の遠隔フラグ</th><th>構成</th><th>遠隔権限の上限</th></tr></thead><tbody>
+    <tr><td>通常出荷：<code>shipping</code></td><td><code>OFF</code> 必須・既定値</td><td>Release</td><td>なし。遠隔実装を除外</td></tr>
+    <tr><td>開発／Editor：<code>development</code></td><td>ローカル利用は <code>OFF</code>、遠隔利用は明示的に <code>ON</code></td><td>Debug または Release</td><td>ON 時は Debug。ホストが Player へ制限可能</td></tr>
+    <tr><td>Release 実行ファイルのテスト：<code>qa</code></td><td>明示的な <code>ON</code> が必須</td><td>Release</td><td>Debug。ホストが Player へ制限可能</td></tr>
+    <tr><td>出荷ゲームを AI が遊ぶ：<code>ai-player</code></td><td>明示的な <code>ON</code> が必須</td><td>Release</td><td>コンパイル時から Player 固定</td></tr>
+  </tbody></table></div>
+  <p>新しい native build の既定は <code>shipping</code> と <code>GUA_ENABLE_REMOTE_AUTOMATION=OFF</code> です。Shipping＋ON、QA／AI Player＋OFF、出荷用 flavor の非 Release 構成はエラーになります。必要なローカル core・観測／記録 API と、互換性のための bridge 関数のシグネチャは維持します。Shipping の bridge 呼出しは失敗 stub です。関数名が存在することと、遠隔実装を利用できることは別です。</p>
+  <Callout title="同じ Release EXE でも目的が違います"><p>Release EXE をテスターが Debug 情報で検査するなら <code>qa</code>、出荷ゲームに AI プレイヤーを参加させるなら <code>ai-player</code>、Gua 経由で遠隔操作させない通常版なら <code>shipping</code> を配布します。全 variant を同梱して環境変数で切り替える構成にはしません。</p></Callout>
+  <h2 id="build">対象バージョンのソースからビルドする</h2>
+  <p>以下は、この契約を含む Gua ソースのルートで実行します。v1.2.0 公開前に評価する場合は対応するソース revision を使い、<code>gua-v1.2.0</code> タグやパッケージがあると仮定しないでください。Git、CMake、C++20 toolchain が必要です。以下の Windows preset は Visual Studio 18 2026 の C++ tools と、その generator に対応する CMake を使います。Godot native build には Python と godot-cpp の依存も必要で、初回 configure 時に取得する場合があります。staging／probe スクリプトには PowerShell 7 と .NET 10 SDK が必要です。</p>
+  <div class="table-wrap"><table><thead><tr><th>Windows preset</th><th>内容</th></tr></thead><tbody>
+    <tr><td><code>windows-shipping</code></td><td>Shipping / OFF / Release</td></tr>
+    <tr><td><code>windows-qa</code></td><td>QA / ON / Release</td></tr>
+    <tr><td><code>windows-ai-player</code></td><td>AI Player / ON / Release</td></tr>
+    <tr><td><code>windows-msvc-debug</code>、<code>windows-msvc-release</code></td><td>従来の開発 fixture 用。明示的に ON であり、通常出荷用ではない</td></tr>
+  </tbody></table></div>
+  <h3>Godot addon を含む QA Release を作る</h3>
+  <CodeBlock title="Windows / QA / Release：ソースからビルドして別の配布先へ配置" lang="powershell" code={qa} />
+  <p>最後のコマンドは実 native library の情報を読み取り、一致を確認して addon を用意し、パッケージを検査します。出力先は空でなければなりません。<code>artifacts/qa/addons/gua</code> をゲームの export 用 staging copy へ配置し、Release extension を使って export してください。この Release 専用 addon に Editor／Debug extension は含まれないため、Editor の開発環境とは分けます。別 variant のファイルが残った古い addon へ DLL だけを上書きしないでください。</p>
+  <p>通常出荷では <code>windows-shipping</code>、<code>build/windows-shipping</code>、<code>artifacts/shipping</code>、<code>-Flavor shipping -Remote off</code> と対応する Release extension のパスを使います。AI Player では <code>windows-ai-player</code>、<code>build/windows-ai-player</code>、<code>artifacts/ai-player</code>、<code>-Flavor ai-player -Remote on</code> に揃えます。build directory と staging directory は用途ごとに分けてください。</p>
+  <h3>Development／Editor で明示的に有効にする</h3>
+  <CodeBlock title="別ディレクトリへ作る Debug 開発ビルド" lang="powershell" code={dev} />
+  <p>ローカル専用の開発ビルドは、新しい <code>build/dev-local</code> で <code>GUA_ENABLE_REMOTE_AUTOMATION=OFF</code> として configure します。開発用 Release を作る場合も flavor は <code>development</code> のまま、native と Godot の構成を Release に揃えます。Debug を staging するときは <code>-Configuration Debug -EngineBuildKind debug</code> と Debug extension のパスを渡します。<code>GUA_STAGE_IN_SAMPLE</code> の既定は OFF、ON が許されるのは development だけです。従来の開発 preset 2本は意図的に ON にしています。</p>
+  <p>C++／.NET 専用なら <code>-DGUA_BUILD_GODOT=OFF</code> で configure し、<code>gua</code> と <code>gua-runtime</code> をビルドして、staging の <code>-GodotExtension</code> を省略します。Ninja などの単一構成 generator で Shipping／QA／AI Player を作る場合は、同じ flavor・remote フラグに加えて <code>-DCMAKE_BUILD_TYPE=Release</code> を指定します。<code>GUA_BUILD_WS_BRIDGE=ON</code> だけでは opt-in にならず、上位の遠隔フラグが OFF ならエラーです。</p>
+  <h2 id="godot">Godot：export 前に addon を選ぶ</h2>
+  <p>選んだ flavor と native 構成の staged addon を使ってください。Godot の Debug／Release feature や <code>OS.has_feature()</code> はリソースを選択・確認するもので、既製 GDExtension の遠隔コードを取り除く機能ではありません。desktop staging tool は対象 library だけの descriptor を作り、Shipping から WebMCP リソースと attach コードを除外します。</p>
+  <CodeBlock title="v1.2.0 API：遠隔機能がなくてもローカル収集を続ける" lang="gdscript" code={godot} />
+  <p>desktop では <code>remoteEnabled=true</code> の場合に bridge の開始を試せます。それでも開始に失敗するなら、ポート競合や起動エラーなどを確認します。Godot Web では native WebSocket listener ではなく、対応する同一ページ内 WebMCP 経路を使います。どの経路でも profile は native の上限を超えられません。</p>
+  <h2 id="unity">Unity：native と managed のコンパイルを揃える</h2>
+  <ol><li>用途に合う native core／runtime の組をビルドまたは取得します。ゲーム側の <code>#if</code> だけを変えても、既製 native DLL や static archive は変わりません。</li><li>Unity adapter のソースをコンパイルする場合、遠隔版は <code>GUA_REMOTE_AUTOMATION</code> を定義します。AI Player はさらに <code>GUA_PLAYER_ONLY</code> を定義し、後者だけの指定はできません。Shipping は両方を定義せずにコンパイルします。プロジェクトの define を変えても既製 <code>Gua.Unity.dll</code> は再コンパイルされないので、対応する assembly／package を選ぶかビルドし直してください。</li><li>Player build のプロセスで <code>GUA_BUILD_VARIANT</code> を <code>shipping</code>、<code>development</code>、<code>qa</code>、<code>ai-player</code> のいずれかにします。既定は <code>shipping</code> です。これは prebuild guard に検査すべき用途を伝える設定で、native の機能を変えません。たとえば <code>$env:GUA_BUILD_VARIANT = "ai-player"</code> は、AI Player 用 native／managed を用意した後の build intent の指定にすぎません。</li><li>QA／Shipping／AI Player は Development option のない Player build が必要です。guard は生成前に managed のコンパイル済み能力、選択された native の identity、manifest／hash の一致を検査します。不一致はファイル名の変更で回避せず、誤った成果物を交換して解消してください。</li></ol>
+  <p>リポジトリ内サンプルは開発用の遠隔操作を意図的に有効化しています。<code>GuaUnityEditorCommands.BuildPlayer</code> helper は <code>-guaVariant</code> から用途を読み、既定を <code>development</code> として、自分で <code>GUA_BUILD_VARIANT</code> を設定します。この helper を使う場合は <code>-guaVariant ai-player</code> などの意図した option を渡してください。環境変数だけの指定は helper の既定値に上書きされます。これは通常出荷用のコマンドではなく、option は native の再ビルドや managed define の変更もしません。対応する成果物を先に用意してください。</p>
+  <h2 id="packages">パッケージと manifest</h2>
+  <p>ファイル名に「Release」があっても Shipping とは限りません。従来の開発 preset と SDK build workflow は明示的に opt-in しています。用途が一致する検証済み成果物を選び、次版の全 variant がすでに公開ダウンロード可能だとは仮定しないでください。</p>
+  <ul><li>Shipping／QA／Development／AI Player の artifact・staging を分けます。native core／runtime、Godot extension、Unity managed assembly、Web リソースの用途を揃えます。</li><li><code>gua-build-manifest.json</code> と native identity／hash の検査を維持します。未知・余分・古い・不一致の native ファイルがあれば package／build を停止します。QA DLL を改名しても安全な配布物にはなりません。</li><li>native NuGet pack には <code>GuaNativeAssetsRoot</code> が必要です。<code>win-x64</code>、<code>linux-x64</code>、<code>osx-x64</code>、<code>osx-arm64</code> の検証済み manifest と binary を揃えます。pack property の既定は <code>GuaDistributionFlavor=shipping</code> と <code>GuaEnableRemoteAutomation=false</code>。QA を pack する場合は <code>qa</code> と <code>true</code> を明示します。これらは既存 binary を検査する property であり、再コンパイルはしません。従来の未ラベル単一 DLL fallback は拒否されます。</li><li>native NuGet には <code>gua-core-build-manifest.json</code>、<code>gua-runtime-build-manifest.json</code> などの component manifest が入ります。依存全体のバージョン・build identity を揃え、同じ package ID／version の別 variant を同じ feed に重ねて公開しないでください。</li></ul>
+  <h3 id="web">Web のコンパイルも明示的に選ぶ</h3>
+  <p>先に対応する Emscripten toolchain を有効にし、<code>emcmake</code> と <code>node</code> を PATH に置いてください。ソースの <code>scripts/build-web-native.ps1</code> は <code>-Flavor</code> と <code>-Remote</code> を受け取ります。従来の既定は <code>development</code>／<code>on</code>、構成は Debug です。出荷用 flavor は <code>-Configuration Release</code> が必要です。例として <code>pwsh -File scripts/build-web-native.ps1 -RuntimeOnly -Configuration Release -Flavor ai-player -Remote on -BuildDirectory build/web-ai-player</code> は Unity static archive を作り、リンク後の情報を Node 上で検査します。ローカル専用 Shipping のコンパイルは別ディレクトリで <code>-Flavor shipping -Remote off</code> を指定します。</p>
+  <p>この helper の native／WASM 出力だけでは、検証済みの最終 Godot Web／Unity WebGL package にはなりません。engine 側の resource／assembly 選択と export 検証も行います。Shipping では WebMCP の実装と入口を配布物から除外してください。attach 処理を実行時条件で囲むだけではコード除去になりません。desktop 用 <code>stage-remote-build.ps1</code> の probe は WASM package verifier ではありません。同一ページ内の使い方と browser の対応範囲は <a href="/ja/webmcp/">WebMCP</a> を参照してください。</p>
+  <h2 id="inspect">接続を試す前にコンパイル済み能力を確認する</h2>
+  <p>C／C++ は <code>gua_copy_build_info_json</code>／<code>gua_runtime_copy_build_info_json</code>、.NET は <code>Gua.Core.GuaBuildInfo.GetJson()</code>／<code>GuaRuntime.GetBuildInfoJson()</code>、Godot は <code>ui.get_build_info()</code>／native context の <code>get_build_info_json()</code> で変更できない build-info を読めます。<code>flavor</code>、<code>configuration</code>、<code>remoteEnabled</code>、<code>remotePermissionCeiling</code>、<code>buildId</code>、<code>sourceCommit</code>、<code>transports</code> を確認してください。</p>
+  <p>Shipping は環境変数・起動引数・bridge API で欠けた実装を復活できません。AI Player は初期から Player で、API・reset／reconnect・client factory・借用 context／unscoped consumer 経由でも Debug へ昇格できません。既存の <a href="/ja/agent-policy/">Player 公開ポリシー</a> と、独立した <a href="/ja/game-input/">ゲーム入力許可</a> は enqueue とホスト実行時の両方で適用されます。Player build だからといって、keyboard・pointer・gameplay action を自動的に許可するものではありません。</p>
+  <p><code>remoteEnabled=false</code> なら接続できないのが正常で、ポート変更や Player profile の指定では有効にできません。true なら起動処理・profile／transport の対応・ポート使用状況を確認します。listener がないことだけをコード除去の証明にせず、配布工程で package identity・compile／link 構成・正負テストを確認してください。Gua ソースには <code>verify-remote-build.ps1</code> と <code>verify-remote-build-graph.ps1</code> (Windows/MSVC) があります。</p>
+  <h2 id="migrate">既存 v1.1.2 プロジェクトから移行する</h2>
+  <ol class="steps"><li><strong>用途を決める</strong><p>通常出荷なら Shipping、Release EXE を Debug 情報で自動検証するなら QA、明示的な Editor 検証なら Development、出荷ゲームに AI を参加させるなら AI Player を選びます。</p></li><li><strong>組込み一式を交換する</strong><p>native・managed・addon・テストコンポーネントのバージョンを揃えます。古い bin／plugin directory の残骸を除き、旧 QA DLL を fallback として同梱しないでください。</p></li><li><strong>新しい build directory で configure する</strong><p>flavor と明示 remote フラグを同時に指定します。古い WS option の cache や Release export preset は、次版の opt-in にはなりません。</p></li><li><strong>所有する層をコンパイルし直す</strong><p>native Gua を対象の能力で作ります。Unity adapter をソースから作るなら managed define を揃え、既製 assembly なら対応ビルドを取得します。Player policy は引き続きホスト側の別の判断です。</p></li><li><strong>staging・検査を経て export する</strong><p>空の出力先を使い、manifest を保持し、不一致を拒否します。通常 Shipping が bridge を開始できないこと、AI Player が Debug へ昇格せず許可操作だけ使えること、QA／Development の遠隔操作が有効化時に動くことを検証します。</p></li><li><strong>CI とテスト対象を更新する</strong><p>開発 SDK を無条件に使わず、対象 variant を導入します。通常 Shipping に遠隔テストで接続することはできません。機能不在を別に検証し、対話操作シナリオは QA または許可された AI Player 成果物で実行します。</p></li></ol>
+  <p>根拠となるソース：<a href="https://github.com/gua-project/gua/blob/2e12fb3cfdf822418f349515027d6f620c5ee63b/cmake/GuaRemoteBuild.cmake">native フラグと検査</a> · <a href="https://github.com/gua-project/gua/blob/2e12fb3cfdf822418f349515027d6f620c5ee63b/CMakePresets.json">preset</a> · <a href="https://github.com/gua-project/gua/blob/2e12fb3cfdf822418f349515027d6f620c5ee63b/protocol/specs/remote-build-variants.md">ビルド契約</a> · <a href="https://github.com/gua-project/gua/blob/2e12fb3cfdf822418f349515027d6f620c5ee63b/scripts/stage-remote-build.ps1">desktop staging</a> · <a href="https://github.com/gua-project/gua/blob/2e12fb3cfdf822418f349515027d6f620c5ee63b/bindings/unity/Editor/GuaVariantBuildGuard.cs">Unity build guard</a></p>
+</DocPage>
