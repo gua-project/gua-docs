@@ -1,9 +1,7 @@
 ---
 import DocPage from '../../../components/DocPage.astro';
-import Callout from '../../../components/Callout.astro';
 ---
-<DocPage eyebrow="CHANGELOG / UPCOMING V1.2.0" title="v1.2.0：次版への移行案内" lead="遠隔操作の有無を明示的にビルドで選ぶようになります。v1.1.2 のゲーム組込みを更新する前に確認してください。" description="次版 Gua v1.2.0 の重要な互換性変更。遠隔ビルドの明示フラグ、Shipping 既定OFF、AI Player上限固定、パッケージ移行。" section="changelog">
-  <Callout kind="warn" title="まだ公開済みのリリースではありません"><p>これは事前の移行案内であり、v1.2.0 の公開告知ではありません。現行版は v1.1.2 のコンポーネントを揃えて使い、新仕様を評価する場合は対応するソース revision を使ってください。v1.2.0 のパッケージやタグがあるとは仮定しません。</p></Callout>
+<DocPage eyebrow="CHANGELOG / V1.2.0" title="v1.2.0：移行案内" lead="v1.2.0 以降では、遠隔操作の有無を明示的にビルドで選びます。v1.1.2 のゲーム組込みを更新する前に確認してください。" description="Gua v1.2.0 の重要な互換性変更。遠隔ビルドの明示フラグ、Shipping 既定OFF、AI Player上限固定、パッケージ移行。" section="changelog">
   <h2>重要な互換性変更</h2>
   <p>Debug／Release の選択、Release EXE への export、<code>GUA_OBSERVATION_PROFILE=player</code> の指定だけでは、遠隔操作を利用できることになりません。native のソースビルドは、用途に合う <code>GUA_DISTRIBUTION_FLAVOR</code> と、明示的な <code>GUA_ENABLE_REMOTE_AUTOMATION=ON</code> が必要です。既定は <code>shipping</code>／OFF となり、compile／link／package 時に遠隔実装を除外します。</p>
   <ul><li>Development／Editor：遠隔利用は opt-in。ローカル専用 OFF も利用可能。</li><li>QA Release：<code>qa</code> で opt-in。上限は Debug。</li><li>AI Player Shipping：<code>ai-player</code> で opt-in。上限は Player 固定。</li><li>通常 Shipping：遠隔実装なし。実行時の環境変数や API では復活しない。</li></ul>

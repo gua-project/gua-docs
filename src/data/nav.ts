@@ -51,7 +51,7 @@ export const sectionGroups = [
       { label: 'AIエージェント公開ポリシー編', href: '/ja/agent-policy/', accent: 'blue', children: [] },
     ],
   },
-  { label: '更新履歴', items: [{ label: 'v1.2.0（次版）', href: '/ja/docs/release-1-2-0/', accent: 'amber', children: [] }, { label: 'v1.1.0', href: '/ja/docs/release-1-1-0/', accent: 'mint', children: [] }] },
+  { label: '更新履歴', items: [{ label: 'v1.2.0', href: '/ja/docs/release-1-2-0/', accent: 'amber', children: [] }, { label: 'v1.1.0', href: '/ja/docs/release-1-1-0/', accent: 'mint', children: [] }] },
 ] as const;
 
 export const docs = [
@@ -119,7 +119,7 @@ export const sectionGroupsEn = [
       { label: 'AI agent exposure policy', href: '/agent-policy/', accent: 'blue', children: [] },
     ],
   },
-  { label: 'CHANGELOG', items: [{ label: 'v1.2.0 (upcoming)', href: '/docs/release-1-2-0/', accent: 'amber', children: [] }, { label: 'v1.1.0', href: '/docs/release-1-1-0/', accent: 'mint', children: [] }] },
+  { label: 'CHANGELOG', items: [{ label: 'v1.2.0', href: '/docs/release-1-2-0/', accent: 'amber', children: [] }, { label: 'v1.1.0', href: '/docs/release-1-1-0/', accent: 'mint', children: [] }] },
 ] as const;
 
 export const docsEn = [

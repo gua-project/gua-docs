@@ -1,9 +1,7 @@
 ---
 import DocPage from '../../components/DocPage.astro';
-import Callout from '../../components/Callout.astro';
 ---
-<DocPage eyebrow="CHANGELOG / UPCOMING V1.2.0" title="v1.2.0 — upcoming migration" lead="Remote automation becomes an explicit build choice. Review this compatibility change before upgrading a v1.1.2 game integration." description="Upcoming Gua v1.2.0 compatibility change: explicit remote build flag, Shipping default OFF, fixed AI Player ceiling, and package migration." section="changelog">
-  <Callout kind="warn" title="Not released yet"><p>This is advance migration documentation, not a published v1.2.0 release announcement. Continue using matching v1.1.2 components for the current release, or evaluate the new behavior from a source revision containing it. Do not assume a v1.2.0 package or tag exists.</p></Callout>
+<DocPage eyebrow="CHANGELOG / V1.2.0" title="v1.2.0 — migration" lead="In v1.2.0 and later, remote automation requires an explicit build choice. Review this compatibility change before upgrading a v1.1.2 game integration." description="Gua v1.2.0 compatibility change: explicit remote build flag, Shipping default OFF, fixed AI Player ceiling, and package migration." section="changelog">
   <h2>Important compatibility change</h2>
   <p>Choosing Debug/Release, exporting a Release executable, or setting <code>GUA_OBSERVATION_PROFILE=player</code> does not enable remote automation. Native source builds now require an explicit <code>GUA_ENABLE_REMOTE_AUTOMATION=ON</code> together with an appropriate <code>GUA_DISTRIBUTION_FLAVOR</code>. The default is <code>shipping</code> / OFF, with the remote implementation excluded at compile/link/package time.</p>
   <ul><li>Development/Editor: opt in to remote use; local-only OFF is also supported.</li><li>QA Release: opt in with <code>qa</code>, with Debug as the maximum profile.</li><li>AI Player Shipping: opt in with <code>ai-player</code>, with a fixed Player ceiling.</li><li>Normal Shipping: no remote implementation; runtime environment variables and APIs cannot restore it.</li></ul>

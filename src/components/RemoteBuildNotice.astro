@@ -2,6 +2,6 @@
 import Callout from './Callout.astro';
 const ja = Astro.url.pathname.startsWith('/ja/');
 ---
-<Callout kind="warn" title={ja ? '次版 v1.2.0：遠隔操作には明示的なビルド opt-in が必要です' : 'Upcoming v1.2.0: remote automation requires an explicit build opt-in'}>
-  {ja ? <p>v1.2.0 はまだ公開されていません。v1.1.2 の導入手順と、次版のビルド設定を区別してください。次版の通常 Shipping は遠隔実装を含まず、Release／Debug の選択や Player profile だけでは有効になりません。<a href="/ja/remote-builds/">必須フラグ・用途別の選択・移行手順</a>を確認してください。</p> : <p>v1.2.0 is not released yet. Keep the v1.1.2 installation instructions separate from the next version's build settings. Normal Shipping in the next version contains no remote implementation; choosing Release/Debug or the Player profile does not enable it. See <a href="/remote-builds/">required flags, build choices, and migration steps</a>.</p>}
+<Callout kind="warn" title={ja ? 'v1.2.0 以降：遠隔操作には明示的なビルド opt-in が必要です' : 'v1.2.0 and later: remote automation requires an explicit build opt-in'}>
+  {ja ? <p>v1.1.2 と v1.2.0 以降ではビルド設定が異なります。v1.2.0 以降の通常 Shipping は遠隔実装を含まず、Release／Debug の選択や Player profile だけでは有効になりません。<a href="/ja/remote-builds/">必須フラグ・用途別の選択・移行手順</a>を確認してください。</p> : <p>Build settings differ between v1.1.2 and v1.2.0 or later. Normal Shipping in v1.2.0 and later contains no remote implementation; choosing Release/Debug or the Player profile does not enable it. See <a href="/remote-builds/">required flags, build choices, and migration steps</a>.</p>}
 </Callout>
