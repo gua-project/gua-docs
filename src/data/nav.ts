@@ -4,7 +4,7 @@ export const sectionGroups = [
     items: [
       { label: 'AI開発・AIプレイヤー', href: '/ja/ai-coding/', accent: 'blue', children: [] },
       { label: '状態・操作・待機', href: '/ja/state-and-wait/', accent: 'mint', children: [] },
-      { label: '遠隔ビルド設定（v1.2.0）', href: '/ja/remote-builds/', accent: 'amber', children: [] },
+      { label: '用途別のビルド設定（v1.2.0）', href: '/ja/remote-builds/', accent: 'amber', children: [] },
       {
         label: 'Godot編', href: '/ja/godot/', accent: 'mint',
         children: [
@@ -72,7 +72,7 @@ export const sectionGroupsEn = [
     items: [
       { label: 'AI development & players', href: '/ai-coding/', accent: 'blue', children: [] },
       { label: 'State, actions, and waits', href: '/state-and-wait/', accent: 'mint', children: [] },
-      { label: 'Remote build settings (v1.2.0)', href: '/remote-builds/', accent: 'amber', children: [] },
+      { label: 'Choose a build purpose (v1.2.0)', href: '/remote-builds/', accent: 'amber', children: [] },
       {
         label: 'Godot', href: '/godot/', accent: 'mint',
         children: [
