@@ -1,9 +1,7 @@
 ---
-import RemoteBuildNotice from '../../../components/RemoteBuildNotice.astro';
 import DocPage from '../../../components/DocPage.astro'; import Callout from '../../../components/Callout.astro';
 ---
 <DocPage eyebrow="DOCS / REFERENCE" title="Docs" lead="必要なパッケージを導入し、値やAPIの具体例を調べます。機能の追加・変更は更新履歴にまとめています。" description="Guaのクラス、変数、サンプルコードの日本語リファレンス。" section="docs">
-  <RemoteBuildNotice />
   <Callout title="参照している公式ソース"><p>packageとValueのリファレンスは<code>gua-v1.1.0</code>に固定したsourceへリンクします。既存API guideには<code>main</code>の実装へのリンクもあります。packageとengine integrationの対応は使うversionに合わせて確認してください。</p></Callout>
   <div class="card-grid">
     <a class="chapter-card" href="/ja/docs/npm-packages/"><span>PACKAGES / NPM</span><h3>npmパッケージ</h3><p>AI接続とデータ処理に使う4パッケージの導入・具体例。</p></a>
