@@ -1,11 +1,9 @@
 ---
-import RemoteBuildNotice from '../../components/RemoteBuildNotice.astro';
 import DocPage from '../../components/DocPage.astro';
 import CodeBlock from '../../components/CodeBlock.astro';
 import Callout from '../../components/Callout.astro';
 ---
 <DocPage eyebrow="DOCS / GUA.RUNTIME" title="Gua.Runtime implementation guide" lead="Connect a managed engine adapter to Gua semantic frames, actions, screenshots, and the Inspector bridge." description="Practical Gua.Runtime use cases, lifecycle, implementation examples, and adapter responsibilities." section="docs">
-  <RemoteBuildNotice />
   <Callout kind="tip" title="Who uses this package"><p><code>Gua.Runtime</code> is for <strong>adapter authors</strong> connecting an engine or UI framework to Gua. A project consuming the existing Unity or Godot integration normally does not reference it directly.</p></Callout>
 
   <h2>Concrete use cases</h2>

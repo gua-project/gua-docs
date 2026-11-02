@@ -1,10 +1,8 @@
 ---
-import RemoteBuildNotice from '../../../components/RemoteBuildNotice.astro';
 import DocPage from '../../../components/DocPage.astro';
 import Callout from '../../../components/Callout.astro';
 ---
 <DocPage eyebrow="UNITY / OVERVIEW" title="Unity編" lead="Unity 6の実行時UIを自動収集し、Godot版と同じSemantic UI Tree、Inspector、MCP、外部.NETテストへ接続します。" description="GuaのUnity 6 desktop Mono対応の概要。" section="unity">
-  <RemoteBuildNotice />
   <Callout kind="tip" title="まずは動くUnityサンプルを参考に"><p><a href="https://github.com/link1345/gua-sample-unity"><code>link1345/gua-sample-unity</code></a>は、Unity 6で動く、Guaを組み込んだuGUI製のサンプルゲームプロジェクトです。UPMパッケージの導入、実際のUnity Playerを操作するNUnitのSemantic UIテスト、失敗時diagnostics、<code>Gua.Testing.Visual</code>によるVisual regression、<code>Gua.Testing.Recording</code>による記録・再生、GitHub Actionsまで一通り確認できます。各要素をまとめて動かす構成を知りたい場合は、自分のプロジェクトやテストと見比べてください。</p></Callout>
   <Callout title="desktop対応範囲"><p><strong>Unity 6000.5以上・Mono・Windows x64／Linux x64／Intel Mac／Apple Silicon Mac</strong>がstable scopeです。UI Toolkit、uGUI、TextMeshProのランタイムUIを自動収集します。IL2CPP、Unity IMGUI、EditorWindowは未対応です。Unity WebGLは別の実験的なbrowser-native WebMCP経路として維持します。</p></Callout>
   <div class="grid-2">

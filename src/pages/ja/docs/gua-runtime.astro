@@ -1,11 +1,9 @@
 ---
-import RemoteBuildNotice from '../../../components/RemoteBuildNotice.astro';
 import DocPage from '../../../components/DocPage.astro';
 import CodeBlock from '../../../components/CodeBlock.astro';
 import Callout from '../../../components/Callout.astro';
 ---
 <DocPage eyebrow="DOCS / GUA.RUNTIME" title="Gua.Runtime実装ガイド" lead="独自のmanaged engine adapterからSemantic UI Tree、操作、screenshot、Inspector bridgeをGuaへ接続するための実践ガイドです。" description="Gua.Runtimeを使って独自engine adapterを実装する具体的な利用場面、処理フロー、コード例、注意点。" section="docs">
-  <RemoteBuildNotice />
   <Callout kind="tip" title="誰が使うパッケージか"><p><code>Gua.Runtime</code>はゲームのテストを書く人ではなく、engine・UI frameworkとGuaを接続する<strong>adapter作者</strong>が使います。Unity/Godot対応をそのまま利用するプロジェクトでは、通常は直接参照しません。</p></Callout>
 
   <h2>実際の利用場面</h2>

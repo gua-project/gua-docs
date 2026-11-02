@@ -1,11 +1,9 @@
 ---
-import RemoteBuildNotice from '../../components/RemoteBuildNotice.astro';
 import DocPage from '../../components/DocPage.astro';
 import CodeBlock from '../../components/CodeBlock.astro';
 import Callout from '../../components/Callout.astro';
 ---
 <DocPage eyebrow="DOCS / CI" title="GitHub Actions" lead="gua-project/gua-tester provides versioned CI workflows for Gua UI tests in Godot 4.7 and Unity 6 projects." description="Godot and Unity inputs, credentials, artifacts, and visual reports provided by Gua Tester Actions." section="docs">
-  <RemoteBuildNotice />
   <Callout title="Gua Tester Actions v3.2"><p>Use the <a href="https://github.com/gua-project/gua-tester/releases/tag/v3.2">published v3.2 actions</a>. The action version (<code>@v3.2</code>), Gua version (for example <code>gua-v1.1.1</code>), and Godot/Unity version are independent selections.</p></Callout>
 
   <Callout kind="tip" title="Install game packages in CI"><p>The Godot action downloads <code>gua-godot-addon-*.zip</code> and the Unity workflow downloads <code>com.link1345.gua-*.tgz</code> from the selected Gua release. The examples below pin <code>gua-v1.1.1</code>; use <code>1.1.1</code> NuGet packages in the test project too. See <a href="/godot/ui/">Godot</a> or <a href="/unity/ui/">Unity</a> for game installation. Omitting the tag selects the latest stable release containing the required package. Pin the tag for reproducible CI.</p></Callout>
